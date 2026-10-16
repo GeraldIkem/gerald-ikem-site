@@ -7,6 +7,10 @@ export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
+  // CI runners have no GPU, so the 3D scenes render in software and slow everything down:
+  // give assertions longer there, and retry a test before calling it failed.
+  retries: process.env['CI'] ? 2 : 0,
+  expect: { timeout: process.env['CI'] ? 15_000 : 5_000 },
   reporter: process.env['CI'] ? 'github' : 'list',
   use: {
     baseURL: `http://localhost:${port}`,
