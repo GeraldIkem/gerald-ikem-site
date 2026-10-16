@@ -40,6 +40,7 @@ const RULES: Array<[RegExp, IconKey | null, Layer, string?]> = [
   [/typescript/i, 'siTypescript', 'Interface'],
   [/javascript/i, 'siJavascript', 'Interface'],
   [/tailwind/i, 'siTailwindcss', 'Interface'],
+  [/html/i, 'siHtml5', 'Interface'],
   [/glsl|webgl/i, 'siOpengl', 'Interface'],
   [/leaflet/i, 'siLeaflet', 'Interface'],
   [/recharts/i, null, 'Interface'],

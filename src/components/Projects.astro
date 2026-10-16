@@ -3,153 +3,45 @@ import { Image } from 'astro:assets';
 import { projects } from '~/data/projects';
 ---
 
-<project-rail class="rail">
-  <div class="rail__bar">
-    <p class="rail__count" aria-live="polite"><span data-at>1</span> of {projects.length}</p>
-    <div class="rail__buttons">
-      <button type="button" class="rail__btn" data-step="-1" aria-label="Previous projects">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-      </button>
-      <button type="button" class="rail__btn" data-step="1" aria-label="More projects">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-      </button>
-    </div>
-  </div>
-
-  <ol class="rail__track" data-rail-track>
-    {
-      projects.map((project, index) => (
-        <li class="pcard" style={`--brand-bg:${project.brand.bg};--brand-accent:${project.brand.accent};--tilt:${index % 2 === 0 ? -1.4 : 1.2}deg`}>
-          <a class="pcard__link" href={`/projects/${project.slug}/`}>
-            <span class="pcard__shot" aria-hidden="true">
-              <Image src={project.image} alt="" widths={[400, 640]} sizes="22rem" loading="lazy" />
+<ol class="pgrid">
+  {
+    projects.map((project, index) => (
+      <li class="pcard" style={`--brand-bg:${project.brand.bg};--brand-accent:${project.brand.accent};--tilt:${index % 2 === 0 ? -1.4 : 1.2}deg;--i:${index}`}>
+        <a class="pcard__link" href={`/projects/${project.slug}/`}>
+          <span class="pcard__shot" aria-hidden="true">
+            <Image src={project.image} alt="" widths={[400, 640]} sizes="(min-width: 76rem) 18rem, (min-width: 40rem) 45vw, 100vw" loading="lazy" />
+          </span>
+          <span class="pcard__text">
+            <span class="pcard__name">
+              {project.name}
+              {project.status && <span class="pcard__status">{project.status}</span>}
             </span>
-            <span class="pcard__text">
-              <span class="pcard__name">
-                {project.name}
-                {project.status && <span class="pcard__status">{project.status}</span>}
-              </span>
-              <span class="pcard__one">{project.oneLine}</span>
-              <span class="pcard__highlights">
-                {project.highlights.map((item) => (
-                  <span>{item}</span>
-                ))}
-              </span>
-              <span class="pcard__cta">Read how it works</span>
+            <span class="pcard__one">{project.oneLine}</span>
+            <span class="pcard__highlights">
+              {project.highlights.map((item) => (
+                <span>{item}</span>
+              ))}
             </span>
-          </a>
-        </li>
-      ))
-    }
-  </ol>
-</project-rail>
-
-<script>
-  class ProjectRail extends HTMLElement {
-    connectedCallback() {
-      const track = this.querySelector<HTMLElement>('[data-rail-track]');
-      const at = this.querySelector('[data-at]');
-      if (!track) return;
-      const cards = [...track.children] as HTMLElement[];
-      const smooth = matchMedia('(prefers-reduced-motion: no-preference)').matches ? 'smooth' : 'auto';
-
-      const step = (direction: number) => {
-        const width = (cards[0]?.getBoundingClientRect().width ?? 300) + 20;
-        track.scrollBy({ left: direction * width, behavior: smooth });
-      };
-      for (const button of this.querySelectorAll<HTMLButtonElement>('[data-step]')) {
-        button.addEventListener('click', () => step(Number(button.dataset['step'])));
-      }
-      track.addEventListener('keydown', (event) => {
-        if (event.key === 'ArrowRight') step(1);
-        else if (event.key === 'ArrowLeft') step(-1);
-        else return;
-        event.preventDefault();
-      });
-
-      // Keep the counter on the first card that's fully in view.
-      const observer = new IntersectionObserver(
-        (entries) => {
-          const visible = entries.filter((entry) => entry.intersectionRatio > 0.9).map((entry) => cards.indexOf(entry.target as HTMLElement));
-          if (visible.length && at) at.textContent = String(Math.min(...visible) + 1);
-        },
-        { root: track, threshold: [0.9] },
-      );
-      cards.forEach((card) => observer.observe(card));
-    }
+            <span class="pcard__cta">Read how it works</span>
+          </span>
+        </a>
+      </li>
+    ))
   }
-  customElements.define('project-rail', ProjectRail);
-</script>
+</ol>
 
 <style>
-  .rail {
-    display: block;
-  }
-
-  .rail__bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
-  .rail__count {
-    color: var(--ink-2);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-  }
-
-  .rail__buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .rail__btn {
+  /* Every project in view at once, no carousel hiding most of them. */
+  .pgrid {
     display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 1.5px solid var(--ink);
-    border-radius: 999px;
-    background: none;
-    color: var(--ink);
-    cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease;
-  }
-
-  .rail__btn:hover {
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  .rail__btn svg {
-    width: 1.2rem;
-    height: 1.2rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  /* One row you slide through, each card snapping into place. */
-  .rail__track {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: min(22rem, 84%);
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
     gap: 1.25rem;
-    overflow-x: auto;
-    padding: 0.25rem 0.25rem 1.25rem;
-    margin: 0 -0.25rem;
+    padding: 0;
     list-style: none;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: 0.25rem;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
   }
 
   .pcard {
-    scroll-snap-align: start;
+    display: grid;
   }
 
   .pcard__link {

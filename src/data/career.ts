@@ -1,3 +1,4 @@
+import type { ImageMetadata } from 'astro';
 import type { Axis, Span } from '~/lib/timeline';
 
 export type Track = 'work' | 'study';
@@ -11,6 +12,11 @@ export interface Stint extends Span {
   /** Short label for the timeline row. */
   short: string;
   points: string[];
+  /** The organization's logo and colours for its card. */
+  logo?: ImageMetadata | undefined;
+  brand?: { bg: string; fg: string } | undefined;
+  /** Pictures of the work, where it is public. */
+  shots?: Array<{ image: ImageMetadata; alt: string; caption: string; href?: string | undefined }> | undefined;
 }
 
 export const axis: Axis = { start: '2019-09', end: '2028-08' };
@@ -77,13 +83,4 @@ export const stints: Stint[] = [
     end: '2025-04',
     points: [],
   },
-];
-
-export const toolbox: Array<{ label: string; items: string[] }> = [
-  { label: 'Languages', items: ['Java', 'Kotlin', 'Python', 'TypeScript', 'SQL', 'C++'] },
-  { label: 'Backend', items: ['Spring Boot', 'Spring Security', 'Hibernate (JPA)', 'JDBC', 'Flyway', 'Node.js'] },
-  { label: 'Data', items: ['PostgreSQL', 'Redis', 'SQLite'] },
-  { label: 'Cloud and delivery', items: ['AWS', 'Docker', 'Kubernetes', 'GitHub Actions', 'Cloudflare Workers'] },
-  { label: 'Testing', items: ['JUnit 5', 'Testcontainers'] },
-  { label: 'Machine learning', items: ['PyTorch', 'scikit-learn', 'pandas', 'Hugging Face', 'Whisper'] },
 ];

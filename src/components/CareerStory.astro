@@ -1,0 +1,681 @@
+---
+/**
+ * The career as a story you scroll through. Milestone cards scroll past on
+ * the left; on the right, a sticky panel shows the year, a cursor moving
+ * along the career trace, and a bucket that fills with the skills each
+ * milestone added. Skills used again grow, so the most-used end up biggest.
+ * Without JavaScript, or on small screens, it is a plain list with the full
+ * bucket underneath.
+ */
+import { Image } from 'astro:assets';
+import { axis, stints } from '~/data/career';
+import { milestones } from '~/data/story';
+import { techOf } from '~/data/tech';
+import { formatMonth, monthIndex, spanGeometry, toYearMonth, yearTicks } from '~/lib/timeline';
+
+const now = toYearMonth(new Date());
+const cursorAt = (date: string) => spanGeometry({ start: date, end: date }, axis, now).left;
+const rows = [...stints]
+  .sort((a, b) => monthIndex(a.start) - monthIndex(b.start))
+  .map((stint) => ({ stint, geometry: spanGeometry(stint, axis, now) }));
+// Even years only, and none so close to the right edge that its label would be cut off.
+const ticks = yearTicks(axis).filter((tick) => tick.year % 2 === 0 && tick.left < 88);
+
+// Every skill once, in order of first appearance, with what the browser needs to draw it.
+const skillOrder: string[] = [];
+for (const milestone of milestones) for (const skill of milestone.skills) if (!skillOrder.includes(skill)) skillOrder.push(skill);
+const skills = skillOrder.map((name) => {
+  const tech = techOf(name);
+  return { name, color: tech.color, text: tech.text, path: tech.path ?? '', initials: tech.initials };
+});
+const skillByName = new Map(skills.map((skill) => [skill.name, skill]));
+const finalCounts = new Map(skillOrder.map((name) => [name, milestones.filter((m) => m.skills.includes(name)).length]));
+
+const data = JSON.stringify({
+  milestones: milestones.map((m) => ({ id: m.id, date: m.date, label: formatMonth(m.date), cursor: cursorAt(m.date), skills: m.skills })),
+});
+const tier = (count: number) => (count >= 4 ? 3 : count >= 2 ? 2 : 1);
+const last = milestones[milestones.length - 1]!;
+---
+
+<career-story class="story">
+  <ol class="story__steps">
+    {
+      milestones.map((m, index) => (
+        <li class="step" data-step={index} style={m.brand ? `--brand-bg:${m.brand.bg};--brand-accent:${m.brand.accent}` : ''}>
+          <article class="step__card">
+            <p class="step__date">{formatMonth(m.date)}</p>
+            <div class="step__head">
+              {m.image && (
+                <span class="step__thumb">
+                  <Image src={m.image} alt="" widths={[240]} sizes="7rem" loading="lazy" />
+                </span>
+              )}
+              <div>
+                <h3>{m.link ? <a href={m.link}>{m.title}</a> : m.title}</h3>
+                <p class="step__where">{m.where}</p>
+              </div>
+            </div>
+            <p class="step__summary">{m.summary}</p>
+            {m.skills.length > 0 && (
+              <ul class="step__skills" aria-label="Skills">
+                {m.skills.map((name) => {
+                  const skill = skillByName.get(name)!;
+                  return (
+                    <li style={`--c:${skill.color};--t:${skill.text}`}>
+                      <span class="dot" aria-hidden="true">
+                        {skill.path ? (
+                          <svg viewBox="0 0 24 24">
+                            <path d={skill.path} />
+                          </svg>
+                        ) : (
+                          skill.initials.slice(0, 1)
+                        )}
+                      </span>
+                      {name}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </article>
+        </li>
+      ))
+    }
+  </ol>
+
+  <aside class="story__viz" aria-label="Skills picked up so far">
+    <div class="viz__top">
+      <p class="viz__year" data-year>{formatMonth(last.date)}</p>
+      <p class="viz__count">
+        <span data-count>{skillOrder.length}</span> <span data-unit>skills</span> in the bucket
+      </p>
+    </div>
+
+    <div class="viz__trace" aria-hidden="true">
+      {
+        rows.map(({ stint, geometry }) => (
+          <div class="viz__row" data-track={stint.track} data-start={stint.start} data-end={stint.end ?? ''}>
+            <span class="viz__label">{stint.short}</span>
+            <span class="viz__lane">
+              <span class="viz__bar" style={`--left:${geometry.left}%;--width:${geometry.width}%;--future:${geometry.futureShare}%`} />
+            </span>
+          </div>
+        ))
+      }
+      <div class="viz__axis">
+        {ticks.map((tick) => <span class="viz__tick" style={`--at:${tick.left}%`}>{tick.year}</span>)}
+        <span class="viz__cursor" data-cursor style={`--at:${cursorAt(last.date)}%`} />
+      </div>
+    </div>
+
+    <div class="bucket" data-bucket>
+      {
+        skills.map((skill) => (
+          <span class="chip" data-skill={skill.name} data-tier={tier(finalCounts.get(skill.name) ?? 1)} style={`--c:${skill.color};--t:${skill.text}`}>
+            <span class="chip__badge" aria-hidden="true">
+              {skill.path ? (
+                <svg viewBox="0 0 24 24">
+                  <path d={skill.path} />
+                </svg>
+              ) : (
+                skill.initials
+              )}
+            </span>
+            {skill.name}
+          </span>
+        ))
+      }
+    </div>
+    <p class="viz__note">Skills grow each time I use them again. Scroll back up and they come back out.</p>
+  </aside>
+
+  <script type="application/json" data-story set:html={data} />
+</career-story>
+
+<script>
+  interface StoryData {
+    milestones: Array<{ id: string; date: string; label: string; cursor: number; skills: string[] }>;
+  }
+
+  const tierOf = (count: number) => (count >= 4 ? 3 : count >= 2 ? 2 : 1);
+
+  class CareerStory extends HTMLElement {
+    #data: StoryData | null = null;
+    #active = -1;
+    #yearFrame = 0;
+
+    connectedCallback() {
+      const raw = this.querySelector('[data-story]')?.textContent;
+      if (!raw) return;
+      this.#data = JSON.parse(raw) as StoryData;
+      const live = matchMedia('(min-width: 64rem) and (prefers-reduced-motion: no-preference)');
+      if (!live.matches) return; // Small screens and reduced motion keep the full, static bucket.
+      this.classList.add('is-live');
+      this.#setActive(0, true);
+
+      const steps = [...this.querySelectorAll<HTMLElement>('[data-step]')];
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) this.#setActive(Number((entry.target as HTMLElement).dataset['step']));
+          }
+        },
+        { rootMargin: '-45% 0px -50% 0px' },
+      );
+      steps.forEach((step) => observer.observe(step));
+      addEventListener('resize', () => this.#fit(), { passive: true });
+    }
+
+    #setActive(index: number, instant = false) {
+      const data = this.#data;
+      if (!data || index === this.#active) return;
+      const previous = this.#active;
+      this.#active = index;
+      const milestone = data.milestones[index];
+      if (!milestone) return;
+
+      for (const step of this.querySelectorAll<HTMLElement>('[data-step]')) {
+        step.classList.toggle('is-active', Number(step.dataset['step']) === index);
+        step.classList.toggle('is-past', Number(step.dataset['step']) < index);
+      }
+
+      // Year and cursor.
+      this.#animateYear(previous >= 0 ? data.milestones[previous]!.label : milestone.label, milestone.label, instant);
+      this.querySelector<HTMLElement>('[data-cursor]')?.style.setProperty('--at', `${milestone.cursor}%`);
+      for (const row of this.querySelectorAll<HTMLElement>('.viz__row')) {
+        const start = row.dataset['start'] ?? '';
+        const end = row.dataset['end'] || '9999-12';
+        row.classList.toggle('is-on', start <= milestone.date && milestone.date <= end);
+        row.classList.toggle('is-ahead', start > milestone.date);
+      }
+
+      // The bucket holds every skill up to this milestone, sized by how often it has come up.
+      const counts = new Map<string, number>();
+      for (const m of data.milestones.slice(0, index + 1)) for (const skill of m.skills) counts.set(skill, (counts.get(skill) ?? 0) + 1);
+      const fresh = new Set(milestone.skills);
+      for (const chip of this.querySelectorAll<HTMLElement>('[data-skill]')) {
+        const name = chip.dataset['skill'] ?? '';
+        const count = counts.get(name) ?? 0;
+        const wasIn = chip.classList.contains('is-in');
+        chip.dataset['tier'] = String(tierOf(Math.max(count, 1)));
+        if (count > 0 && !wasIn) {
+          chip.classList.add('is-in');
+          if (!instant) this.#replay(chip, 'drop');
+        } else if (count > 0 && fresh.has(name) && index > previous) {
+          this.#replay(chip, 'bump');
+        } else if (count === 0 && wasIn) {
+          chip.classList.remove('is-in');
+        }
+      }
+      const total = this.querySelector('[data-count]');
+      if (total) total.textContent = String(counts.size);
+      const unit = this.querySelector('[data-unit]');
+      if (unit) unit.textContent = counts.size === 1 ? 'skill' : 'skills';
+      this.#fit();
+    }
+
+    /** Shrinks the chips just enough that everything in the bucket stays visible. */
+    #fit() {
+      const bucket = this.querySelector<HTMLElement>('[data-bucket]');
+      if (!bucket) return;
+      const chips = [...bucket.querySelectorAll<HTMLElement>('.chip.is-in')];
+      // The bucket fills upwards, so a chip that doesn't fit pokes out of the top.
+      const overflows = () => chips.some((chip) => chip.offsetTop < 4);
+      let scale = 1;
+      bucket.style.setProperty('--scale', '1');
+      while (scale > 0.62 && overflows()) {
+        scale -= 0.04;
+        bucket.style.setProperty('--scale', scale.toFixed(2));
+      }
+    }
+
+    #replay(chip: HTMLElement, name: 'drop' | 'bump') {
+      chip.classList.remove('drop', 'bump');
+      void chip.offsetWidth;
+      chip.classList.add(name);
+    }
+
+    #animateYear(from: string, to: string, instant: boolean) {
+      const el = this.querySelector('[data-year]');
+      if (!el) return;
+      cancelAnimationFrame(this.#yearFrame);
+      const fromYear = Number(from.slice(-4));
+      const toYear = Number(to.slice(-4));
+      const month = to.slice(0, 3);
+      if (instant || fromYear === toYear) {
+        el.textContent = to;
+        return;
+      }
+      const start = performance.now();
+      const tick = (time: number) => {
+        const t = Math.min((time - start) / 500, 1);
+        el.textContent = `${month} ${Math.round(fromYear + (toYear - fromYear) * (1 - (1 - t) ** 3))}`;
+        if (t < 1) this.#yearFrame = requestAnimationFrame(tick);
+      };
+      this.#yearFrame = requestAnimationFrame(tick);
+    }
+  }
+
+  customElements.define('career-story', CareerStory);
+</script>
+
+<style>
+  .story {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 64rem) {
+    .story {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: 2.5rem;
+      align-items: start;
+    }
+  }
+
+  /* Milestones: plain cards, one after another. */
+  .story__steps {
+    display: grid;
+    gap: 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step__card {
+    padding: 1rem 1.125rem 1.1rem;
+    border: 1px solid var(--rule-strong);
+    border-left: 4px solid var(--brand-bg, var(--cyan));
+    border-radius: 8px;
+    background: var(--paper-raised);
+    transition: opacity 300ms ease, transform 300ms var(--ease-out), box-shadow 300ms ease;
+  }
+
+  .step__date {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .step__head {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-top: 0.4rem;
+  }
+
+  .step__thumb {
+    flex: none;
+    width: 5.5rem;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--brand-bg);
+    box-shadow: inset 0 -3px 0 var(--brand-accent);
+  }
+
+  .step__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  .step h3 {
+    font-size: var(--text-md);
+  }
+
+  .step h3 a {
+    color: var(--ink);
+  }
+
+  .step__where {
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .step__summary {
+    margin-top: 0.5rem;
+    font-size: var(--text-sm);
+  }
+
+  /* What this step added, as small logo pills. */
+  .step__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.65rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step__skills li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.5rem 0.1rem 0.15rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .dot {
+    display: grid;
+    place-items: center;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: var(--c);
+    color: var(--t);
+    font-size: 0.5rem;
+    font-weight: 700;
+  }
+
+  .dot svg {
+    width: 64%;
+    height: 64%;
+    fill: currentColor;
+  }
+
+  /* Live: each card gets room to be read while the panel beside it updates. */
+  .story.is-live .story__steps {
+    gap: 0;
+    padding-block: 6vh 40vh;
+  }
+
+  .story.is-live .step {
+    display: flex;
+    align-items: center;
+    min-height: 30vh;
+  }
+
+  .story.is-live .step__card {
+    width: 100%;
+    opacity: 0.38;
+    transform: scale(0.97);
+  }
+
+  .story.is-live .step.is-active .step__card {
+    opacity: 1;
+    transform: none;
+    box-shadow: 0 18px 40px -26px rgb(0 0 0 / 0.45);
+  }
+
+  .story.is-live .step.is-past .step__card {
+    opacity: 0.6;
+  }
+
+  /* The panel: year, trace with a cursor, and the bucket. */
+  .story__viz {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    background: var(--paper-raised);
+  }
+
+  @media (min-width: 64rem) {
+    .story__viz {
+      position: sticky;
+      top: calc(var(--header-h) + 1.25rem);
+    }
+
+    /* A fixed height, so the panel stays put while the bucket fills. */
+    .story.is-live .story__viz {
+      height: min(calc(100dvh - var(--header-h) - 2.5rem), 50rem);
+    }
+  }
+
+  .viz__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .viz__year {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.2rem + 2.5vw, 3.25rem);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .viz__count {
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+  }
+
+  .viz__count [data-count] {
+    color: var(--ink);
+    font-weight: 650;
+  }
+
+  .viz__trace {
+    --label-w: 8.75rem;
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    flex: none;
+    margin-top: 0.75rem;
+    padding: 1.4rem 0 0.25rem;
+    overflow-x: clip;
+  }
+
+  /* Ticks and the cursor share the lanes' coordinates, right of the labels. */
+  .viz__axis {
+    position: absolute;
+    inset: 0 0 0 calc(var(--label-w) + 0.5rem);
+    pointer-events: none;
+  }
+
+  .viz__tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--at);
+    padding-left: 0.25rem;
+    border-left: 1px dashed var(--rule);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+
+
+  .viz__row {
+    display: grid;
+    grid-template-columns: var(--label-w) minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+    font-size: var(--text-xs);
+    color: var(--ink-2);
+    transition: color 200ms ease, opacity 200ms ease;
+  }
+
+  .viz__label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .viz__lane {
+    position: relative;
+    height: 0.6rem;
+  }
+
+  .viz__bar {
+    --tone: var(--cyan);
+    position: absolute;
+    inset-block: 0;
+    left: var(--left);
+    width: var(--width);
+    border-radius: 2px;
+    background:
+      repeating-linear-gradient(135deg, var(--tone) 0 2px, transparent 2px 5px) right / var(--future) 100% no-repeat,
+      linear-gradient(var(--tone), var(--tone)) left / calc(100% - var(--future)) 100% no-repeat;
+    box-shadow: inset 0 0 0 1px var(--tone);
+  }
+
+  [data-track='study'] .viz__bar {
+    --tone: var(--magenta);
+  }
+
+  .story.is-live .viz__row {
+    opacity: 0.45;
+  }
+
+  .story.is-live .viz__row.is-on {
+    opacity: 1;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .story.is-live .viz__row.is-ahead {
+    opacity: 0.2;
+  }
+
+  .viz__cursor {
+    position: absolute;
+    top: 1.15rem;
+    bottom: -0.1rem;
+    left: var(--at);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--ink);
+    transition: left 600ms var(--ease-out);
+  }
+
+  .viz__cursor::before {
+    content: '';
+    position: absolute;
+    top: -0.3rem;
+    left: -0.25rem;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--process-yellow);
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+
+  .story:not(.is-live) .viz__cursor {
+    display: none;
+  }
+
+  /* The bucket fills from the bottom up. */
+  .bucket {
+    --scale: 1;
+    position: relative;
+    display: flex;
+    flex: 1 1 13rem;
+    flex-wrap: wrap-reverse;
+    align-content: flex-start;
+    gap: calc(0.4rem * var(--scale));
+    min-height: 9rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border: 2px solid var(--rule-strong);
+    border-top-style: dashed;
+    border-radius: 4px 4px 14px 14px;
+    background:
+      linear-gradient(to top, color-mix(in srgb, var(--process-yellow) 18%, transparent), transparent 70%),
+      var(--paper);
+    overflow: hidden;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.3em 0.75em 0.3em 0.35em;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    background: var(--paper-raised);
+    font-size: calc(var(--chip, 0.78rem) * var(--scale));
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .chip__badge {
+    display: grid;
+    place-items: center;
+    width: var(--badge, 1.6em);
+    height: var(--badge, 1.6em);
+    border-radius: 999px;
+    background: var(--c);
+    color: var(--t);
+    font-size: 0.7em;
+    font-weight: 700;
+  }
+
+  .chip__badge svg {
+    width: 62%;
+    height: 62%;
+    fill: currentColor;
+  }
+
+  .chip[data-tier='2'] {
+    --chip: 0.92rem;
+  }
+
+  .chip[data-tier='3'] {
+    --chip: 1.1rem;
+    border-color: var(--ink-3);
+  }
+
+  .chip[data-tier='3'] .chip__badge {
+    width: 1.7em;
+    height: 1.7em;
+  }
+
+  .story.is-live .chip:not(.is-in) {
+    display: none;
+  }
+
+  .chip.drop {
+    animation: chip-drop 560ms cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+
+  .chip.bump {
+    animation: chip-bump 420ms var(--ease-out);
+  }
+
+  @keyframes chip-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-9rem) rotate(-8deg);
+    }
+    70% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes chip-bump {
+    40% {
+      transform: scale(1.18);
+      box-shadow: 0 0 0 3px var(--process-yellow);
+    }
+  }
+
+  .viz__note {
+    flex: none;
+    margin-top: 0.75rem;
+    color: var(--ink-3);
+    font-size: var(--text-xs);
+  }
+
+  .story:not(.is-live) .viz__note {
+    display: none;
+  }
+
+  @media print {
+    .story__viz,
+    .step__skills .dot {
+      display: none;
+    }
+  }
+</style>

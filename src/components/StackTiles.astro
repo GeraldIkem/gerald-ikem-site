@@ -100,6 +100,8 @@ const describe = (name: string, count: number, where: string[]) =>
   .tiles {
     display: grid;
     gap: 1.1rem;
+    /* Tooltips near the right edge must not make the page scroll sideways. */
+    overflow-x: clip;
   }
 
   .tiles__row {
