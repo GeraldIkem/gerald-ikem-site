@@ -35,7 +35,7 @@ export interface BookSpec {
   back?: string | undefined;
   /** Cover width divided by height. */
   ratio: number;
-  /** Spine thickness divided by height. */
+  /** Spine thickness divided by height; a real spine photo's own proportions when there is one. */
   depth: number;
   /** Jacket colour, for edges and for any face without an image. */
   color: string;
@@ -136,6 +136,41 @@ function spineLabelTexture(spec: BookSpec): CanvasTexture {
   return texture;
 }
 
+/**
+ * Fit a photo to a face that is a little narrower than it by trimming its sides,
+ * so it isn't squeezed. A face that is wider (a very thin book still gets a spine
+ * thick enough to hold its boards) stretches the photo instead, since cropping the
+ * top and bottom would cut off the title and the publisher's mark.
+ */
+function fit(texture: Texture, aspect: number): Texture {
+  const { width, height } = texture.image as { width: number; height: number };
+  if (!width || !height) return texture;
+  const image = width / height;
+  if (image > aspect) {
+    texture.repeat.set(aspect / image, 1);
+    texture.offset.set((1 - aspect / image) / 2, 0);
+  }
+  return texture;
+}
+
+/**
+ * A gently rounded spine: an arc from the back board to the front board that
+ * bulges out a little, like a bound hardcover. The texture is laid across the
+ * straight line between the boards rather than along the curve, so a spine seen
+ * face-on shows its image undistorted.
+ */
+function spineGeometry(T: number, H: number): CylinderGeometry {
+  const sweep = 1.2;
+  const radius = T / 2 / Math.sin(sweep / 2);
+  const geometry = new CylinderGeometry(radius, radius, H, 24, 1, true, Math.PI * 1.5 - sweep / 2, sweep);
+  const position = geometry.getAttribute('position');
+  const uv = geometry.getAttribute('uv');
+  for (let i = 0; i < position.count; i++) uv.setX(i, (position.getZ(i) + T / 2) / T);
+  // Move the arc so its ends meet the boards' outer faces at x = 0.
+  geometry.translate(radius * Math.cos(sweep / 2), 0, 0);
+  return geometry;
+}
+
 /** A soft shadow for the book to stand on. */
 function shadowTexture(): CanvasTexture {
   const canvas = document.createElement('canvas');
@@ -178,14 +213,12 @@ async function buildBook(spec: BookSpec): Promise<Group> {
   const boardGeometry = new BoxGeometry(W, H, board);
   const frontBoard = new Mesh(boardGeometry, [edge, edge, edge, edge, jacket(front, spec.color), edge]);
   frontBoard.position.set(0, 0, T / 2 - board / 2);
-  const backBoard = new Mesh(boardGeometry, [edge, edge, edge, edge, edge, jacket(back, spec.color)]);
+  const backBoard = new Mesh(boardGeometry, [edge, edge, edge, edge, edge, jacket(back && fit(back, W / H), spec.color)]);
   backBoard.position.set(0, 0, -T / 2 + board / 2);
 
-  // Rounded spine: half a cylinder from the back board, round the left, to the front board.
-  const spineGeometry = new CylinderGeometry(T / 2, T / 2, H, 32, 1, true, Math.PI, Math.PI);
-  const spineMesh = new Mesh(spineGeometry, jacket(spine ?? spineLabelTexture(spec), spec.color));
+  // Rounded spine on the left, from the back board round to the front board.
+  const spineMesh = new Mesh(spineGeometry(T, H), jacket(spine ? fit(spine, T / H) : spineLabelTexture(spec), spec.color));
   spineMesh.position.set(-W / 2, 0, 0);
-  spineMesh.scale.set(0.55, 1, 1);
 
   // Page block, set in from the boards' edges.
   const pagesW = W - overhang;

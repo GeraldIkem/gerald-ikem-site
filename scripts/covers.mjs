@@ -1,6 +1,8 @@
 // Fetches each comic's front cover from the URL in the CLZ export, saves a small
 // WebP to public/covers/, and records the cover's proportions and main colour in
 // src/data/comics.json so the shelf can draw the spine in the book's own colour.
+// Back covers come along too when the export has them (backUrl: CLZ only exports
+// them after "Update from Core" with back covers switched on); they go to public/backs/.
 //
 // Usage: node scripts/covers.mjs [--from <folder of already-downloaded covers>] [--force]
 //
@@ -14,6 +16,8 @@ import sharp from 'sharp';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dataPath = path.join(root, 'src', 'data', 'comics.json');
 const outDir = path.join(root, 'public', 'covers');
+const backDir = path.join(root, 'public', 'backs');
+const sourcesPath = path.join(root, 'src', 'data', 'comic-image-sources.json');
 const args = process.argv.slice(2);
 const fromDir = args.includes('--from') ? args[args.indexOf('--from') + 1] : null;
 const force = args.includes('--force');
@@ -29,12 +33,12 @@ const isImage = (buffer) => SIGNATURES.some((sig) => sig.every((byte, i) => buff
 const exists = (file) => access(file).then(() => true, () => false);
 const hex = ({ r, g, b }) => `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 
-async function source(book) {
-  if (fromDir) {
+async function source(book, url = book.coverUrl) {
+  if (fromDir && url === book.coverUrl) {
     const local = path.join(fromDir, `${book.id}.img`);
     if (await exists(local)) return readFile(local);
   }
-  const response = await fetch(book.coverUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return Buffer.from(await response.arrayBuffer());
 }
@@ -67,6 +71,31 @@ for (const book of books) {
   }
 }
 
+// Back covers from CLZ Core. A photo or scan already in place (scripts/spines.mjs) wins.
+const sources = (await exists(sourcesPath)) ? JSON.parse(await readFile(sourcesPath, 'utf8')) : {};
+let backs = 0;
+for (const book of books) {
+  if (!book.backUrl) continue;
+  const fromCore = sources[book.id]?.back?.source === 'CLZ Core';
+  if (book.backImage && !(fromCore && force)) continue;
+  try {
+    const raw = await source(book, book.backUrl);
+    if (!isImage(raw)) throw new Error('not an image');
+    await mkdir(backDir, { recursive: true });
+    await sharp(raw)
+      .rotate()
+      .resize({ width: WIDTH, withoutEnlargement: true })
+      .webp({ quality: 78 })
+      .toFile(path.join(backDir, `${book.id}.webp`));
+    book.backImage = `/backs/${book.id}.webp`;
+    sources[book.id] = { ...sources[book.id], back: { source: 'CLZ Core', url: book.backUrl } };
+    backs += 1;
+  } catch (error) {
+    failed.push(`${book.title} (back): ${error.message}`);
+  }
+}
+if (backs) await writeFile(sourcesPath, `${JSON.stringify(sources, null, 2)}\n`, 'utf8');
+
 await writeFile(dataPath, `${JSON.stringify(books, null, 2)}\n`, 'utf8');
-console.log(`Processed ${done} covers into public/covers/.`);
+console.log(`Processed ${done} covers into public/covers/${backs ? ` and ${backs} back covers into public/backs/` : ''}.`);
 if (failed.length) console.log(`Failed:\n  ${failed.join('\n  ')}`);
