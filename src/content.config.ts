@@ -18,6 +18,8 @@ const comics = defineCollection({
     cover: z.string().startsWith('/covers/').optional(),
     coverColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
     coverRatio: z.number().min(0.4).max(1.2).optional(),
+    spineImage: z.string().startsWith('/covers/').optional(),
+    backImage: z.string().startsWith('/covers/').optional(),
   }),
 });
 

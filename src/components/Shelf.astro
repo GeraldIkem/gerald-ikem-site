@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Spine from './Spine.astro';
+import rewrittenNotes from '~/data/comic-notes.json';
 import {
   STATUS_LABEL,
   countBy,
@@ -19,6 +20,9 @@ interface Props {
 }
 
 const { teaser = false } = Astro.props;
+// Notes I've rewritten win over the ones that come in with the CLZ export.
+const notes = rewrittenNotes as Record<string, string>;
+const noteFor = (book: Book) => notes[book.id] ?? book.note;
 const entries = await getCollection('comics');
 const all: Book[] = entries.map((entry) => ({ ...entry.data, id: entry.id })).sort(shelfOrder);
 const counts = countBy(all);
@@ -91,10 +95,12 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
               data-format={book.format}
               data-meta={describe(book)}
               data-state={STATUS_LABEL[book.status]}
-              data-note={book.note}
+              data-note={noteFor(book)}
               data-h={style.height}
               data-w={style.width}
               data-cover={book.cover ?? ''}
+              data-spine-image={book.spineImage ?? ''}
+              data-back-image={book.backImage ?? ''}
               data-ratio={book.coverRatio ?? 0.67}
               style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color};--tc:${style.text}`}
               aria-label={`${book.title}. ${STATUS_LABEL[book.status]}.`}
@@ -120,12 +126,16 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 }
 
 <script>
+  import type { BookStage } from '~/scripts/book3d';
+
   const motionOk = () => matchMedia('(prefers-reduced-motion: no-preference)').matches;
   const RESTING_ANGLE = 24;
 
   class ComicShelf extends HTMLElement {
     #spines: HTMLButtonElement[] = [];
     #angle = RESTING_ANGLE;
+    #engine: BookStage | null = null;
+    #selected: HTMLButtonElement | null = null;
 
     connectedCallback() {
       this.#spines = [...this.querySelectorAll<HTMLButtonElement>('.spine')];
@@ -141,6 +151,39 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       this.#applyFilters();
       // Start with a book already off the shelf, so the stage is never empty.
       this.#random(false);
+
+      // Swap the quick CSS book for the full three.js hardcover once the shelf is in view.
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries.some((entry) => entry.isIntersecting);
+          this.#engine?.setVisible(visible);
+          if (visible) void this.#loadEngine();
+        },
+        { rootMargin: '300px 0px' },
+      );
+      observer.observe(this);
+    }
+
+    #engineLoading: Promise<void> | null = null;
+
+    #loadEngine(): Promise<void> {
+      this.#engineLoading ??= (async () => {
+        const stage = this.querySelector<HTMLElement>('[data-stage]');
+        if (!stage) return;
+        try {
+          const { BookStage } = await import('~/scripts/book3d');
+          stage.replaceChildren();
+          stage.classList.add('is-3d');
+          this.#engine = new BookStage(stage, {
+            reducedMotion: !motionOk(),
+            interactive: true,
+          });
+          if (this.#selected) this.#stage(this.#selected);
+        } catch {
+          // No WebGL: the CSS book stays.
+        }
+      })();
+      return this.#engineLoading;
     }
 
     #visible(): HTMLButtonElement[] {
@@ -228,9 +271,24 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 
     /** Build a 3D copy of the book: front cover, spine, page edges and back. */
     #stage(spine: HTMLButtonElement) {
+      this.#selected = spine;
       const stage = this.querySelector<HTMLElement>('[data-stage]');
       if (!stage) return;
       const data = spine.dataset;
+      if (this.#engine && data['cover']) {
+        void this.#engine.show({
+          front: data['cover'],
+          spine: data['spineImage'] || undefined,
+          back: data['backImage'] || undefined,
+          ratio: Number(data['ratio'] || 0.67),
+          depth: Number(data['w']) / Number(data['h']),
+          color: spine.style.getPropertyValue('--c').trim() || '#333333',
+          title: data['label'] || data['title'] || '',
+          publisher: data['publisher'] || '',
+          textColor: spine.style.getPropertyValue('--tc').trim() || '#ffffff',
+        });
+        return;
+      }
       // Shown a little larger than on the shelf, so the cover reads.
       const height = Number(data['h']) * 1.22;
       const thickness = Math.max(Number(data['w']) * 1.1, 1);
@@ -308,9 +366,11 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       const stage = this.querySelector<HTMLElement>('[data-stage]');
       if (!stage) return;
       let startX = 0;
+      // The three.js stage has its own orbit controls; this drag is for the CSS book.
       let startAngle = 0;
       let dragging = false;
       stage.addEventListener('pointerdown', (event) => {
+        if (this.#engine) return;
         const book = stage.querySelector<HTMLElement>('.book3d');
         if (!book) return;
         dragging = true;
@@ -563,7 +623,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 
   @media (min-width: 48rem) {
     .shelf__detail {
-      grid-template-columns: 19rem minmax(0, 1fr);
+      grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
     }
   }
 
@@ -583,6 +643,17 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 
   .shelf__stage:active {
     cursor: grabbing;
+  }
+
+  .shelf__stage.is-3d {
+    min-height: 27rem;
+  }
+
+  .shelf__stage :global(canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .shelf__text {

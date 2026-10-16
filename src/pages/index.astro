@@ -23,7 +23,6 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
   <section class="hero wrap" aria-labelledby="name">
     <Misregister text="Gerald Ikem" id="name" class="hero__name" />
     <div class="hero__grid">
-      <span class="dots hero__dots" aria-hidden="true"></span>
       <div class="hero__intro">
         <p class="hero__tagline">Backend engineer. Payments now, machine learning next.</p>
         <p class="lede">
@@ -43,7 +42,7 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
     </div>
   </section>
 
-  <section class="section wrap" id="work" aria-labelledby="work-title" style="--section-ink: var(--cyan)">
+  <section class="section wrap" id="work" aria-labelledby="work-title">
     <div class="section__head">
       <h2 id="work-title">Work</h2>
       <p>Three roles and two degrees since 2019, often more than one at a time. Pick a row to jump to the details.</p>
@@ -54,10 +53,10 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
     </div>
   </section>
 
-  <section class="section wrap" id="projects" aria-labelledby="projects-title" style="--section-ink: var(--magenta)">
+  <section class="section wrap" id="projects" aria-labelledby="projects-title">
     <div class="section__head">
       <h2 id="projects-title">Projects</h2>
-      <p>What I build on my own time. The first three get the long version.</p>
+      <p>What I build on my own time. Each one has its own page on how it works and what was hard.</p>
     </div>
     <div class="section__body">
       <Projects />
@@ -65,7 +64,6 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
   </section>
 
   <div class="band band--yellow">
-    <span class="dots next__dots" aria-hidden="true"></span>
     <section class="section wrap" id="next" aria-labelledby="next-title">
     <div class="section__head">
       <h2 id="next-title">What’s next</h2>
@@ -89,7 +87,7 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
     </section>
   </div>
 
-  <section class="section wrap" id="off-the-clock" aria-labelledby="off-title" style="--section-ink: var(--process-yellow)">
+  <section class="section wrap" id="off-the-clock" aria-labelledby="off-title">
     <div class="section__head">
       <h2 id="off-title">Off the clock</h2>
     </div>
@@ -111,17 +109,14 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
     </div>
   </section>
 
-  <div class="band band--magenta">
-    <span class="dots contact__dots" aria-hidden="true"></span>
-    <section class="section wrap" id="contact" aria-labelledby="contact-title">
-      <div class="section__head">
-        <h2 id="contact-title">Contact</h2>
-      </div>
-      <div class="section__body">
-        <Contact />
-      </div>
-    </section>
-  </div>
+  <section class="section wrap" id="contact" aria-labelledby="contact-title">
+    <div class="section__head">
+      <h2 id="contact-title">Contact</h2>
+    </div>
+    <div class="section__body">
+      <Contact />
+    </div>
+  </section>
 </Base>
 
 <style>
@@ -144,15 +139,6 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
     display: grid;
     gap: 2.5rem;
     margin-top: clamp(1.75rem, 4vw, 3rem);
-  }
-
-  /* A field of magenta dots behind the trace, like a comic panel's shading. */
-  .hero__dots {
-    --dot-size: 13px;
-    right: -5rem;
-    top: -4rem;
-    width: min(38rem, 80%);
-    height: 34rem;
   }
 
   .hero :global(page-trace) {
@@ -223,25 +209,6 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
 
   .band--yellow .prose > p:not(.next__statement) {
     max-width: var(--measure);
-  }
-
-  .next__dots {
-    --dot: var(--process-magenta);
-    --dot-size: 16px;
-    right: -6rem;
-    top: -6rem;
-    width: 34rem;
-    height: 34rem;
-  }
-
-  .contact__dots {
-    --dot: var(--process-yellow);
-    --dot-size: 15px;
-    right: -8rem;
-    bottom: -12rem;
-    width: 36rem;
-    height: 36rem;
-    opacity: 0.55;
   }
 
   .teaser {

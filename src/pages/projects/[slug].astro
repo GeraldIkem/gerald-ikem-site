@@ -1,0 +1,440 @@
+---
+import { Image } from 'astro:assets';
+import Base from '~/layouts/Base.astro';
+import RedirectDemo from '~/components/RedirectDemo.astro';
+import RtfChart from '~/components/RtfChart.astro';
+import { projects, type Project } from '~/data/projects';
+
+export function getStaticPaths() {
+  return projects.map((project, index) => ({
+    params: { slug: project.slug },
+    props: {
+      project,
+      previous: projects[(index - 1 + projects.length) % projects.length],
+      next: projects[(index + 1) % projects.length],
+    },
+  }));
+}
+
+interface Props {
+  project: Project;
+  previous: Project;
+  next: Project;
+}
+
+const { project, previous, next } = Astro.props;
+const brand = `--brand-bg:${project.brand.bg};--brand-accent:${project.brand.accent}`;
+---
+
+<Base title={project.name} description={`${project.name}: ${project.oneLine}`}>
+  <article class="case" style={brand}>
+    <header class="case__band">
+      <div class="case__head wrap">
+        <div class="case__title">
+          <p class="case__crumb"><a href="/#projects">Projects</a></p>
+          <h1>
+            {project.name}
+            {project.status && <span class="case__status">{project.status}</span>}
+          </h1>
+          <p class="case__one">{project.oneLine}</p>
+          <p class="case__links">
+            <a href={project.url}>Visit {project.linkText}</a>
+          </p>
+        </div>
+        <div class="case__shot">
+          <Image
+            src={project.image}
+            alt={project.imageAlt}
+            widths={[640, 960, 1280]}
+            sizes="(min-width: 64rem) 36rem, 100vw"
+            loading="eager"
+          />
+        </div>
+      </div>
+    </header>
+
+    <section class="wrap case__intro" aria-label="Overview">
+      <p class="case__lede">{project.intro}</p>
+      <dl class="facts">
+        {
+          project.facts.map((fact) => (
+            <div>
+              <dt>{fact.value}</dt>
+              <dd>{fact.label}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    {
+      project.sections.map((section) => (
+        <section class="section wrap">
+          <div class="section__head">
+            <h2>{section.title}</h2>
+          </div>
+          <div class="section__body case__body">
+            {section.body?.map((paragraph) => (
+              <p class="case__para">{paragraph}</p>
+            ))}
+            {section.demo === 'redirect' && <RedirectDemo />}
+            {section.demo === 'rtf' && <RtfChart />}
+            {section.problems && (
+              <div class="problems">
+                {section.problems.map((item) => (
+                  <div class="problem">
+                    <h3>{item.title}</h3>
+                    <p>
+                      <span class="problem__label">What went wrong.</span> {item.problem}
+                    </p>
+                    <p>
+                      <span class="problem__label">What I did.</span> {item.fix}
+                    </p>
+                    {item.result && (
+                      <p>
+                        <span class="problem__label">Result.</span> {item.result}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {section.table && (
+              <div class="table-wrap">
+                <table>
+                  {section.table.caption && <caption>{section.table.caption}</caption>}
+                  <thead>
+                    <tr>
+                      {section.table.head.map((cell) => (
+                        <th scope="col">{cell}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.table.rows.map((row) => (
+                      <tr>
+                        {row.map((cell, index) => (index === 0 ? <th scope="row">{cell}</th> : <td>{cell}</td>))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {section.points && (
+              <ul class="case__points">
+                {section.points.map((point) => (
+                  <li>{point}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ))
+    }
+
+    <section class="section wrap">
+      <div class="section__head">
+        <h2>Where it falls short</h2>
+      </div>
+      <div class="section__body case__body">
+        <ul class="case__points">
+          {project.limits.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <div class="section__head">
+        <h2>What’s next</h2>
+      </div>
+      <div class="section__body case__body">
+        <ul class="case__points">
+          {project.next.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+        <h3 class="case__stack-title">Built with</h3>
+        <ul class="tag-list case__stack">
+          {project.stack.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <nav class="case__nav wrap" aria-label="More projects">
+      <a href={`/projects/${previous.slug}/`} rel="prev">
+        <span>Previous</span>
+        {previous.name}
+      </a>
+      <a href={`/projects/${next.slug}/`} rel="next">
+        <span>Next</span>
+        {next.name}
+      </a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  /* Each project page wears its own colours at the top. */
+  .case__band {
+    background: var(--brand-bg);
+    color: #fff;
+    border-bottom: 6px solid var(--brand-accent);
+  }
+
+  .case__head {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+    padding-block: clamp(2rem, 6vw, 4.5rem);
+  }
+
+  @media (min-width: 64rem) {
+    .case__head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: 3.5rem;
+    }
+  }
+
+  .case__crumb a {
+    color: rgb(255 255 255 / 0.8);
+    font-size: var(--text-sm);
+  }
+
+  .case h1 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    margin-top: 0.75rem;
+    font-size: clamp(2.75rem, 1rem + 6vw, 5.5rem);
+    font-weight: 650;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+  }
+
+  .case__status {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--process-yellow);
+    color: #1d2024;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .case__one {
+    margin-top: 1rem;
+    max-width: 34rem;
+    font-size: var(--text-md);
+    line-height: 1.45;
+    color: rgb(255 255 255 / 0.9);
+  }
+
+  .case__links {
+    margin-top: 1.5rem;
+    font-weight: 600;
+  }
+
+  .case__links a {
+    color: #fff;
+    text-decoration-color: var(--brand-accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.25em;
+  }
+
+  .case__band :focus-visible {
+    outline-color: #fff;
+  }
+
+  .case__shot img {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 24px 50px -24px rgb(0 0 0 / 0.6);
+  }
+
+  .case__intro {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .case__lede {
+    max-width: 44rem;
+    font-size: var(--text-md);
+    line-height: 1.55;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1.5rem 2rem;
+  }
+
+  .facts div {
+    padding-top: 0.875rem;
+    border-top: 3px solid var(--brand-bg);
+  }
+
+  .facts dt {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .facts dd {
+    margin-top: 0.375rem;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  :global([data-theme='dark']) .facts div {
+    border-top-color: var(--brand-accent);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .facts div {
+      border-top-color: var(--brand-accent);
+    }
+  }
+
+  .case :global(.section__head h2) {
+    font-size: var(--text-lg);
+  }
+
+  .case__body {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 48rem;
+  }
+
+  .case__para {
+    max-width: var(--measure);
+  }
+
+  .case__points {
+    display: grid;
+    gap: 0.75rem;
+    max-width: var(--measure);
+    padding-left: 1.125rem;
+  }
+
+  .case__points li::marker {
+    color: var(--ink-3);
+  }
+
+  .problems {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .problem {
+    display: grid;
+    gap: 0.5rem;
+    max-width: var(--measure);
+    padding-left: 1.125rem;
+    border-left: 3px solid var(--brand-bg);
+  }
+
+  :global([data-theme='dark']) .problem {
+    border-left-color: var(--brand-accent);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .problem {
+      border-left-color: var(--brand-accent);
+    }
+  }
+
+  .problem h3 {
+    font-size: var(--text-base);
+  }
+
+  .problem__label {
+    font-weight: 650;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  caption {
+    padding-bottom: 0.625rem;
+    color: var(--ink-2);
+    text-align: left;
+    font-size: var(--text-xs);
+  }
+
+  th,
+  td {
+    padding: 0.55rem 0.75rem 0.55rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    color: var(--ink-2);
+    font-weight: 600;
+    border-bottom-color: var(--rule-strong);
+  }
+
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+
+  tbody th {
+    font-weight: 600;
+  }
+
+  .case__stack-title {
+    margin-top: 1.5rem;
+    font-size: var(--text-base);
+  }
+
+  .case__nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 2.5rem 4rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .case__nav a {
+    display: grid;
+    gap: 0.125rem;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .case__nav a[rel='next'] {
+    text-align: right;
+  }
+
+  .case__nav span {
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 400;
+  }
+
+  .case__nav a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+</style>

@@ -20,7 +20,6 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
   description="Gerald Ikem’s comic shelf, with his notes on every book, plus basketball, swimming, LEGO and books."
 >
   <section class="intro wrap">
-    <span class="dots intro__dots" aria-hidden="true"></span>
     <Misregister text="Off the clock" class="intro__title" />
     <p class="lede">
       Away from work I read comics, play basketball, swim, build LEGO and collect books. The comics take up the most
@@ -28,12 +27,12 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     </p>
   </section>
 
-  <section class="section wrap" aria-labelledby="shelf-title" style="--section-ink: var(--magenta)">
+  <section class="section wrap" aria-labelledby="shelf-title">
     <div class="section__head">
       <h2 id="shelf-title">The comic shelf</h2>
       <p>
-        {owned.length} books on the shelf: {dc} from DC, {marvel} from Marvel. I read runs in order, so most of my
-        notes are about what comes next.
+        {owned.length} books on the shelf: {dc} from DC, {marvel} from Marvel. Each note says who made the book and
+        where it sits in the run, because I read runs in order.
       </p>
     </div>
     <div class="section__body">
@@ -65,7 +64,7 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     </div>
   </section>
 
-  <section class="section wrap" id="lego" aria-labelledby="lego-title" style="--section-ink: var(--process-yellow)">
+  <section class="section wrap" id="lego" aria-labelledby="lego-title">
     <div class="section__head">
       <h2 id="lego-title">LEGO</h2>
       <p>
@@ -85,7 +84,7 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     </div>
   </section>
 
-  <section class="section wrap" aria-labelledby="else-title" style="--section-ink: var(--cyan)">
+  <section class="section wrap" aria-labelledby="else-title">
     <div class="section__head">
       <h2 id="else-title">Everything else</h2>
     </div>
@@ -118,14 +117,6 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     position: relative;
     isolation: isolate;
     padding-block: clamp(2rem, 6vw, 4.5rem) clamp(2.5rem, 6vw, 4rem);
-  }
-
-  .intro__dots {
-    --dot: var(--process-cyan);
-    right: -4rem;
-    top: -2rem;
-    width: 30rem;
-    height: 22rem;
   }
 
   .intro :global(.intro__title) {
@@ -211,23 +202,7 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
 
   .hobbies li {
     padding-top: 0.875rem;
-    border-top: 5px solid var(--tone, var(--cyan));
-  }
-
-  .hobbies li:nth-child(5n + 2) {
-    --tone: var(--magenta);
-  }
-
-  .hobbies li:nth-child(5n + 3) {
-    --tone: var(--process-yellow);
-  }
-
-  .hobbies li:nth-child(5n + 4) {
-    --tone: var(--ink);
-  }
-
-  .hobbies li:nth-child(5n + 5) {
-    --tone: var(--span-asset);
+    border-top: 1px solid var(--rule-strong);
   }
 
   .hobbies h3 {
