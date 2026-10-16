@@ -537,7 +537,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/bb/bb_1170454_0_InvincibleOmnibusHC1HCA.jpg",
     "cover": "/covers/1170454.webp",
     "coverColor": "#086888",
-    "coverRatio": 0.674
+    "coverRatio": 0.674,
+    "backImage": "/backs/1170454.webp",
+    "spineImage": "/spines/1170454.webp",
+    "spineRatio": 0.179
   },
   {
     "id": "800436",
@@ -552,7 +555,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/e5/e5_800436_2_AvengersByJonathanHickmanOmnib.jpg",
     "cover": "/covers/800436.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.669
+    "coverRatio": 0.669,
+    "backImage": "/backs/800436.webp",
+    "spineImage": "/spines/800436.webp",
+    "spineRatio": 0.187
   },
   {
     "id": "891648",
@@ -567,7 +573,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/72/72_891648_0_AvengersByJonathanHickmanOmnib.jpg",
     "cover": "/covers/891648.webp",
     "coverColor": "#281818",
-    "coverRatio": 0.668
+    "coverRatio": 0.668,
+    "backImage": "/backs/891648.webp"
   },
   {
     "id": "477616",
@@ -582,7 +589,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/85/85_477616_0_ANationUnderOurFeet.jpg",
     "cover": "/covers/477616.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.658
+    "coverRatio": 0.658,
+    "spineImage": "/spines/477616.webp",
+    "spineRatio": 0.088
   },
   {
     "id": "700430",
@@ -612,7 +621,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/68/68_629057_0_.jpg",
     "cover": "/covers/629057.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.661
+    "coverRatio": 0.661,
+    "backImage": "/backs/629057.webp"
   },
   {
     "id": "629058",
@@ -627,7 +637,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/cd/cd_629058_0_.jpg",
     "cover": "/covers/629058.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.666
+    "coverRatio": 0.666,
+    "backImage": "/backs/629058.webp"
   },
   {
     "id": "770779",
@@ -642,7 +653,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/8b/8b_770779_0_FantasticFourbyJonathanHickman.jpg",
     "cover": "/covers/770779.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.677
+    "coverRatio": 0.677,
+    "backImage": "/backs/770779.webp"
   },
   {
     "id": "783486",
@@ -657,7 +669,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/e9/e9_783486_0_FantasticFourByJonathanHickman.jpg",
     "cover": "/covers/783486.webp",
     "coverColor": "#b8c8c8",
-    "coverRatio": 0.668
+    "coverRatio": 0.668,
+    "backImage": "/backs/783486.webp",
+    "spineImage": "/spines/783486.webp",
+    "spineRatio": 0.153
   },
   {
     "id": "634520",
@@ -702,7 +717,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f6/f6_582586_0_MarvelsTPD.jpg",
     "cover": "/covers/582586.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.645
+    "coverRatio": 0.645,
+    "backImage": "/backs/582586.webp"
   },
   {
     "id": "891650",
@@ -732,7 +748,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/9e/9e_891652_2_SpiderManVsVenomOmnibusHCB.jpg",
     "cover": "/covers/891652.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.695
+    "coverRatio": 0.695,
+    "backImage": "/backs/891652.webp",
+    "spineImage": "/spines/891652.webp",
+    "spineRatio": 0.162
   },
   {
     "id": "1121691",
@@ -762,7 +781,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/e2/e2_932038_0_ImmortalHulk050ImmortalHulkThe.jpg",
     "cover": "/covers/932038.webp",
     "coverColor": "#283828",
-    "coverRatio": 0.662
+    "coverRatio": 0.662,
+    "backImage": "/backs/932038.webp",
+    "spineImage": "/spines/932038.webp",
+    "spineRatio": 0.222
   },
   {
     "id": "790998",
@@ -777,7 +799,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f0/f0_790998_0_ThorGodofThunder125Thor201418T.jpg",
     "cover": "/covers/790998.webp",
     "coverColor": "#b8b8b8",
-    "coverRatio": 0.666
+    "coverRatio": 0.666,
+    "backImage": "/backs/790998.webp",
+    "spineImage": "/spines/790998.webp",
+    "spineRatio": 0.169
   },
   {
     "id": "764502",
@@ -792,7 +817,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f5/f5_764502_0_UltimateSpiderManOmnibus1HCC.jpg",
     "cover": "/covers/764502.webp",
     "coverColor": "#e82828",
-    "coverRatio": 0.65
+    "coverRatio": 0.65,
+    "backImage": "/backs/764502.webp"
   },
   {
     "id": "833426",
@@ -807,7 +833,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/0e/0e_833426_0_UltimateSpiderManOmnibus2HCA.jpg",
     "cover": "/covers/833426.webp",
     "coverColor": "#084888",
-    "coverRatio": 0.664
+    "coverRatio": 0.664,
+    "backImage": "/backs/833426.webp"
   },
   {
     "id": "1091823",
@@ -837,7 +864,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/31/31_932048_0_WolverineWeaponXDeluxeEditionT.jpg",
     "cover": "/covers/932048.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.651
+    "coverRatio": 0.651,
+    "backImage": "/backs/932048.webp"
   },
   {
     "id": "1162844",
