@@ -258,6 +258,15 @@ async function backgroundAtEdges(flat, background) {
     .toBuffer({ resolveWithObject: true });
   const { width: w, height: h } = info;
   const limit = Math.min(Math.max(30, background.spread * 2.5), 55);
+  // A dark spine on a dark shelf: its own edges would read as background, so leave them.
+  const inner = [];
+  for (let y = Math.round(h * 0.2); y < h * 0.8; y += 4) {
+    for (let x = Math.round(w * 0.2); x < w * 0.8; x += 2) inner.push((y * w + x) * 3);
+  }
+  const median = (values) => values.sort((p, q) => p - q)[values.length >> 1];
+  const book = [0, 1, 2].map((c) => median(inner.map((k) => data[k + c])));
+  const [br, bg, bb] = background.colour;
+  if (Math.hypot(book[0] - br, book[1] - bg, book[2] - bb) < limit * 1.6) return null;
   const isBackground = (x, y) => {
     const k = (y * w + x) * 3;
     const [r, g, b] = background.colour;

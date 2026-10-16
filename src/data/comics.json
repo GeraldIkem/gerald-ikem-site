@@ -27,7 +27,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/9c/9c_1161732_2_AbsoluteMartianManhunterHC1.jpg",
     "cover": "/covers/1161732.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.65
+    "coverRatio": 0.65,
+    "backImage": "/backs/1161732.webp",
+    "spineImage": "/spines/1161732.webp",
+    "spineRatio": 0.045
   },
   {
     "id": "935895",
@@ -42,7 +45,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/09/09_935895_0_.jpg",
     "cover": "/covers/935895.webp",
     "coverColor": "#f8e8c8",
-    "coverRatio": 0.655
+    "coverRatio": 0.655,
+    "backImage": "/backs/935895.webp",
+    "spineImage": "/spines/935895.webp",
+    "spineRatio": 0.094
   },
   {
     "id": "1137100",
@@ -58,7 +64,9 @@
     "cover": "/covers/1137100.webp",
     "coverColor": "#080808",
     "coverRatio": 0.634,
-    "backImage": "/backs/1137100.webp"
+    "backImage": "/backs/1137100.webp",
+    "spineImage": "/spines/1137100.webp",
+    "spineRatio": 0.051
   },
   {
     "id": "1137092",
@@ -74,7 +82,9 @@
     "cover": "/covers/1137092.webp",
     "coverColor": "#080808",
     "coverRatio": 0.653,
-    "backImage": "/backs/1137092.webp"
+    "backImage": "/backs/1137092.webp",
+    "spineImage": "/spines/1137092.webp",
+    "spineRatio": 0.05
   },
   {
     "id": "791804",
@@ -90,7 +100,9 @@
     "cover": "/covers/791804.webp",
     "coverColor": "#080808",
     "coverRatio": 0.677,
-    "backImage": "/backs/791804.webp"
+    "backImage": "/backs/791804.webp",
+    "spineImage": "/spines/791804.webp",
+    "spineRatio": 0.06
   },
   {
     "id": "595563",
@@ -107,7 +119,8 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.692,
     "spineImage": "/spines/595563.webp",
-    "spineRatio": 0.15
+    "spineRatio": 0.15,
+    "backImage": "/backs/595563.webp"
   },
   {
     "id": "1162745",
@@ -122,7 +135,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/5b/5b_1162745_0_AbsoluteBatmanYearOneHCHCB.jpg",
     "cover": "/covers/1162745.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.65
+    "coverRatio": 0.65,
+    "spineImage": "/spines/1162745.webp",
+    "spineRatio": 0.061,
+    "backImage": "/backs/1162745.webp"
   },
   {
     "id": "549725",
@@ -137,7 +153,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/97/97_549725_0_BatmanByJephLoebTimSale.jpg",
     "cover": "/covers/549725.webp",
     "coverColor": "#080818",
-    "coverRatio": 0.672
+    "coverRatio": 0.672,
+    "backImage": "/backs/549725.webp",
+    "spineImage": "/spines/549725.webp",
+    "spineRatio": 0.232
   },
   {
     "id": "1195681",
@@ -152,7 +171,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/34/34_1195681_0_BatmanSupermanWorldsFinestDelu.jpg",
     "cover": "/covers/1195681.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.648
+    "coverRatio": 0.648,
+    "spineImage": "/spines/1195681.webp",
+    "spineRatio": 0.074,
+    "backImage": "/backs/1195681.webp"
   },
   {
     "id": "728937",
@@ -167,7 +189,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/a3/a3_728937_0_BatmanADeathintheFamily.jpg",
     "cover": "/covers/728937.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.668
+    "coverRatio": 0.668,
+    "spineImage": "/spines/728937.webp",
+    "spineRatio": 0.056,
+    "backImage": "/backs/728937.webp"
   },
   {
     "id": "1081038",
@@ -182,7 +207,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/75/75_1081038_0_BatmanBruceWayneMurdererTurned.jpg",
     "cover": "/covers/1081038.webp",
     "coverColor": "#182828",
-    "coverRatio": 0.647
+    "coverRatio": 0.647,
+    "spineImage": "/spines/1081038.webp",
+    "spineRatio": 0.181,
+    "backImage": "/backs/1081038.webp"
   },
   {
     "id": "1184534",
@@ -198,7 +226,9 @@
     "cover": "/covers/1184534.webp",
     "coverColor": "#080808",
     "coverRatio": 0.646,
-    "backImage": "/backs/1184534.webp"
+    "backImage": "/backs/1184534.webp",
+    "spineImage": "/spines/1184534.webp",
+    "spineRatio": 0.038
   },
   {
     "id": "470667",
@@ -213,7 +243,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/72/72_470667_0_.jpg",
     "cover": "/covers/470667.webp",
     "coverColor": "#282828",
-    "coverRatio": 0.662
+    "coverRatio": 0.662,
+    "spineImage": "/spines/470667.webp",
+    "spineRatio": 0.065,
+    "backImage": "/backs/470667.webp"
   },
   {
     "id": "861150",
@@ -229,7 +262,9 @@
     "cover": "/covers/861150.webp",
     "coverColor": "#080808",
     "coverRatio": 0.652,
-    "backImage": "/backs/861150.webp"
+    "backImage": "/backs/861150.webp",
+    "spineImage": "/spines/861150.webp",
+    "spineRatio": 0.066
   },
   {
     "id": "466699",
@@ -244,7 +279,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/95/95_466699_0_.jpg",
     "cover": "/covers/466699.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.725
+    "coverRatio": 0.725,
+    "spineImage": "/spines/466699.webp",
+    "spineRatio": 0.158
   },
   {
     "id": "772235",
@@ -260,7 +297,9 @@
     "cover": "/covers/772235.webp",
     "coverColor": "#080808",
     "coverRatio": 0.671,
-    "backImage": "/backs/772235.webp"
+    "backImage": "/backs/772235.webp",
+    "spineImage": "/spines/772235.webp",
+    "spineRatio": 0.189
   },
   {
     "id": "685970",
@@ -276,7 +315,9 @@
     "cover": "/covers/685970.webp",
     "coverColor": "#080808",
     "coverRatio": 0.671,
-    "backImage": "/backs/685970.webp"
+    "backImage": "/backs/685970.webp",
+    "spineImage": "/spines/685970.webp",
+    "spineRatio": 0.209
   },
   {
     "id": "1067621",
@@ -291,7 +332,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/be/be_1067621_0_BatmanTheCultHCHC.jpg",
     "cover": "/covers/1067621.webp",
     "coverColor": "#281808",
-    "coverRatio": 0.65
+    "coverRatio": 0.65,
+    "spineImage": "/spines/1067621.webp",
+    "spineRatio": 0.054,
+    "backImage": "/backs/1067621.webp"
   },
   {
     "id": "1143870",
@@ -307,7 +351,9 @@
     "cover": "/covers/1143870.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/1143870.webp"
+    "backImage": "/backs/1143870.webp",
+    "spineImage": "/spines/1143870.webp",
+    "spineRatio": 0.073
   },
   {
     "id": "692148",
@@ -322,7 +368,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/35/35_692148_0_.jpg",
     "cover": "/covers/692148.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.648
+    "coverRatio": 0.648,
+    "spineImage": "/spines/692148.webp",
+    "spineRatio": 0.078,
+    "backImage": "/backs/692148.webp"
   },
   {
     "id": "706357",
@@ -339,7 +388,8 @@
     "coverColor": "#080808",
     "coverRatio": 0.697,
     "spineImage": "/spines/706357.webp",
-    "spineRatio": 0.21
+    "spineRatio": 0.242,
+    "backImage": "/backs/706357.webp"
   },
   {
     "id": "985271",
@@ -355,7 +405,9 @@
     "cover": "/covers/985271.webp",
     "coverColor": "#080808",
     "coverRatio": 0.693,
-    "backImage": "/backs/985271.webp"
+    "backImage": "/backs/985271.webp",
+    "spineImage": "/spines/985271.webp",
+    "spineRatio": 0.086
   },
   {
     "id": "381368",
@@ -371,7 +423,9 @@
     "cover": "/covers/381368.webp",
     "coverColor": "#b8d8d8",
     "coverRatio": 0.673,
-    "backImage": "/backs/381368.webp"
+    "backImage": "/backs/381368.webp",
+    "spineImage": "/spines/381368.webp",
+    "spineRatio": 0.235
   },
   {
     "id": "400438",
@@ -387,7 +441,9 @@
     "cover": "/covers/400438.webp",
     "coverColor": "#082818",
     "coverRatio": 0.661,
-    "backImage": "/backs/400438.webp"
+    "backImage": "/backs/400438.webp",
+    "spineImage": "/spines/400438.webp",
+    "spineRatio": 0.207
   },
   {
     "id": "427280",
@@ -403,7 +459,9 @@
     "cover": "/covers/427280.webp",
     "coverColor": "#080808",
     "coverRatio": 0.634,
-    "backImage": "/backs/427280.webp"
+    "backImage": "/backs/427280.webp",
+    "spineImage": "/spines/427280.webp",
+    "spineRatio": 0.225
   },
   {
     "id": "685972",
@@ -419,7 +477,9 @@
     "cover": "/covers/685972.webp",
     "coverColor": "#080808",
     "coverRatio": 0.665,
-    "backImage": "/backs/685972.webp"
+    "backImage": "/backs/685972.webp",
+    "spineImage": "/spines/685972.webp",
+    "spineRatio": 0.24
   },
   {
     "id": "1062985",
@@ -435,7 +495,9 @@
     "cover": "/covers/1062985.webp",
     "coverColor": "#281838",
     "coverRatio": 0.651,
-    "backImage": "/backs/1062985.webp"
+    "backImage": "/backs/1062985.webp",
+    "spineImage": "/spines/1062985.webp",
+    "spineRatio": 0.057
   },
   {
     "id": "737375",
@@ -470,7 +532,8 @@
     "coverColor": "#080808",
     "coverRatio": 0.676,
     "spineImage": "/spines/634655.webp",
-    "spineRatio": 0.237
+    "spineRatio": 0.261,
+    "backImage": "/backs/634655.webp"
   },
   {
     "id": "863414",
@@ -486,7 +549,9 @@
     "cover": "/covers/863414.webp",
     "coverColor": "#f8f8d8",
     "coverRatio": 0.649,
-    "backImage": "/backs/863414.webp"
+    "backImage": "/backs/863414.webp",
+    "spineImage": "/spines/863414.webp",
+    "spineRatio": 0.061
   },
   {
     "id": "1094572",
@@ -501,7 +566,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/a8/a8_1094572_0_TheFlashbyGrantMorrisonandMark.jpg",
     "cover": "/covers/1094572.webp",
     "coverColor": "#f8d808",
-    "coverRatio": 0.668
+    "coverRatio": 0.668,
+    "spineImage": "/spines/1094572.webp",
+    "spineRatio": 0.083,
+    "backImage": "/backs/1094572.webp"
   },
   {
     "id": "861164",
@@ -517,7 +585,9 @@
     "cover": "/covers/861164.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/861164.webp"
+    "backImage": "/backs/861164.webp",
+    "spineImage": "/spines/861164.webp",
+    "spineRatio": 0.175
   },
   {
     "id": "1067636",
@@ -533,7 +603,9 @@
     "cover": "/covers/1067636.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.646,
-    "backImage": "/backs/1067636.webp"
+    "backImage": "/backs/1067636.webp",
+    "spineImage": "/spines/1067636.webp",
+    "spineRatio": 0.199
   },
   {
     "id": "861168",
@@ -549,7 +621,9 @@
     "cover": "/covers/861168.webp",
     "coverColor": "#68c8c8",
     "coverRatio": 0.685,
-    "backImage": "/backs/861168.webp"
+    "backImage": "/backs/861168.webp",
+    "spineImage": "/spines/861168.webp",
+    "spineRatio": 0.137
   },
   {
     "id": "1170454",
@@ -567,7 +641,7 @@
     "coverRatio": 0.674,
     "backImage": "/backs/1170454.webp",
     "spineImage": "/spines/1170454.webp",
-    "spineRatio": 0.179
+    "spineRatio": 0.202
   },
   {
     "id": "800436",
@@ -601,7 +675,9 @@
     "cover": "/covers/891648.webp",
     "coverColor": "#281818",
     "coverRatio": 0.668,
-    "backImage": "/backs/891648.webp"
+    "backImage": "/backs/891648.webp",
+    "spineImage": "/spines/891648.webp",
+    "spineRatio": 0.147
   },
   {
     "id": "477616",
@@ -618,7 +694,8 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.658,
     "spineImage": "/spines/477616.webp",
-    "spineRatio": 0.07
+    "spineRatio": 0.068,
+    "backImage": "/backs/477616.webp"
   },
   {
     "id": "700430",
@@ -633,7 +710,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/46/46_700430_0_.jpg",
     "cover": "/covers/700430.webp",
     "coverColor": "#081808",
-    "coverRatio": 0.667
+    "coverRatio": 0.667,
+    "spineImage": "/spines/700430.webp",
+    "spineRatio": 0.145,
+    "backImage": "/backs/700430.webp"
   },
   {
     "id": "629057",
@@ -649,7 +729,9 @@
     "cover": "/covers/629057.webp",
     "coverColor": "#080808",
     "coverRatio": 0.661,
-    "backImage": "/backs/629057.webp"
+    "backImage": "/backs/629057.webp",
+    "spineImage": "/spines/629057.webp",
+    "spineRatio": 0.14
   },
   {
     "id": "629058",
@@ -665,7 +747,9 @@
     "cover": "/covers/629058.webp",
     "coverColor": "#080808",
     "coverRatio": 0.666,
-    "backImage": "/backs/629058.webp"
+    "backImage": "/backs/629058.webp",
+    "spineImage": "/spines/629058.webp",
+    "spineRatio": 0.119
   },
   {
     "id": "770779",
@@ -681,7 +765,9 @@
     "cover": "/covers/770779.webp",
     "coverColor": "#080808",
     "coverRatio": 0.677,
-    "backImage": "/backs/770779.webp"
+    "backImage": "/backs/770779.webp",
+    "spineImage": "/spines/770779.webp",
+    "spineRatio": 0.13
   },
   {
     "id": "783486",
@@ -699,7 +785,7 @@
     "coverRatio": 0.668,
     "backImage": "/backs/783486.webp",
     "spineImage": "/spines/783486.webp",
-    "spineRatio": 0.134
+    "spineRatio": 0.145
   },
   {
     "id": "634520",
@@ -714,7 +800,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/02/02_634520_0_.jpg",
     "cover": "/covers/634520.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.667
+    "coverRatio": 0.667,
+    "spineImage": "/spines/634520.webp",
+    "spineRatio": 0.092,
+    "backImage": "/backs/634520.webp"
   },
   {
     "id": "1148976",
@@ -729,7 +818,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/b8/b8_1148976_0_JephLoebTimSaleHulkTPTP.jpg",
     "cover": "/covers/1148976.webp",
     "coverColor": "#b8b8b8",
-    "coverRatio": 0.72
+    "coverRatio": 0.72,
+    "backImage": "/backs/1148976.webp"
   },
   {
     "id": "582586",
@@ -745,7 +835,9 @@
     "cover": "/covers/582586.webp",
     "coverColor": "#080808",
     "coverRatio": 0.645,
-    "backImage": "/backs/582586.webp"
+    "backImage": "/backs/582586.webp",
+    "spineImage": "/spines/582586.webp",
+    "spineRatio": 0.041
   },
   {
     "id": "891650",
@@ -760,7 +852,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/67/67_891650_0_.jpg",
     "cover": "/covers/891650.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.679
+    "coverRatio": 0.679,
+    "backImage": "/backs/891650.webp",
+    "spineImage": "/spines/891650.webp",
+    "spineRatio": 0.109
   },
   {
     "id": "891652",
@@ -793,7 +888,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/7b/7b_1121691_0_SpiderManBlueTPC.jpg",
     "cover": "/covers/1121691.webp",
     "coverColor": "#f8f8d8",
-    "coverRatio": 0.651
+    "coverRatio": 0.651,
+    "spineImage": "/spines/1121691.webp",
+    "spineRatio": 0.037,
+    "backImage": "/backs/1121691.webp"
   },
   {
     "id": "932038",
@@ -811,7 +909,7 @@
     "coverRatio": 0.662,
     "backImage": "/backs/932038.webp",
     "spineImage": "/spines/932038.webp",
-    "spineRatio": 0.222
+    "spineRatio": 0.232
   },
   {
     "id": "790998",
@@ -829,7 +927,7 @@
     "coverRatio": 0.666,
     "backImage": "/backs/790998.webp",
     "spineImage": "/spines/790998.webp",
-    "spineRatio": 0.166
+    "spineRatio": 0.187
   },
   {
     "id": "764502",
@@ -845,7 +943,9 @@
     "cover": "/covers/764502.webp",
     "coverColor": "#e82828",
     "coverRatio": 0.65,
-    "backImage": "/backs/764502.webp"
+    "backImage": "/backs/764502.webp",
+    "spineImage": "/spines/764502.webp",
+    "spineRatio": 0.159
   },
   {
     "id": "833426",
@@ -861,7 +961,9 @@
     "cover": "/covers/833426.webp",
     "coverColor": "#084888",
     "coverRatio": 0.664,
-    "backImage": "/backs/833426.webp"
+    "backImage": "/backs/833426.webp",
+    "spineImage": "/spines/833426.webp",
+    "spineRatio": 0.165
   },
   {
     "id": "1091823",
@@ -876,7 +978,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/49/49_1091823_0_WolverineByJasonAaronOmnibusHC.jpg",
     "cover": "/covers/1091823.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.676
+    "coverRatio": 0.676,
+    "spineImage": "/spines/1091823.webp",
+    "spineRatio": 0.149,
+    "backImage": "/backs/1091823.webp"
   },
   {
     "id": "932048",
