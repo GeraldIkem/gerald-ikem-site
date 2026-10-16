@@ -153,6 +153,194 @@ test('the off-the-clock tally jumps to each part of the page', async ({ page }) 
   await expect(page.locator('#sports h2')).toBeInViewport();
 });
 
+test.describe('sports you can play', () => {
+  const card = (page: Page, game: string) => page.locator(`[data-game="${game}"]`);
+  // A shot plays out in real time, which takes longer when the browsers share a busy CPU.
+  const inPlay = { timeout: 15_000 };
+
+  /** Bring a card into view and let its drawing finish playing by itself, so the ball is ours. */
+  async function settled(page: Page, game: string) {
+    const stage = card(page, game).locator('.pastime__stage');
+    await stage.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await page.waitForTimeout(300);
+    await expect(stage).not.toHaveClass(/is-busy/, inPlay);
+    return stage;
+  }
+
+  // The keyboard tests ask for reduced motion, so a shot lands the moment it's taken whatever the frame rate;
+  // the mouse and touch tests below watch it fly.
+  test('scores a basket from the keyboard', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/off-the-clock/');
+    const court = card(page, 'court');
+    const stage = court.getByRole('application', { name: /Basketball/ });
+    await stage.focus();
+    await expect(stage).toBeFocused();
+    // The starting aim is a touch long; three presses down bring it in.
+    for (let i = 0; i < 3; i++) await stage.press('ArrowDown');
+    await stage.press('Space');
+    await expect(court.locator('[data-live]')).toHaveText('2 points. Score 2.', inPlay);
+    await expect(court.locator('[data-score]')).toHaveText('2');
+    await expect(court.locator('[data-streak]')).toHaveText('1');
+    expect(errors).toEqual([]);
+  });
+
+  test('scores a goal from the keyboard, and a kick out of play comes back', async ({ page }) => {
+    test.slow(); // Two kicks and forty key presses.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/off-the-clock/');
+    const pitch = card(page, 'pitch');
+    const stage = pitch.getByRole('application', { name: /Football/ });
+    await stage.focus();
+    // Straight at the keeper is saved; six presses up put it past him.
+    for (let i = 0; i < 6; i++) await stage.press('ArrowUp');
+    await stage.press('Space');
+    await expect(pitch.locator('[data-live]')).toHaveText('Goal! 1 of 1.', inPlay);
+    await expect(pitch.locator('[data-goals]')).toHaveText('1');
+
+    // Then a hard kick up the pitch, out over the touchline.
+    await expect(stage).not.toHaveClass(/is-busy/, inPlay);
+    const ball = pitch.locator('[data-ball]');
+    const spot = await ball.getAttribute('transform');
+    // Shift moves the aim in bigger steps.
+    for (let i = 0; i < 14; i++) await stage.press('Shift+ArrowLeft');
+    for (let i = 0; i < 17; i++) await stage.press('Shift+ArrowUp');
+    await stage.press('Enter');
+    await expect(pitch.locator('[data-live]')).toHaveText('Out of play. 1 of 2.', inPlay);
+    await expect(stage).not.toHaveClass(/is-busy/, inPlay);
+    await expect(ball).toHaveAttribute('transform', spot ?? '');
+  });
+
+  test('scores a basket with a mouse drag from the ball', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Phones drag by touch, tested below.');
+    test.slow(); // Waits for the drawing to finish playing by itself first.
+    await page.goto('/off-the-clock/');
+    const court = card(page, 'court');
+    await settled(page, 'court');
+    const box = (await court.locator('svg').boundingBox())!;
+    const scale = box.width / 320;
+    const x = box.x + 168 * scale;
+    const y = box.y + 123 * scale;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x - 44 * scale, y - 64 * scale, { steps: 8 });
+    await expect(court.locator('[data-aim]')).toHaveClass(/is-on/);
+    await page.mouse.up();
+    await expect(court.locator('[data-live]')).toHaveText('2 points. Score 2.', inPlay);
+  });
+
+  test('a touch drag on the ball shoots, and a swipe anywhere else still scrolls the page', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'Touch only.');
+    test.slow(); // Waits for the drawing to finish playing by itself first.
+    await page.goto('/off-the-clock/');
+    const court = card(page, 'court');
+    await settled(page, 'court');
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type: string, x = 0, y = 0) =>
+      cdp.send('Input.dispatchTouchEvent', { type: type as 'touchStart', touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+    const box = (await court.locator('svg').boundingBox())!;
+    const scale = box.width / 320;
+    const x = box.x + 168 * scale;
+    const y = box.y + 123 * scale;
+
+    const before = await page.evaluate(() => scrollY);
+    await touch('touchStart', x, y);
+    for (let i = 1; i <= 8; i++) await touch('touchMove', x - (44 * scale * i) / 8, y - (64 * scale * i) / 8);
+    await touch('touchEnd');
+    expect(await page.evaluate(() => scrollY)).toBe(before);
+    await expect(court.locator('[data-live]')).toHaveText('2 points. Score 2.', inPlay);
+
+    // Away from the ball, the drawing is just part of the page.
+    const wall = { x: box.x + box.width * 0.7, y: box.y + box.height * 0.5 };
+    await touch('touchStart', wall.x, wall.y);
+    for (let i = 1; i <= 10; i++) await touch('touchMove', wall.x, wall.y - 20 * i);
+    await touch('touchEnd');
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before + 50);
+  });
+
+  test('swims a length with the arrow keys and keeps the best time', async ({ page }) => {
+    test.slow();
+    await page.goto('/off-the-clock/');
+    const pool = card(page, 'pool');
+    const stage = pool.getByRole('application', { name: /Swimming/ });
+    await stage.focus();
+    const live = pool.locator('[data-live]');
+    // Start with real key presses.
+    await stage.press('ArrowLeft');
+    await stage.press('ArrowLeft');
+    await stage.press('ArrowRight');
+    // Then left, right, left, right at a steady 8 a second, kept up inside the page so the pace holds on a busy machine.
+    await stage.evaluate(
+      (el) =>
+        new Promise<void>((resolve) => {
+          let i = 0;
+          const timer = setInterval(() => {
+            el.dispatchEvent(new KeyboardEvent('keydown', { key: i++ % 2 ? 'ArrowRight' : 'ArrowLeft', bubbles: true }));
+            const said = el.closest('.pastime')?.querySelector('[data-live]')?.textContent ?? '';
+            if (said.startsWith('Finished') || i > 600) {
+              clearInterval(timer);
+              resolve();
+            }
+          }, 125);
+        }),
+    );
+    await expect(live).toHaveText(/^Finished in \d+\.\d\d seconds\. New best\.$/);
+    const best = await pool.locator('[data-best]').textContent();
+    expect(best).toMatch(/^\d+\.\d\d$/);
+
+    await page.reload();
+    await expect(card(page, 'pool').locator('[data-best]')).toHaveText(best ?? '');
+  });
+
+  test('swims on taps of the two pads', async ({ page }) => {
+    await page.goto('/off-the-clock/');
+    const pool = card(page, 'pool');
+    const swimmer = pool.locator('[data-swimmer]');
+    const start = await swimmer.getAttribute('transform');
+    await pool.getByRole('button', { name: 'Left arm' }).click();
+    await pool.getByRole('button', { name: 'Right arm' }).click();
+    await expect(swimmer).not.toHaveAttribute('transform', start ?? '');
+    await expect(pool.locator('[data-time]')).not.toHaveText('0.00');
+  });
+
+  test('pulls a book off the shelf by pointer and by keyboard', async ({ page }) => {
+    await page.goto('/off-the-clock/');
+    const books = card(page, 'books');
+    await settled(page, 'books');
+    const spines = books.locator('[data-book]');
+    await spines.nth(1).click();
+    await expect(spines.nth(1)).toHaveClass(/is-out/);
+    await expect(books.locator('[data-live]')).toHaveText('Pulled out book 2 of 8.');
+
+    await books.getByRole('application', { name: 'Bookshelf' }).press('ArrowRight');
+    await page.keyboard.press('Space');
+    await expect(spines.nth(2)).toHaveClass(/is-out/);
+    await expect(spines.nth(1)).not.toHaveClass(/is-out/);
+  });
+
+  for (const scheme of ['light', 'dark'] as const) {
+    test(`stays accessible mid-game in ${scheme} mode`, async ({ page }) => {
+      test.slow(); // axe walks the whole section, as in the page audits below.
+      await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+      await page.goto('/off-the-clock/');
+      const court = card(page, 'court');
+      const stage = court.getByRole('application', { name: /Basketball/ });
+      await stage.focus();
+      await stage.press('ArrowDown');
+      await expect(court.locator('[data-aim]')).toHaveClass(/is-on/);
+      // With reduced motion the shot lands at once, with no flight to watch.
+      await stage.press('Space');
+      await expect(court.locator('[data-live]')).not.toBeEmpty();
+      const results = await new AxeBuilder({ page })
+        .include('#sports')
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+      expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
+    });
+  }
+});
+
 test('builds a real LEGO set in 3D when the viewer comes into view', async ({ page }) => {
   // Parsing a real LDraw model is heavy in headless browsers sharing one CPU.
   test.slow();
