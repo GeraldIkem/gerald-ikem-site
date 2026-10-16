@@ -1,4 +1,5 @@
 import type { ImageMetadata } from 'astro';
+import { stints } from '~/data/career';
 import { projects } from '~/data/projects';
 import type { YearMonth } from '~/lib/timeline';
 
@@ -17,6 +18,8 @@ export interface Milestone {
   skills: string[];
   /** A project screenshot, when the milestone is a project. */
   image?: ImageMetadata | undefined;
+  /** The organization's logo, when the milestone is a job or a degree. */
+  logo?: ImageMetadata | undefined;
   brand?: { bg: string; accent: string } | undefined;
   link?: string | undefined;
 }
@@ -37,28 +40,37 @@ const fromProject = (slug: string, date: YearMonth, summary: string, skills: str
   };
 };
 
+/** A job or degree's logo, and its colour for the card's edge. */
+const orgOf = (id: string) => {
+  const stint = stints.find((s) => s.id === id);
+  return { logo: stint?.logo, brand: stint?.brand ? { bg: stint.brand.bg, accent: stint.brand.fg } : undefined };
+};
+
 export const milestones: Milestone[] = [
   {
     id: 'credit-direct',
     link: '#credit-direct',
+    ...orgOf('credit-direct'),
     date: '2019-11',
     title: 'IT intern',
     where: 'Credit Direct, Lagos',
-    summary: 'My first job in tech, before moving to Canada for university.',
-    skills: ['IT support'],
+    summary: 'My first job in tech, before moving to Canada for university: office IT, phones and the customer line.',
+    skills: ['IT support', 'Customer service'],
   },
   {
     id: 'york',
     link: '#york',
+    ...orgOf('york'),
     date: '2020-09',
     title: 'Honours BSc, Computer Science',
     where: 'York University, Toronto',
     summary: 'Five years of computer science, from first Java programs to operating systems and databases.',
-    skills: ['Java', 'Operating systems', 'Databases', 'Security'],
+    skills: ['Java', 'Algorithms', 'Software design', 'Operating systems', 'Databases', 'Security'],
   },
   {
     id: 'loveworld',
     link: '#loveworld',
+    ...orgOf('loveworld'),
     date: '2021-09',
     title: 'Web developer, part-time',
     where: 'Believer’s LoveWorld',
@@ -68,6 +80,7 @@ export const milestones: Milestone[] = [
   {
     id: 'payaza',
     link: '#payaza',
+    ...orgOf('payaza'),
     date: '2025-11',
     title: 'Backend engineer',
     where: 'Payaza',
@@ -91,6 +104,7 @@ export const milestones: Milestone[] = [
   {
     id: 'uiuc',
     link: '#uiuc',
+    ...orgOf('uiuc'),
     date: '2026-08',
     title: 'Master of Computer Science',
     where: 'University of Illinois Urbana-Champaign',

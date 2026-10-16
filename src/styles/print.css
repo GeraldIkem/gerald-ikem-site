@@ -27,9 +27,11 @@
   .site-header nav,
   .theme-toggle,
   page-trace,
-  .career,
+  career-story,
+  .quick,
   pay-demo,
-  .project__shot,
+  .pcard__shot,
+  .pcard__cta,
   .hero__actions,
   #off-the-clock,
   #next,
@@ -79,19 +81,29 @@
     font-size: 11.5pt;
   }
 
-  .role,
-  .project {
+  .rcard,
+  .pcard {
     break-inside: avoid;
   }
 
   .roles,
-  .project-list {
+  .pgrid {
     gap: 10pt;
     margin-top: 0;
   }
 
-  .project {
-    display: block;
+  .pgrid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .rcard--wide .rcard__body {
+    display: block !important;
+  }
+
+  .pcard {
+    border: 0 !important;
+    padding: 0 !important;
   }
 
   .contact__email a {
@@ -105,7 +117,7 @@
   }
 
   .contact__links a::after,
-  .project h3 a::after {
+  .pcard h3 a::after {
     content: '';
   }
 
@@ -131,7 +143,7 @@
   }
 
   .roles,
-  .project-list {
+  .pgrid {
     gap: 12pt !important;
     margin-top: 6pt !important;
   }
@@ -141,13 +153,13 @@
     margin: 0 !important;
   }
 
-  .project h3 {
+  .pcard__name {
     font-size: 12pt !important;
   }
 
-  .project__one,
-  .project__highlights,
-  .role__points {
+  .pcard__one,
+  .pcard__highlights,
+  .rcard__points {
     font-size: 10pt !important;
     margin-block: 4pt !important;
   }
