@@ -18,6 +18,9 @@ export interface Book {
   coverColor?: string | undefined;
   /** Cover width divided by height. */
   coverRatio?: number | undefined;
+  /** Real spine and back images, where I have them. */
+  spineImage?: string | undefined;
+  backImage?: string | undefined;
 }
 
 /** Spine heights in rem, roughly in proportion to the real formats. */

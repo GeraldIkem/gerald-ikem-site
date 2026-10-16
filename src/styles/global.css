@@ -377,44 +377,8 @@ code,
   --ink-3: #4b5058;
   --link: #1d2024;
   --rule: rgb(29 32 36 / 0.18);
-  --section-ink: #1d2024;
   background: var(--process-yellow);
   color: var(--ink);
-}
-
-.band--magenta {
-  --ink: #ffffff;
-  --ink-2: rgb(255 255 255 / 0.86);
-  --ink-3: rgb(255 255 255 / 0.75);
-  --link: #ffffff;
-  --rule: rgb(255 255 255 / 0.3);
-  --paper: #b8005f;
-  --magenta: #ffffff;
-  --cyan: var(--process-yellow);
-  --section-ink: var(--process-yellow);
-  background: #b8005f;
-  color: var(--ink);
-}
-
-/* Ben-Day dots, the texture of a printed comic. */
-.dots {
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  background-image: radial-gradient(circle, var(--dot, var(--process-magenta)) 0 34%, transparent 36%);
-  background-size: var(--dot-size, 14px) var(--dot-size, 14px);
-  mask-image: radial-gradient(closest-side, #000 15%, transparent);
-}
-
-/* Each section heading carries a short bar of its own ink. */
-.section__head h2::before {
-  content: '';
-  display: block;
-  width: 2.75rem;
-  height: 0.45rem;
-  margin-bottom: 1.125rem;
-  border-radius: 1px;
-  background: var(--section-ink, var(--cyan));
 }
 
 /* The bordered panel every trace sits in. */

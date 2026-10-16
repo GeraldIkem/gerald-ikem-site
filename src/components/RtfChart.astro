@@ -5,7 +5,7 @@
  */
 const rows = [
   { label: 'GGUF q8_0 on Vulkan', low: 0.21, high: 0.35, tone: 'cyan' },
-  { label: 'PyTorch on ROCm', low: 0.75, high: 1.0, tone: 'magenta' },
+  { label: 'Finalists on ROCm PyTorch', low: 0.75, high: 1.0, tone: 'magenta' },
 ];
 const max = 1.2;
 const ticks = [0, 0.25, 0.5, 0.75, 1.0];
@@ -14,7 +14,7 @@ const pct = (value: number) => `${(value / max) * 100}%`;
 
 <figure class="rtf panel">
   <figcaption>
-    <span class="rtf__title">Generation speed across five models on one GPU</span>
+    <span class="rtf__title">Generation speed on one AMD RX 7900 XTX</span>
     <span class="rtf__sub">Real-time factor: seconds of compute per second of speech. Lower is faster.</span>
   </figcaption>
   <div class="rtf__grid">

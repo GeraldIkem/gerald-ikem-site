@@ -48,7 +48,7 @@ test.describe('home', () => {
   });
 
   test('switches Linkify redirect scenarios', async ({ page }) => {
-    await page.goto('/#linkify');
+    await page.goto('/projects/linkify/');
     const demo = page.locator('.redirect');
     await expect(demo.locator('[data-panel="hit"]')).toBeVisible();
     await expect(demo.locator('[data-panel="down"]')).toBeHidden();
@@ -83,16 +83,14 @@ test.describe('off the clock', () => {
     await spine.click();
     await expect(spine).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('[data-text] h3')).toHaveText(title ?? '');
-    // The book comes off the shelf wearing its real cover.
-    const cover = page.locator('.book3d .cover--real img');
-    await expect(cover).toHaveAttribute('src', (await spine.getAttribute('data-cover')) ?? '');
-    await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    // The book comes off the shelf as a 3D hardcover drawn by three.js.
+    await expect(page.locator('.shelf__stage canvas')).toBeVisible({ timeout: 15_000 });
     expect(errors).toEqual([]);
   });
 
   test('starts with a book already off the shelf and can pull another', async ({ page }) => {
     await page.goto('/off-the-clock/');
-    await expect(page.locator('.book3d')).toHaveCount(1);
+    await expect(page.locator('.shelf__stage canvas, .shelf__stage .book3d')).toHaveCount(1);
     const first = await page.locator('[data-text] h3').textContent();
     await page.getByRole('button', { name: 'Pull one at random' }).click();
     await expect(page.locator('[data-text] h3')).not.toHaveText(first ?? '');
@@ -121,17 +119,34 @@ test.describe('off the clock', () => {
 });
 
 test('builds a real LEGO set in 3D when the viewer comes into view', async ({ page }) => {
+  // Parsing a real LDraw model is heavy in headless browsers sharing one CPU.
+  test.slow();
   const errors = collectErrors(page);
   await page.goto('/off-the-clock/');
   const viewer = page.locator('lego-viewer');
   await viewer.scrollIntoViewIfNeeded();
   await expect(viewer.locator('canvas')).toBeVisible({ timeout: 15_000 });
-  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of \d+$/, { timeout: 20_000 });
+  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of \d+$/, { timeout: 45_000 });
 
   await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
   await expect(viewer.locator('[data-credit]')).toContainText('10265');
-  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 20_000 });
+  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
   expect(errors).toEqual([]);
+});
+
+test('lists every project and gives each one a page', async ({ page }) => {
+  await page.goto('/');
+  const links = page.locator('.project h3 a');
+  await expect(links).toHaveCount(7);
+  await expect(page.getByText('This Is It 2.0')).toHaveCount(0);
+  const hrefs = await links.evaluateAll((anchors) => anchors.map((a) => (a as HTMLAnchorElement).getAttribute('href')));
+  for (const href of hrefs) {
+    const response = await page.goto(href!);
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.locator('.facts > div')).toHaveCount(4);
+    await expect(page.getByRole('heading', { level: 2, name: 'Where it falls short' })).toBeVisible();
+  }
 });
 
 test('unknown addresses get the 404 page', async ({ page }) => {
@@ -140,12 +155,15 @@ test('unknown addresses get the 404 page', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nothing at this address');
 });
 
-for (const path of ['/', '/off-the-clock/']) {
+for (const path of ['/', '/off-the-clock/', '/projects/linkify/', '/projects/hummle/']) {
   for (const scheme of ['light', 'dark'] as const) {
     test(`${path} has no serious accessibility problems in ${scheme} mode`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto(path);
-      await page.locator('page-trace .trace__row, comic-shelf .spine:not([hidden])').first().waitFor();
+      // Let the live parts finish drawing before auditing them.
+      if (path === '/') await page.locator('page-trace .trace__row').first().waitFor();
+      if (path === '/off-the-clock/') await page.locator('comic-shelf .spine:not([hidden])').first().waitFor();
+      await page.waitForLoadState('networkidle');
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
       expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);

@@ -1,109 +1,85 @@
 ---
 import { Image } from 'astro:assets';
-import { features, smaller } from '~/data/projects';
-import RedirectDemo from './RedirectDemo.astro';
-import RtfChart from './RtfChart.astro';
+import { projects } from '~/data/projects';
 ---
 
-<div class="projects">
+<ol class="project-list">
   {
-    features.map((project, index) => (
-      <article
-        class="feature"
-        id={project.id}
-        style={`--brand-bg:${project.brand.bg};--brand-accent:${project.brand.accent};--tilt:${index % 2 === 0 ? -1.6 : 1.3}deg`}
-      >
-        <div class="feature__text">
-          <header>
-            <h3>
-              {project.name}
-              {project.status && <span class="feature__status">{project.status}</span>}
-            </h3>
-            <p class="feature__summary">{project.summary}</p>
-          </header>
-          <ul class="feature__notes">
-            {project.notes.map((note) => (
-              <li>{note}</li>
-            ))}
-          </ul>
-          <ul class="tag-list" aria-label="Built with">
-            {project.stack.map((item) => (
+    projects.map((project, index) => (
+      <li class="project" style={`--brand-bg:${project.brand.bg};--brand-accent:${project.brand.accent};--tilt:${index % 2 === 0 ? -1.4 : 1.2}deg`}>
+        <a class="project__shot" href={`/projects/${project.slug}/`} tabindex="-1" aria-hidden="true">
+          <Image src={project.image} alt="" widths={[360, 560, 720]} sizes="(min-width: 52rem) 17rem, 100vw" loading="lazy" />
+        </a>
+        <div class="project__text">
+          <h3>
+            <a href={`/projects/${project.slug}/`}>{project.name}</a>
+            {project.status && <span class="project__status">{project.status}</span>}
+          </h3>
+          <p class="project__one">{project.oneLine}</p>
+          <ul class="project__highlights">
+            {project.highlights.map((item) => (
               <li>{item}</li>
             ))}
           </ul>
-          <p class="feature__link">
-            <a href={project.url}>{project.linkText}</a>
+          <p class="project__links">
+            <a href={`/projects/${project.slug}/`}>Read how it works</a>
+            <a href={project.url} class="project__live">{project.linkText}</a>
           </p>
         </div>
-        <a class="feature__shot" href={project.url} tabindex="-1" aria-hidden="true">
-          <span class="feature__dots" />
-          <Image
-            src={project.image}
-            alt=""
-            widths={[480, 800, 1200]}
-            sizes="(min-width: 76rem) 26rem, (min-width: 60rem) 34vw, 100vw"
-            loading="lazy"
-          />
-        </a>
-        {project.id === 'hummle' && (
-          <div class="feature__extra">
-            <RtfChart />
-          </div>
-        )}
-        {project.id === 'linkify' && (
-          <div class="feature__extra">
-            <RedirectDemo />
-          </div>
-        )}
-      </article>
+      </li>
     ))
   }
-
-  <h3 class="projects__more">Also built</h3>
-  <ul class="small-list">
-    {
-      smaller.map((project) => (
-        <li class="minor" style={`--brand-bg:${project.brand.bg};--brand-accent:${project.brand.accent}`}>
-          <div class="minor__head">
-            <h4>
-              <span class="minor__swatch" aria-hidden="true" />
-              <a href={project.url}>{project.name}</a>
-            </h4>
-            <p class="minor__what">{project.what}</p>
-          </div>
-          <p class="minor__detail">{project.detail}</p>
-          <p class="minor__stack">{project.stack}</p>
-        </li>
-      ))
-    }
-  </ul>
-</div>
+</ol>
 
 <style>
-  .projects {
+  .project-list {
     display: grid;
-    gap: clamp(3.5rem, 7vw, 5.5rem);
+    gap: clamp(2.5rem, 5vw, 3.5rem);
+    padding: 0;
+    list-style: none;
   }
 
-  .feature {
+  .project {
     display: grid;
-    gap: 1.5rem;
-    scroll-margin-top: 2rem;
+    gap: 1.25rem;
+    align-items: start;
   }
 
-  @media (min-width: 60rem) {
-    .feature {
-      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-      column-gap: 2.5rem;
-      align-items: start;
-    }
-
-    .feature__extra {
-      grid-column: 1 / -1;
+  @media (min-width: 52rem) {
+    .project {
+      grid-template-columns: 17rem minmax(0, 1fr);
+      gap: 2.25rem;
     }
   }
 
-  .feature h3 {
+  /* Each screenshot sits on a mat in its project's own colours. */
+  .project__shot {
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--brand-bg);
+    box-shadow: inset 0 -5px 0 var(--brand-accent);
+    aspect-ratio: 4 / 3;
+  }
+
+  .project__shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    border-radius: 3px;
+    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.6);
+    transform: rotate(var(--tilt));
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .project:hover .project__shot img {
+    transform: rotate(0deg) scale(1.02);
+  }
+
+  .project h3 {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -111,7 +87,18 @@ import RtfChart from './RtfChart.astro';
     font-size: var(--text-lg);
   }
 
-  .feature__status {
+  .project h3 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .project h3 a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--brand-accent);
+  }
+
+  .project__status {
     padding: 0.1rem 0.55rem;
     border: 1px solid #1d2024;
     border-radius: 999px;
@@ -123,163 +110,48 @@ import RtfChart from './RtfChart.astro';
     letter-spacing: 0;
   }
 
-  .feature__summary {
-    margin-top: 0.625rem;
-    font-size: var(--text-base);
+  .project__one {
+    margin-top: 0.5rem;
+    max-width: 40rem;
   }
 
-  .feature__notes {
+  .project__highlights {
     display: grid;
-    gap: 0.5rem;
-    margin: 1rem 0 1.25rem;
-    padding-left: 1.125rem;
-    color: var(--ink-2);
-    font-size: var(--text-sm);
-  }
-
-  .feature__notes li::marker {
-    color: var(--brand-bg);
-  }
-
-  :global([data-theme='dark']) .feature__notes li::marker {
-    color: var(--brand-accent);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme='light'])) .feature__notes li::marker {
-      color: var(--brand-accent);
-    }
-  }
-
-  .feature__link {
-    margin-top: 0.875rem;
-    font-weight: 600;
-  }
-
-  /* Each screenshot sits on a mat in its project's own colours. */
-  .feature__shot {
-    position: relative;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    isolation: isolate;
-    padding: clamp(1.25rem, 3.5vw, 2rem);
-    border-radius: 10px;
-    background: var(--brand-bg);
-    aspect-ratio: 4 / 3;
-  }
-
-  .feature__dots {
-    position: absolute;
-    top: -30%;
-    right: -25%;
-    z-index: -1;
-    width: 85%;
-    height: 85%;
-    background-image: radial-gradient(circle, var(--brand-accent) 0 34%, transparent 36%);
-    background-size: 12px 12px;
-    mask-image: radial-gradient(closest-side, #000 20%, transparent);
-  }
-
-  .feature__shot::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    z-index: -1;
-    width: 100%;
-    height: 0.5rem;
-    background: var(--brand-accent);
-  }
-
-  .feature__shot img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top left;
-    border-radius: 4px;
-    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.55);
-    transform: rotate(var(--tilt));
-    transition: transform 500ms var(--ease-out);
-  }
-
-  .feature__shot:hover img {
-    transform: rotate(0deg) scale(1.02);
-  }
-
-  @media (max-width: 59.99rem) {
-    .feature__shot {
-      order: -1;
-      aspect-ratio: 16 / 9;
-    }
-  }
-
-  .projects__more {
-    padding-top: 2.5rem;
-    border-top: 1px solid var(--rule);
-    margin-bottom: -2rem;
-  }
-
-  .small-list {
-    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.75rem;
     padding: 0;
     list-style: none;
-  }
-
-  .minor {
-    display: grid;
-    gap: 0.375rem 2rem;
-    padding-block: 1.25rem;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .minor:first-child {
-    padding-top: 0;
-  }
-
-  @media (min-width: 52rem) {
-    .minor {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    }
-
-    .minor__stack {
-      grid-column: 2;
-    }
-  }
-
-  .minor h4 {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: var(--text-base);
-  }
-
-  /* A two-tone chip of the project's own colours. */
-  .minor__swatch {
-    flex: none;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 3px;
-    background: linear-gradient(135deg, var(--brand-bg) 0 55%, var(--brand-accent) 55%);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
-  }
-
-  .minor h4 a {
-    color: var(--ink);
-  }
-
-  .minor__what {
-    margin-top: 0.25rem;
     color: var(--ink-2);
     font-size: var(--text-sm);
   }
 
-  .minor__detail {
+  .project__highlights li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+  }
+
+  .project__highlights li::before {
+    content: '';
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 2px;
+    background: linear-gradient(135deg, var(--brand-bg) 0 55%, var(--brand-accent) 55%);
+    transform: translateY(-0.05rem);
+  }
+
+  .project__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1rem;
+    font-weight: 600;
     font-size: var(--text-sm);
   }
 
-  .minor__stack {
-    color: var(--ink-3);
-    font-size: var(--text-xs);
+  .project__live {
+    color: var(--ink-2);
+    font-weight: 400;
   }
 </style>

@@ -7,9 +7,9 @@ The site treats my work the way I see a backend system: as requests moving throu
 - **The hero** draws a trace of your own request for the page, from the Navigation Timing and Resource Timing entries your browser records. The numbers are real and change on every load.
 - **The career timeline** is the same kind of trace: roles and degrees as spans, overlapping where they overlapped.
 - **Try paying twice** is a small model of the duplicate-reference check I added to a checkout service. Press Pay twice and the second request is refused.
-- **How Linkify resolves a short link** walks through the redirect path (cache hit, unknown code, expired link, Redis down). It works without JavaScript: it is a radio group and CSS `:has()`.
+- **A page for every project** at `/projects/<slug>/`: how it works, the problems that were hard, the decisions and trade-offs, honest limits and what's next, written from each project's own repository. The Linkify page walks through the redirect path (cache hit, unknown code, expired link, Redis down) without JavaScript, using a radio group and CSS `:has()`.
 - **LEGO in 3D**: the sets that have an exact digital model (the James Bond Aston Martin DB5, the Ford Mustang and the 1989 Batmobile) build themselves on screen in the order of their real instructions, piece by piece, with three.js.
-- **The comic shelf** on `/off-the-clock/` is my actual collection, exported from CLZ Comics. Pick a spine and the book comes off the shelf in 3D, turning from spine to cover, with my note on it. The covers are original designs, not publisher art.
+- **The comic shelf** on `/off-the-clock/` is my actual collection, exported from CLZ Comics. Pick a spine and the book comes off the shelf as a three.js hardcover (boards, rounded spine, page edges, headbands) wearing its real cover.
 
 ## Stack
 
@@ -50,7 +50,7 @@ npm run dev
 ## Updating content
 
 - Roles, dates and skills: `src/data/career.ts`
-- Projects: `src/data/projects.ts`
+- Projects and their case studies: `src/data/projects.ts` (pages are generated from it)
 - Name, email, links, résumé path: `src/data/site.ts`
 - Résumé PDF: `public/resume/Gerald_Ikem_Resume.pdf`
 - Comics: export from CLZ Comics (File, Export, XML), then `npm run comics -- path/to/export.xml`

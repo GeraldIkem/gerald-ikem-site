@@ -29,8 +29,7 @@
   page-trace,
   .career,
   pay-demo,
-  .feature__shot,
-  .feature__extra,
+  .project__shot,
   .hero__actions,
   #off-the-clock,
   #next,
@@ -81,18 +80,17 @@
   }
 
   .role,
-  .feature,
-  .minor {
+  .project {
     break-inside: avoid;
   }
 
   .roles,
-  .projects {
+  .project-list {
     gap: 10pt;
     margin-top: 0;
   }
 
-  .feature {
+  .project {
     display: block;
   }
 
@@ -107,7 +105,7 @@
   }
 
   .contact__links a::after,
-  .minor h4 a::after {
+  .project h3 a::after {
     content: '';
   }
 
@@ -133,23 +131,22 @@
   }
 
   .roles,
-  .projects {
+  .project-list {
     gap: 12pt !important;
     margin-top: 6pt !important;
   }
 
-  .roles__group,
-  .projects__more {
+  .roles__group {
     padding-top: 8pt !important;
     margin: 0 !important;
   }
 
-  .feature h3 {
-    font-size: 13pt !important;
+  .project h3 {
+    font-size: 12pt !important;
   }
 
-  .feature__summary,
-  .feature__notes,
+  .project__one,
+  .project__highlights,
   .role__points {
     font-size: 10pt !important;
     margin-block: 4pt !important;
