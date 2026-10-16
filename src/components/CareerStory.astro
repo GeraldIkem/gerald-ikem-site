@@ -21,18 +21,32 @@ const rows = [...stints]
 // Even years only, and none so close to the right edge that its label would be cut off.
 const ticks = yearTicks(axis).filter((tick) => tick.year % 2 === 0 && tick.left < 88);
 
-// Every skill once, in order of first appearance, with what the browser needs to draw it.
-const skillOrder: string[] = [];
-for (const milestone of milestones) for (const skill of milestone.skills) if (!skillOrder.includes(skill)) skillOrder.push(skill);
-const skills = skillOrder.map((name) => {
-  const tech = techOf(name);
-  return { name, color: tech.color, text: tech.text, path: tech.path ?? '', initials: tech.initials };
-});
-const skillByName = new Map(skills.map((skill) => [skill.name, skill]));
-const finalCounts = new Map(skillOrder.map((name) => [name, milestones.filter((m) => m.skills.includes(name)).length]));
+// Skills are counted by tool, so "JUnit" in first year and "JUnit 5" at Payaza grow the same chip.
+// Each chip keeps the name it first appeared under.
+const keyOf = (name: string) => techOf(name).key;
+const stepKeys = milestones.map((m) => [...new Set(m.skills.map(keyOf))]);
+const skills: Array<{ key: string; name: string; color: string; text: string; path: string; initials: string }> = [];
+for (const milestone of milestones) {
+  for (const name of milestone.skills) {
+    const tech = techOf(name);
+    if (skills.some((skill) => skill.key === tech.key)) continue;
+    skills.push({ key: tech.key, name, color: tech.color, text: tech.text, path: tech.path ?? '', initials: tech.initials });
+  }
+}
+const finalCounts = new Map(skills.map((skill) => [skill.key, stepKeys.filter((keys) => keys.includes(skill.key)).length]));
+
+// Every project start and rebuild, as dots on their own row of the trace.
+// Dots in the same month sit side by side instead of on top of each other.
+const projectDots = milestones
+  .filter((m) => m.kind)
+  .map((m, index, all) => {
+    const same = all.filter((other) => other.date === m.date);
+    const nudge = same.indexOf(m) - (same.length - 1) / 2;
+    return { date: m.date, left: cursorAt(m.date), kind: m.kind, nudge };
+  });
 
 const data = JSON.stringify({
-  milestones: milestones.map((m) => ({ id: m.id, date: m.date, label: formatMonth(m.date), cursor: cursorAt(m.date), skills: m.skills })),
+  milestones: milestones.map((m, index) => ({ id: m.id, date: m.date, label: formatMonth(m.date), cursor: cursorAt(m.date), skills: stepKeys[index] })),
 });
 const tier = (count: number) => (count >= 4 ? 3 : count >= 2 ? 2 : 1);
 const last = milestones[milestones.length - 1]!;
@@ -44,7 +58,10 @@ const last = milestones[milestones.length - 1]!;
       milestones.map((m, index) => (
         <li class="step" data-step={index} style={m.brand ? `--brand-bg:${m.brand.bg};--brand-accent:${m.brand.accent}` : ''}>
           <article class="step__card">
-            <p class="step__date">{formatMonth(m.date)}</p>
+            <p class="step__date">
+              {formatMonth(m.date)}
+              {m.kind && <span class:list={['step__kind', `step__kind--${m.kind.toLowerCase()}`]}>{m.kind}</span>}
+            </p>
             <div class="step__head">
               {m.image && (
                 <span class="step__thumb">
@@ -65,7 +82,7 @@ const last = milestones[milestones.length - 1]!;
             {m.skills.length > 0 && (
               <ul class="step__skills" aria-label="Skills">
                 {m.skills.map((name) => {
-                  const skill = skillByName.get(name)!;
+                  const skill = techOf(name);
                   return (
                     <li style={`--c:${skill.color};--t:${skill.text}`}>
                       <span class="dot" aria-hidden="true">
@@ -93,7 +110,7 @@ const last = milestones[milestones.length - 1]!;
     <div class="viz__top">
       <p class="viz__year" data-year>{formatMonth(last.date)}</p>
       <p class="viz__count">
-        <span data-count>{skillOrder.length}</span> <span data-unit>skills</span> in the bucket
+        <span data-count>{skills.length}</span> <span data-unit>skills</span> in the bucket
       </p>
     </div>
 
@@ -108,6 +125,14 @@ const last = milestones[milestones.length - 1]!;
           </div>
         ))
       }
+      <div class="viz__row viz__row--projects">
+        <span class="viz__label">Projects</span>
+        <span class="viz__lane">
+          {projectDots.map((dot) => (
+            <span class="viz__dot" data-date={dot.date} data-kind={dot.kind} style={`--at:${dot.left}%;--nudge:${dot.nudge}`} />
+          ))}
+        </span>
+      </div>
       <div class="viz__axis">
         {ticks.map((tick) => <span class="viz__tick" style={`--at:${tick.left}%`}>{tick.year}</span>)}
         <span class="viz__cursor" data-cursor style={`--at:${cursorAt(last.date)}%`} />
@@ -117,7 +142,7 @@ const last = milestones[milestones.length - 1]!;
     <div class="bucket" data-bucket>
       {
         skills.map((skill) => (
-          <span class="chip" data-skill={skill.name} data-tier={tier(finalCounts.get(skill.name) ?? 1)} style={`--c:${skill.color};--t:${skill.text}`}>
+          <span class="chip" data-skill={skill.key} data-tier={tier(finalCounts.get(skill.key) ?? 1)} style={`--c:${skill.color};--t:${skill.text}`}>
             <span class="chip__badge" aria-hidden="true">
               {skill.path ? (
                 <svg viewBox="0 0 24 24">
@@ -188,7 +213,10 @@ const last = milestones[milestones.length - 1]!;
       // Year and cursor.
       this.#animateYear(previous >= 0 ? data.milestones[previous]!.label : milestone.label, milestone.label, instant);
       this.querySelector<HTMLElement>('[data-cursor]')?.style.setProperty('--at', `${milestone.cursor}%`);
-      for (const row of this.querySelectorAll<HTMLElement>('.viz__row')) {
+      for (const dot of this.querySelectorAll<HTMLElement>('.viz__dot')) {
+        dot.classList.toggle('is-on', (dot.dataset['date'] ?? '') <= milestone.date);
+      }
+      for (const row of this.querySelectorAll<HTMLElement>('.viz__row[data-start]')) {
         const start = row.dataset['start'] ?? '';
         const end = row.dataset['end'] || '9999-12';
         row.classList.toggle('is-on', start <= milestone.date && milestone.date <= end);
@@ -229,7 +257,7 @@ const last = milestones[milestones.length - 1]!;
       const overflows = () => chips.some((chip) => chip.offsetTop < 4);
       let scale = 1;
       bucket.style.setProperty('--scale', '1');
-      while (scale > 0.62 && overflows()) {
+      while (scale > 0.5 && overflows()) {
         scale -= 0.04;
         bucket.style.setProperty('--scale', scale.toFixed(2));
       }
@@ -402,6 +430,21 @@ const last = milestones[milestones.length - 1]!;
     fill: currentColor;
   }
 
+  /* Phones: the full bucket sits under the list, so each card skips its own skill pills. */
+  @media (max-width: 63.99rem) {
+    .step__skills {
+      display: none;
+    }
+
+    .step__card {
+      padding: 0.8rem 1rem 0.9rem;
+    }
+
+    .step__thumb {
+      width: 4.25rem;
+    }
+  }
+
   /* Live: each card gets room to be read while the panel beside it updates. */
   .story.is-live .story__steps {
     gap: 0;
@@ -411,7 +454,7 @@ const last = milestones[milestones.length - 1]!;
   .story.is-live .step {
     display: flex;
     align-items: center;
-    min-height: 30vh;
+    min-height: 24vh;
   }
 
   .story.is-live .step__card {
@@ -562,6 +605,58 @@ const last = milestones[milestones.length - 1]!;
     opacity: 0.2;
   }
 
+  .viz__row--projects .viz__lane {
+    border-top: 1px dashed var(--rule);
+    margin-top: 0.3rem;
+  }
+
+  .viz__dot {
+    position: absolute;
+    top: 50%;
+    left: var(--at);
+    width: 0.55rem;
+    height: 0.55rem;
+    margin: -0.275rem 0 0 calc(-0.275rem + var(--nudge, 0) * 0.62rem);
+    border-radius: 999px;
+    background: var(--paper-raised);
+    box-shadow: inset 0 0 0 1.5px var(--ink-3);
+    transition: background-color 250ms ease, transform 250ms var(--ease-out);
+  }
+
+  .viz__dot[data-kind='Rebuilt'],
+  .viz__dot[data-kind='Renamed'] {
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+
+  .story:not(.is-live) .viz__dot,
+  .viz__dot.is-on {
+    background: var(--magenta);
+    box-shadow: none;
+  }
+
+  .story.is-live .viz__row--projects {
+    opacity: 1;
+  }
+
+  .step__kind {
+    margin-left: 0.5rem;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-family: var(--font-body, inherit);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .step__kind--rebuilt,
+  .step__kind--renamed {
+    border-color: var(--magenta);
+    color: var(--magenta);
+  }
+
   .viz__cursor {
     position: absolute;
     top: 1.15rem;
@@ -685,6 +780,22 @@ const last = milestones[milestones.length - 1]!;
     40% {
       transform: scale(1.18);
       box-shadow: 0 0 0 3px var(--process-yellow);
+    }
+  }
+
+  /* Short laptop screens: give the bucket the room the extras would take. */
+  @media (max-height: 50rem) {
+    .viz__year {
+      font-size: 2.25rem;
+    }
+
+    .viz__trace {
+      gap: 0.15rem;
+      margin-top: 0.4rem;
+    }
+
+    .story.is-live .viz__note {
+      display: none;
     }
   }
 

@@ -8,6 +8,7 @@ import LegoViewer from '~/components/LegoViewer.astro';
 import Pastimes from '~/components/Pastimes.astro';
 import { legoSets } from '~/data/lego';
 import { countBy, type Book } from '~/lib/shelf';
+import { site } from '~/data/site';
 
 const comics: Book[] = (await getCollection('comics')).map((entry) => ({ ...entry.data, id: entry.id }));
 const counts = countBy(comics);
@@ -53,6 +54,10 @@ const tally = [
       <p>
         {owned.length} books on the shelf: {dc} from DC, {marvel} from Marvel. Each note says who made the book and
         where it sits in the run, because I read runs in order.
+      </p>
+      <p>
+        The whole collection, pre-orders and reading orders included, lives in
+        <a href={site.links.shelf}>Gerald’s shelf</a>, a tracker I’m building for it.
       </p>
     </div>
     <div class="section__body">

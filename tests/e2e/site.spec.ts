@@ -72,11 +72,11 @@ test('leads with the name, the role and a way to get in touch', async ({ page })
     if (isMobile) {
       // Phones get the whole story at once, with the full bucket underneath.
       await expect(story).not.toHaveClass(/is-live/);
-      await expect(story.locator('.chip[data-skill="Spring Boot"]')).toBeVisible();
+      await expect(story.locator('.chip', { hasText: 'Spring Boot' })).toBeVisible();
       return;
     }
     await expect(story).toHaveClass(/is-live/);
-    const springBoot = story.locator('.chip[data-skill="Spring Boot"]');
+    const springBoot = story.locator('.chip', { hasText: 'Spring Boot' });
     await expect(springBoot).toBeHidden();
     const payaza = story.locator('[data-step]').filter({ hasText: 'Backend engineer' });
     await payaza.evaluate((el) => el.scrollIntoView({ block: 'center' }));

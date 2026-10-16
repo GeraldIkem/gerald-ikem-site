@@ -102,8 +102,8 @@ export const stints: Stint[] = [
     logo: yorkLogo,
     brand: { bg: '#e31837', fg: '#ffffff' },
     points: [
-      'Courses included design and analysis of algorithms, advanced object-oriented programming, software design, operating systems, databases and computer security.',
-      'Built an Android app with a team for the Mobile User Interfaces research project; my part was the networking, privacy and security changes.',
+      'Courses included data structures, design and analysis of algorithms, advanced object-oriented programming, software tools in C, computer organization in RISC-V assembly, operating systems, databases and their internals, computer security, and Java web services.',
+      'Built an Android app in Java with a team for the Mobile User Interfaces research project; my part was the networking, privacy and security changes.',
       'Mentor in the Lassonde School of Engineering’s k2i outreach program, summer 2023.',
       'Wrote my first Java programs and JUnit tests in first year.',
     ],
