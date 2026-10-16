@@ -143,7 +143,10 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
         filter.addEventListener('click', () => this.#toggle(filter));
       }
       for (const spine of this.#spines) {
-        spine.addEventListener('click', () => this.#select(spine));
+        spine.addEventListener('click', () => {
+          this.#select(spine);
+          this.#reveal();
+        });
       }
       this.querySelector('.shelf__books')?.addEventListener('keydown', (event) => this.#onKey(event as KeyboardEvent));
       this.querySelector('[data-random]')?.addEventListener('click', () => this.#random(true));
@@ -250,6 +253,15 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       spine.tabIndex = 0;
       this.#describe(spine);
       this.#stage(spine);
+    }
+
+    /** When the book opens below the shelf rather than beside it, bring it into view. */
+    #reveal() {
+      const detail = this.querySelector<HTMLElement>('.shelf__detail');
+      if (!detail) return;
+      const box = detail.getBoundingClientRect();
+      if (box.top >= 0 && box.bottom <= innerHeight) return;
+      detail.scrollIntoView({ block: 'nearest', behavior: motionOk() ? 'smooth' : 'auto' });
     }
 
     #describe(spine: HTMLButtonElement) {
@@ -624,6 +636,34 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
   @media (min-width: 48rem) {
     .shelf__detail {
       grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
+    }
+  }
+
+  /* Wide screens: the picked book opens beside the shelf, so there's no scrolling down to it. */
+  @media (min-width: 75rem) {
+    comic-shelf.shelf {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 23rem;
+      column-gap: 2rem;
+      align-items: start;
+    }
+
+    comic-shelf .shelf__filters {
+      grid-column: 1 / -1;
+    }
+
+    comic-shelf .shelf__detail {
+      position: sticky;
+      top: calc(var(--header-h) + 1rem);
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.25rem;
+      margin-top: 0;
+      padding: 1rem;
+    }
+
+    comic-shelf .shelf__stage,
+    comic-shelf .shelf__stage.is-3d {
+      min-height: min(24rem, 48dvh);
     }
   }
 

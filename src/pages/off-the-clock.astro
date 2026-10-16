@@ -5,6 +5,7 @@ import Shelf from '~/components/Shelf.astro';
 import Misregister from '~/components/Misregister.astro';
 import LegoBricks from '~/components/LegoBricks.astro';
 import LegoViewer from '~/components/LegoViewer.astro';
+import Pastimes from '~/components/Pastimes.astro';
 import { legoSets } from '~/data/lego';
 import { countBy, type Book } from '~/lib/shelf';
 
@@ -13,6 +14,13 @@ const counts = countBy(comics);
 const owned = comics.filter((book) => book.status === 'shelf');
 const marvel = owned.filter((book) => book.publisher === 'Marvel Comics').length;
 const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
+const built = legoSets.filter((set) => set.built).length;
+const boxed = legoSets.length - built;
+const tally = [
+  { href: '#shelf', value: owned.length, label: 'comics on my shelf', ink: 'var(--process-cyan)' },
+  { href: '#lego', value: built, label: `LEGO sets built, ${boxed} still boxed`, ink: 'var(--process-magenta)' },
+  { href: '#sports', value: 4, label: 'leagues I forecast in Matchday ML', ink: 'var(--process-yellow)' },
+];
 ---
 
 <Base
@@ -25,9 +33,21 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
       Away from work I read comics, play basketball, swim, build LEGO and collect books. The comics take up the most
       room, so they get most of this page.
     </p>
+    <nav class="tally" aria-label="On this page">
+      {
+        tally.map((item) => (
+          <a class="tally__item" href={item.href} style={`--ink-mark:${item.ink}`}>
+            <span class="tally__n" data-count>
+              {item.value}
+            </span>
+            <span class="tally__label">{item.label}</span>
+          </a>
+        ))
+      }
+    </nav>
   </section>
 
-  <section class="section wrap" aria-labelledby="shelf-title">
+  <section class="section section--wide wrap" id="shelf" aria-labelledby="shelf-title">
     <div class="section__head">
       <h2 id="shelf-title">The comic shelf</h2>
       <p>
@@ -68,8 +88,7 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     <div class="section__head">
       <h2 id="lego-title">LEGO</h2>
       <p>
-        {legoSets.filter((set) => set.built).length} sets built and {legoSets.filter((set) => !set.built).length} still
-        waiting. Pick one of the 3D sets and watch it build itself, piece by piece.
+        {built} sets built and {boxed} still waiting. Pick one of the 3D sets and watch it build itself, piece by piece.
       </p>
     </div>
     <div class="section__body">
@@ -84,33 +103,36 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     </div>
   </section>
 
-  <section class="section wrap" aria-labelledby="else-title">
+  <section class="section wrap" id="sports" aria-labelledby="sports-title">
     <div class="section__head">
-      <h2 id="else-title">Everything else</h2>
+      <h2 id="sports-title">Sports and books</h2>
+      <p>What fills the rest of the week.</p>
     </div>
     <div class="section__body">
-      <ul class="hobbies">
-        <li>
-          <h3>Basketball</h3>
-          <p>I play, and I follow the NBA and WNBA closely enough that both ended up in Matchday ML.</p>
-        </li>
-        <li>
-          <h3>Football</h3>
-          <p>The Premier League, La Liga and the Champions League. They’re in Matchday ML too.</p>
-        </li>
-        <li>
-          <h3>Swimming</h3>
-          <p>The one sport here with no screen anywhere nearby.</p>
-        </li>
-        <li>
-          <h3>Books</h3>
-          <p>Comics aren’t the only thing I collect. The bookshelf is filling up as well.</p>
-        </li>
-      </ul>
+      <Pastimes />
       <p class="back"><a href="/#work">Back to my work</a></p>
     </div>
   </section>
 </Base>
+
+<script>
+  import { countFrame, splitNumbers } from '~/lib/numbers';
+
+  // The tally counts up once, on arrival.
+  if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    for (const el of document.querySelectorAll<HTMLElement>('.tally [data-count]')) {
+      const final = el.textContent?.trim() ?? '';
+      const parts = splitNumbers(final);
+      const start = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min((now - start) / 900, 1);
+        el.textContent = t < 1 ? countFrame(parts, 1 - (1 - t) ** 3) : final;
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+  }
+</script>
 
 <style>
   .intro {
@@ -187,32 +209,65 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     font-size: var(--text-sm);
   }
 
-  .hobbies {
+
+  /* The tally: three counts that double as links down the page. */
+  .tally {
     display: grid;
-    gap: 1.75rem 3rem;
-    padding: 0;
-    list-style: none;
+    gap: 0.75rem;
+    margin-top: 2rem;
   }
 
   @media (min-width: 44rem) {
-    .hobbies {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .tally {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      max-width: 52rem;
     }
   }
 
-  .hobbies li {
-    padding-top: 0.875rem;
-    border-top: 1px solid var(--rule-strong);
+  .tally__item {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.85rem 1rem 0.9rem;
+    border: 1px solid var(--rule-strong);
+    border-bottom: 4px solid var(--ink-mark);
+    border-radius: 8px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    text-decoration: none;
+    transition: transform 200ms var(--ease-out), box-shadow 200ms ease;
   }
 
-  .hobbies h3 {
-    font-size: var(--text-base);
+  .tally__item:hover,
+  .tally__item:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px -18px rgb(0 0 0 / 0.5);
   }
 
-  .hobbies p {
-    margin-top: 0.25rem;
+  .tally__n {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tally__label {
     color: var(--ink-2);
-    max-width: 30rem;
+    font-size: var(--text-sm);
+  }
+
+  /* The shelf takes the full width, so the open book fits beside it. */
+  .section--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section--wide .section__head {
+    position: static;
+  }
+
+  .section--wide .section__head p {
+    max-width: 40rem;
   }
 
   .back {

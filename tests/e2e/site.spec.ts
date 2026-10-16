@@ -141,6 +141,18 @@ test.describe('off the clock', () => {
   });
 });
 
+test('the off-the-clock tally jumps to each part of the page', async ({ page }) => {
+  await page.goto('/off-the-clock/');
+  const tally = page.getByRole('navigation', { name: 'On this page' });
+  await expect(tally.getByRole('link')).toHaveCount(3);
+  await tally.getByRole('link', { name: /LEGO sets built/ }).click();
+  await expect(page).toHaveURL(/#lego$/);
+  await expect(page.locator('#lego h2')).toBeInViewport();
+  await tally.getByRole('link', { name: /leagues/ }).evaluate((link) => (link as HTMLAnchorElement).click());
+  await expect(page.locator('#sports .pastime')).toHaveCount(4);
+  await expect(page.locator('#sports h2')).toBeInViewport();
+});
+
 test('builds a real LEGO set in 3D when the viewer comes into view', async ({ page }) => {
   // Parsing a real LDraw model is heavy in headless browsers sharing one CPU.
   test.slow();
