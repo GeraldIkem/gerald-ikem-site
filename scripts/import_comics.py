@@ -69,6 +69,14 @@ def size_of(title: str, fmt: str) -> str:
     return SIZE.get(fmt, "trade")
 
 
+def cover_url(comic: ET.Element) -> str | None:
+    for path in ("coverfrontdefault", "coverfrontlarge", "coverfront"):
+        url = text(comic, path)
+        if url.startswith("https://"):
+            return url
+    return None
+
+
 def clean_note(note: str) -> str:
     note = re.sub(r"\s+", " ", note).strip()
     return note
@@ -102,6 +110,7 @@ def convert(xml_path: Path) -> list[dict]:
                 "pages": int(pages) if pages.isdigit() and int(pages) > 0 else None,
                 "year": year_of(comic),
                 "note": clean_note(text(comic, "mainsection/notes")),
+                "coverUrl": cover_url(comic),
             }
         )
     order = {"shelf": 0, "ordered": 1, "read": 2, "wishlist": 3}
@@ -115,6 +124,13 @@ def main() -> None:
     xml_path = Path(sys.argv[1])
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_OUT
     books = convert(xml_path)
+    # Cover files and colours come from scripts/covers.mjs; keep them across re-imports.
+    if out.exists():
+        previous = {book["id"]: book for book in json.loads(out.read_text(encoding="utf-8"))}
+        for book in books:
+            for key in ("cover", "coverColor", "coverRatio"):
+                if key in previous.get(book["id"], {}):
+                    book[key] = previous[book["id"]][key]
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(books, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     counts: dict[str, int] = {}
