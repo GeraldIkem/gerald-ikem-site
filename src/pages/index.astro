@@ -10,10 +10,13 @@ import Contact from '~/components/Contact.astro';
 import Misregister from '~/components/Misregister.astro';
 import { site } from '~/data/site';
 import { countBy, type Book } from '~/lib/shelf';
+import { legoSets } from '~/data/lego';
 
 const comics: Book[] = (await getCollection('comics')).map((entry) => ({ ...entry.data, id: entry.id }));
 const counts = countBy(comics);
 const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size === 'omnibus').length;
+const legoBuilt = legoSets.filter((set) => set.built).length;
+const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 ---
 
 <Base home>
@@ -96,7 +99,10 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
           I collect comics, mostly DC and Marvel omnibuses, and read each run in order. There are {counts.shelf} books on
           my shelf ({omnibuses} of them omnibuses), {counts.ordered} on order and {counts.wishlist} on the wishlist.
         </p>
-        <p>I also play basketball, swim, build LEGO and collect books.</p>
+        <p>
+          I also build LEGO: {numberWords[legoBuilt] ?? legoBuilt} sets so far, from the James Bond Aston Martin to the 1966 Batmobile, with the Black Pearl
+          and Arkham Asylum still in their boxes. And I play basketball, swim and collect books.
+        </p>
       </div>
       <a class="teaser" href="/off-the-clock/">
         <Shelf teaser />
