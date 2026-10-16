@@ -51,6 +51,11 @@ const last = milestones[milestones.length - 1]!;
                   <Image src={m.image} alt="" widths={[240]} sizes="7rem" loading="lazy" />
                 </span>
               )}
+              {m.logo && (
+                <span class="step__logo">
+                  <Image src={m.logo} alt="" width={96} height={96} loading="lazy" />
+                </span>
+              )}
               <div>
                 <h3>{m.link ? <a href={m.link}>{m.title}</a> : m.title}</h3>
                 <p class="step__where">{m.where}</p>
@@ -314,6 +319,24 @@ const last = milestones[milestones.length - 1]!;
     box-shadow: inset 0 -3px 0 var(--brand-accent);
   }
 
+  .step__logo {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    padding: 0.45rem;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  }
+
+  .step__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
   .step__thumb img {
     width: 100%;
     height: 100%;
@@ -571,11 +594,9 @@ const last = milestones[milestones.length - 1]!;
     --scale: 1;
     position: relative;
     display: flex;
-    flex: 1 1 13rem;
     flex-wrap: wrap-reverse;
     align-content: flex-start;
     gap: calc(0.4rem * var(--scale));
-    min-height: 9rem;
     margin-top: 1rem;
     padding: 0.75rem;
     border: 2px solid var(--rule-strong);
@@ -585,6 +606,12 @@ const last = milestones[milestones.length - 1]!;
       linear-gradient(to top, color-mix(in srgb, var(--process-yellow) 18%, transparent), transparent 70%),
       var(--paper);
     overflow: hidden;
+  }
+
+  /* Live, the bucket takes the panel's spare height and the chips shrink to fit it. */
+  .story.is-live .bucket {
+    flex: 1 1 13rem;
+    min-height: 9rem;
   }
 
   .chip {

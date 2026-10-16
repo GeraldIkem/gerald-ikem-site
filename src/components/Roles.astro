@@ -35,10 +35,10 @@ const groups = [
             <article
               class:list={['rcard', { 'rcard--wide': stint.id === 'payaza' }]}
               id={stint.id}
-              style={`--org:${stint.brand?.bg ?? 'var(--ink)'};--org-ink:${stint.brand?.fg ?? 'var(--paper)'}`}
+              style={stint.brand ? `--org:${stint.brand.bg}` : undefined}
             >
               <header class="rcard__head">
-                <span class="rcard__logo" aria-hidden="true">
+                <span class:list={['rcard__logo', { 'rcard__logo--mark': !stint.logo }]} aria-hidden="true">
                   {stint.logo ? <Image src={stint.logo} alt="" width={96} height={96} /> : monogram(stint.org)}
                 </span>
                 <div>
@@ -126,6 +126,7 @@ const groups = [
   }
 
   .rcard {
+    --org: var(--ink);
     scroll-margin-top: calc(var(--header-h) + 1rem);
     padding: 1.125rem 1.25rem 1.25rem;
     border: 1px solid var(--rule-strong);
@@ -151,13 +152,20 @@ const groups = [
     width: 3rem;
     height: 3rem;
     overflow: hidden;
+    padding: 0.5rem;
     border-radius: 8px;
-    background: var(--org);
-    color: var(--org-ink);
+    /* Logos are drawn for white, so they sit on white in both themes. */
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  }
+
+  .rcard__logo--mark {
+    padding: 0;
+    background: var(--ink);
+    color: var(--paper);
     font-family: var(--font-display);
     font-weight: 700;
     font-size: var(--text-base);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
   }
 
   .rcard__logo img {
@@ -194,7 +202,17 @@ const groups = [
   }
 
   .rcard__points li::marker {
-    color: var(--org);
+    color: var(--ink-3);
+  }
+
+  :global([data-theme='dark']) .rcard {
+    border-top-color: color-mix(in srgb, var(--org) 75%, #fff);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .rcard {
+      border-top-color: color-mix(in srgb, var(--org) 75%, #fff);
+    }
   }
 
   .rcard__shots {
