@@ -1,148 +1,1005 @@
 ---
 /**
- * Sports and books, each with a small drawing that plays once when it comes
- * into view and again on hover: a jump shot, a ball rolled into the net, a
- * length of the pool, a book pulled off the shelf.
+ * Sports and books, each a small drawing you can play: shoot a basket, take a
+ * shot past the keeper, swim a length against the clock, pull a book off the
+ * shelf. Each one plays itself once as it comes into view, then it's yours.
+ * The physics and scoring live in src/lib/pastimes.ts.
  */
+import { COURT, PITCH, POOL } from '~/lib/pastimes';
+
 const matchday = '/projects/matchday-ml/';
+const hoopSpot = COURT.spots[0];
+const hoopRest = COURT.floor - COURT.ball;
+const kickSpot = PITCH.spots[0];
+const keeperMid = (PITCH.goal.top + PITCH.goal.bottom) / 2;
+const { goal, keeper } = PITCH;
 ---
 
 <pastime-cards class="pastimes">
-  <article class="pastime pastime--court">
-    <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
-      <rect class="court__wall" width="320" height="132" />
-      <rect class="court__floor" y="132" width="320" height="38" />
-      <rect class="court__paint" y="132" width="92" height="38" />
-      <path class="court__boards" d="M0 144H320M0 157H320" />
-      <path class="court__pole" d="M8 132V44h10" />
-      <path class="court__board" d="M20 28v44" />
-      <path class="court__rim" d="M21 64h26" />
-      <path class="court__net" d="M23 64l5 17h12l5-17M28 64l5 17M40 64l-5 17" />
-      <g class="ball-x">
-        <g class="ball-y">
-          <g class="court__ball">
-            <circle cx="262" cy="121" r="11" />
-            <path d="M251 121h22M262 110v22M254 113c5 5 5 11 0 16M270 113c-5 5-5 11 0 16" />
-          </g>
+  <article class="pastime pastime--court" data-game="court">
+    <div
+      class="pastime__stage"
+      tabindex="0"
+      role="application"
+      aria-label="Basketball: shoot hoops"
+      aria-describedby="how-court"
+    >
+      <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
+        <rect class="court__wall" width="320" height="132" />
+        <rect class="court__floor" y="132" width="320" height="38" />
+        <rect class="court__paint" y="132" width="92" height="38" />
+        <path class="court__boards" d="M0 144H320M0 157H320" />
+        <path class="court__three" d={`M${COURT.three} 132v38`} />
+        <path class="court__pole" d="M8 132V44h10" />
+        <path class="court__board" d="M20 28v44" />
+        <ellipse class="court__shadow" data-shadow cx={hoopSpot} cy="132.5" rx="9" ry="2" />
+        <g class="aim" data-aim>
+          <path class="aim__line" data-aim-line d="" />
+          <path class="aim__head" data-aim-head d="" />
         </g>
-      </g>
-    </svg>
+        <g class="ball" data-ball transform={`translate(${hoopSpot} ${hoopRest})`}>
+          <circle class="aim__track" r="14" />
+          <circle class="aim__ring" data-ring r="14" pathLength="100" transform="rotate(-90)" />
+          <g data-spin>
+            <circle class="court__ball" r={COURT.ball} />
+            <path
+              class="court__seams"
+              d="M-9 0h18M0-9v18M-6.5-6.5c4.1 4.1 4.1 9 0 13.1M6.5-6.5c-4.1 4.1-4.1 9 0 13.1"
+            />
+          </g>
+          <circle class="hit" data-hit r="24" />
+        </g>
+        <path class="court__rim" d={`M${COURT.rim.back} ${COURT.rim.y}H${COURT.rim.front}`} />
+        <path class="court__net" data-net d="M24 64l6 17h16l6-17M33 64l3 17M43 64l-3 17" />
+        <g data-burst></g>
+      </svg>
+      <p class="bug">
+        <span>Score <b data-score>0</b></span>
+        <span>Streak <b data-streak>0</b></span>
+      </p>
+      <p class="call" data-call aria-hidden="true">
+        <span class="call__c"></span><span class="call__m"></span><span class="call__k"></span>
+      </p>
+    </div>
+    <p class="pastime__how" id="how-court">
+      Drag from the ball toward the hoop and let go. Past the line is worth three.
+      <span class="pastime__keys">Keys: arrows to aim, Space to shoot.</span>
+    </p>
     <div class="pastime__text">
       <h3>Basketball</h3>
       <p>I play, and I follow the NBA and the WNBA closely enough that both ended up in Matchday ML.</p>
       <p class="pastime__tags"><span>NBA</span><span>WNBA</span></p>
       <a class="pastime__link" href={matchday}>See how the forecasts work</a>
     </div>
+    <p class="visually-hidden" aria-live="polite" data-live></p>
   </article>
 
-  <article class="pastime pastime--pitch">
-    <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
-      <rect class="pitch__grass" width="320" height="170" />
-      <g class="pitch__stripes">
-        <rect x="0" width="40" height="170" />
-        <rect x="80" width="40" height="170" />
-        <rect x="160" width="40" height="170" />
-        <rect x="240" width="40" height="170" />
-      </g>
-      <g class="pitch__lines">
-        <rect x="10" y="10" width="300" height="150" />
-        <path d="M160 10v150" />
-        <circle cx="160" cy="85" r="26" />
-        <path d="M10 45h40v80H10M310 45h-40v80h40" />
-        <path d="M10 65h14v40H10M310 65h-14v40h14" />
-      </g>
-      <path class="pitch__goal" d="M310 70h8v30h-8" />
-      <g class="roll">
-        <g class="pitch__ball">
-          <circle cx="160" cy="85" r="8" />
-          <path d="M160 80l4 3-1.5 4.5h-5L156 83zM160 77v3M167 84l-3-1M165 91l-2-3.5M155 91l2-3.5M153 84l3-1" />
+  <article class="pastime pastime--pitch" data-game="pitch">
+    <div
+      class="pastime__stage"
+      tabindex="0"
+      role="application"
+      aria-label="Football: shoot past the keeper"
+      aria-describedby="how-pitch"
+    >
+      <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
+        <rect class="pitch__grass" width="320" height="170" />
+        <g class="pitch__stripes">
+          <rect x="0" width="40" height="170" />
+          <rect x="80" width="40" height="170" />
+          <rect x="160" width="40" height="170" />
+          <rect x="240" width="40" height="170" />
         </g>
-      </g>
-    </svg>
+        <g class="pitch__lines">
+          <rect x="10" y="10" width="300" height="150" />
+          <path d="M160 10v150" />
+          <circle cx="160" cy="85" r="26" />
+          <path d="M10 32h44v106H10M310 32h-44v106h44" />
+          <path d="M10 52h14v66H10M310 52h-14v66h14" />
+        </g>
+        <rect
+          class="pitch__net"
+          data-net
+          x={PITCH.right}
+          y={goal.top}
+          width={goal.depth}
+          height={goal.bottom - goal.top}
+        />
+        <path class="pitch__goal" d={`M${PITCH.right} ${goal.top}h${goal.depth}v${goal.bottom - goal.top}h-${goal.depth}`} />
+        <g class="keeper" data-keeper>
+          <path class="keeper__arms" d={`M${keeper.x} ${keeperMid - keeper.half}v${keeper.half * 2}`} />
+          <circle class="keeper__head" cx={keeper.x + 0.6} cy={keeperMid} r="2.3" />
+        </g>
+        <g class="aim" data-aim>
+          <path class="aim__line" data-aim-line d="" />
+          <path class="aim__head" data-aim-head d="" />
+        </g>
+        <g class="ball" data-ball transform={`translate(${kickSpot.x} ${kickSpot.y})`}>
+          <circle class="aim__track" r="10" />
+          <circle class="aim__ring" data-ring r="10" pathLength="100" transform="rotate(-90)" />
+          <g data-spin>
+            <g transform={`scale(${PITCH.ball / 8})`}>
+              <circle class="pitch__ball" r="8" />
+              <path
+                class="pitch__patches"
+                d="M0-5l4 3-1.5 4.5h-5L-4-2zM0-8v3M7-1l-3-1M5 6l-2-3.5M-5 6l2-3.5M-7-1l3-1"
+              />
+            </g>
+          </g>
+          <circle class="hit" data-hit r="22" />
+        </g>
+        <g data-burst></g>
+      </svg>
+      <p class="bug">
+        <span>Goals <b data-goals>0</b></span>
+        <span>Shots <b data-shots>0</b></span>
+      </p>
+      <p class="call" data-call aria-hidden="true">
+        <span class="call__c"></span><span class="call__m"></span><span class="call__k"></span>
+      </p>
+    </div>
+    <p class="pastime__how" id="how-pitch">
+      Drag from the ball toward the goal and let go.
+      <span class="pastime__keys">Keys: arrows to aim, Space to shoot.</span>
+    </p>
     <div class="pastime__text">
       <h3>Football</h3>
       <p>The Premier League, La Liga and the Champions League. The two leagues are in Matchday ML as well.</p>
       <p class="pastime__tags"><span>Premier League</span><span>La Liga</span><span>Champions League</span></p>
       <a class="pastime__link" href={matchday}>See how the forecasts work</a>
     </div>
+    <p class="visually-hidden" aria-live="polite" data-live></p>
   </article>
 
-  <article class="pastime pastime--pool">
-    <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
-      <rect class="pool__water" width="320" height="170" />
-      <g class="pool__lanes">
-        <path d="M0 22H320" />
-        <path d="M0 64H320" />
-        <path d="M0 106H320" />
-        <path d="M0 148H320" />
-      </g>
-      <g class="pool__ropes">
-        <path d="M0 43H320" />
-        <path d="M0 85H320" />
-        <path d="M0 127H320" />
-      </g>
-      <path class="pool__wall" d="M6 0v170M314 0v170" />
-      <g class="swim">
-        <g class="pool__swimmer">
-          <path class="pool__wake" d="M8 100c6-3 10 3 16 0s10 3 16 0M14 110c6-3 10 3 16 0s10 3 16 0" />
-          <circle cx="52" cy="106" r="6" />
-          <path class="pool__arm" d="M46 101c6-12 18-12 22-2" />
+  <article class="pastime pastime--pool" data-game="pool">
+    <div
+      class="pastime__stage"
+      tabindex="0"
+      role="application"
+      aria-label="Swimming: race a length"
+      aria-describedby="how-pool"
+    >
+      <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
+        <rect class="pool__water" width="320" height="170" />
+        <g class="pool__lanes">
+          <path d="M0 22H320" />
+          <path d="M0 64H320" />
+          <path d="M0 106H320" />
+          <path d="M0 148H320" />
         </g>
-      </g>
-    </svg>
+        <g class="pool__ropes">
+          <path d="M0 43H320" />
+          <path d="M0 85H320" />
+          <path d="M0 127H320" />
+        </g>
+        <path class="pool__wall" d="M6 0v170M314 0v170" />
+        <g class="swimmer" data-swimmer data-stroke="left" transform={`translate(${POOL.start} ${POOL.lane})`}>
+          <path class="pool__wake" data-wake d="M-44-6c6-3 10 3 16 0s10 3 16 0M-38 4c6-3 10 3 16 0s10 3 16 0" />
+          <path class="pool__arm" data-arm="left" d="M-6-5c6-12 18-12 22-2" />
+          <path class="pool__arm" data-arm="right" d="M-6 5c6 12 18 12 22 2" />
+          <circle class="pool__head" r="6" />
+        </g>
+      </svg>
+      <p class="bug">
+        <span>Time <b data-time>0.00</b></span>
+        <span>Best <b data-best>–</b></span>
+      </p>
+      <p class="call" data-call aria-hidden="true">
+        <span class="call__c"></span><span class="call__m"></span><span class="call__k"></span>
+      </p>
+      <div class="pads">
+        <button class="pad" type="button" data-pad="left" tabindex="-1" aria-label="Left arm">Left</button>
+        <button class="pad" type="button" data-pad="right" tabindex="-1" aria-label="Right arm">Right</button>
+      </div>
+    </div>
+    <p class="pastime__how" id="how-pool">
+      Tap Left and Right in turn to swim a length against the clock.
+      <span class="pastime__keys">Keys: the left and right arrows, in turn.</span>
+    </p>
     <div class="pastime__text">
       <h3>Swimming</h3>
       <p>The one sport here with no screen anywhere nearby.</p>
     </div>
+    <p class="visually-hidden" aria-live="polite" data-live></p>
   </article>
 
-  <article class="pastime pastime--books">
-    <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
-      <rect class="books__wall" width="320" height="170" />
-      <path class="books__plank" d="M30 146H290" />
-      <g class="books__row">
-        <rect x="52" y="64" width="22" height="82" style="--b:var(--process-cyan)" />
-        <rect x="76" y="54" width="16" height="92" style="--b:var(--ink)" />
-        <rect x="94" y="72" width="26" height="74" style="--b:var(--process-magenta)" />
-        <rect class="books__pick" x="122" y="48" width="20" height="98" style="--b:var(--process-yellow)" />
-        <rect x="144" y="60" width="18" height="86" style="--b:var(--ink-2)" />
-        <rect x="164" y="70" width="24" height="76" style="--b:var(--process-cyan)" />
-        <rect x="190" y="58" width="14" height="88" style="--b:var(--process-magenta)" />
-        <rect x="206" y="66" width="22" height="80" style="--b:var(--ink)" transform="rotate(14 228 146)" />
-      </g>
-    </svg>
+  <article class="pastime pastime--books" data-game="books">
+    <div class="pastime__stage" tabindex="0" role="application" aria-label="Bookshelf" aria-describedby="how-books">
+      <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
+        <rect class="books__wall" width="320" height="170" />
+        <path class="books__plank" d="M30 146H290" />
+        <g class="books__row">
+          <rect data-book x="52" y="64" width="22" height="82" style="--b:var(--process-cyan)" />
+          <rect data-book x="76" y="54" width="16" height="92" style="--b:var(--ink)" />
+          <rect data-book x="94" y="72" width="26" height="74" style="--b:var(--process-magenta)" />
+          <rect data-book x="122" y="48" width="20" height="98" style="--b:var(--process-yellow)" />
+          <rect data-book x="144" y="60" width="18" height="86" style="--b:var(--ink-2)" />
+          <rect data-book x="164" y="70" width="24" height="76" style="--b:var(--process-cyan)" />
+          <rect data-book x="190" y="58" width="14" height="88" style="--b:var(--process-magenta)" />
+          <rect
+            data-book
+            x="206"
+            y="66"
+            width="22"
+            height="80"
+            style="--b:var(--ink)"
+            transform="rotate(14 228 146)"
+          />
+        </g>
+      </svg>
+    </div>
+    <p class="pastime__how" id="how-books">
+      Pick a book to pull it off the shelf.
+      <span class="pastime__keys">Keys: arrows to choose, Space to pull.</span>
+    </p>
     <div class="pastime__text">
       <h3>Books</h3>
       <p>Comics aren’t the only thing I collect. The bookshelf is filling up as well.</p>
     </div>
+    <p class="visually-hidden" aria-live="polite" data-live></p>
   </article>
 </pastime-cards>
 
 <script>
+  import {
+    COURT,
+    PITCH,
+    POOL,
+    STEP,
+    callFinish,
+    callKick,
+    callShot,
+    clampAim,
+    formatSeconds,
+    keeperStart,
+    kick,
+    kickStopped,
+    newRace,
+    nextKickSpot,
+    nextSpot,
+    nudgeAim,
+    parseBest,
+    powerOf,
+    restingBall,
+    shoot,
+    shotGone,
+    stepKick,
+    stepRace,
+    stepShot,
+    stroke,
+    type Arm,
+    type Ball,
+    type Kick,
+    type KickResult,
+    type Race,
+    type Shot,
+    type Vec,
+  } from '~/lib/pastimes';
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const BEST_KEY = 'gerald-ikem:swim-best';
+  const motionOk = () => matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  const fixed = (n: number) => n.toFixed(2);
+
+  /**
+   * Calls `frame` on each animation frame, with the time since the last in seconds, for as long as it returns true.
+   * The physics steps at a fixed rate, so a slow frame only means more steps; the cap stops a jump after a pause.
+   */
+  function ticker(frame: (dt: number) => boolean) {
+    let id = 0;
+    let last = 0;
+    const loop = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.25);
+      last = now;
+      id = frame(dt) ? requestAnimationFrame(loop) : 0;
+    };
+    return {
+      start() {
+        if (id) return;
+        last = performance.now();
+        id = requestAnimationFrame(loop);
+      },
+    };
+  }
+
+  /** A spray of process-ink dots: cyan, magenta and yellow, like the rest of the site. */
+  class Burst {
+    readonly #group: SVGGElement | null;
+    #dots: Array<{ el: SVGCircleElement; x: number; y: number; vx: number; vy: number; age: number; life: number }> =
+      [];
+
+    constructor(group: SVGGElement | null) {
+      this.#group = group;
+    }
+
+    fire(x: number, y: number, angle: number, spread: number) {
+      if (!this.#group || !motionOk()) return;
+      for (let i = 0; i < 14; i++) {
+        const el = document.createElementNS(SVG_NS, 'circle');
+        el.setAttribute('r', (1.2 + Math.random() * 1.6).toFixed(1));
+        el.setAttribute('class', `dot dot--${'cmy'[i % 3]}`);
+        const a = angle + (Math.random() - 0.5) * spread;
+        const speed = 50 + Math.random() * 110;
+        this.#dots.push({ el, x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, age: 0, life: 0.6 + Math.random() * 0.4 });
+        this.#group.append(el);
+      }
+    }
+
+    /** Move the dots on; true while any are left. */
+    update(dt: number, gravity: number): boolean {
+      this.#dots = this.#dots.filter((dot) => {
+        dot.age += dt;
+        dot.vy += gravity * dt;
+        dot.x += dot.vx * dt;
+        dot.y += dot.vy * dt;
+        if (dot.age >= dot.life) {
+          dot.el.remove();
+          return false;
+        }
+        dot.el.setAttribute('cx', fixed(dot.x));
+        dot.el.setAttribute('cy', fixed(dot.y));
+        dot.el.setAttribute('opacity', fixed(1 - dot.age / dot.life));
+        return true;
+      });
+      return this.#dots.length > 0;
+    }
+  }
+
+  /** What every card shares: its stage, the big call over the drawing and the announcements. */
+  class Game {
+    readonly card: HTMLElement;
+    readonly stage: HTMLElement;
+    readonly svg: SVGSVGElement;
+    /** Set by any interaction, so the drawing stops playing by itself. */
+    touched = false;
+    readonly #live: HTMLElement | null;
+    readonly #call: HTMLElement | null;
+    #liveTimer = 0;
+    #callTimer = 0;
+
+    constructor(card: HTMLElement) {
+      this.card = card;
+      this.stage = card.querySelector<HTMLElement>('.pastime__stage')!;
+      this.svg = this.stage.querySelector('svg')!;
+      this.#live = card.querySelector('[data-live]');
+      this.#call = card.querySelector('[data-call]');
+    }
+
+    /** Say it to screen readers. Cleared first, so the same result twice is still read out. */
+    announce(text: string) {
+      const live = this.#live;
+      if (!live) return;
+      clearTimeout(this.#liveTimer);
+      live.textContent = '';
+      this.#liveTimer = window.setTimeout(() => (live.textContent = text), 60);
+    }
+
+    /** Print a big call over the drawing for a moment; quiet calls are smaller and plain. */
+    call(text: string, quiet = false) {
+      const call = this.#call;
+      if (!call) return;
+      for (const span of call.children) span.textContent = text;
+      call.classList.toggle('call--quiet', quiet);
+      call.classList.remove('is-on');
+      void call.getBoundingClientRect();
+      call.classList.add('is-on');
+      clearTimeout(this.#callTimer);
+      this.#callTimer = window.setTimeout(() => call.classList.remove('is-on'), 1400);
+    }
+
+    /** A pointer position in the drawing's own units. */
+    point(event: PointerEvent): Vec {
+      const box = this.svg.getBoundingClientRect();
+      return { x: ((event.clientX - box.left) / box.width) * 320, y: ((event.clientY - box.top) / box.height) * 170 };
+    }
+
+    restart(el: Element | null, name: string) {
+      if (!el) return;
+      el.classList.remove(name);
+      void el.getBoundingClientRect();
+      el.classList.add(name);
+    }
+
+    /** Called once when the card first scrolls into view. */
+    invite() {}
+  }
+
+  const ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
+  /**
+   * The two ball games: drag from the ball to aim (direction and power) and let
+   * go, or aim with the arrow keys and shoot with Space or Enter.
+   */
+  abstract class BallGame extends Game {
+    readonly ball: SVGGElement;
+    readonly spin: SVGGElement | null;
+    readonly burst: Burst;
+    readonly #aim: SVGGElement | null;
+    readonly #line: SVGPathElement | null;
+    readonly #head: SVGPathElement | null;
+    readonly #ring: SVGCircleElement | null;
+    readonly maxPull: number;
+    readonly radius: number;
+    /** The current aim, kept between shots so the keyboard picks up where it left off. */
+    aim: Vec;
+    state: 'ready' | 'aiming' | 'flying' | 'resetting' = 'ready';
+    demo = false;
+    acc = 0;
+    #pointer: number | null = null;
+    #down: Vec = { x: 0, y: 0 };
+    #moved = false;
+    readonly tick = ticker((dt) => this.frame(dt));
+
+    constructor(card: HTMLElement, maxPull: number, aim: Vec, radius: number) {
+      super(card);
+      this.maxPull = maxPull;
+      this.aim = { ...aim };
+      this.radius = radius;
+      this.ball = this.svg.querySelector('[data-ball]')!;
+      this.spin = this.svg.querySelector('[data-spin]');
+      this.burst = new Burst(this.svg.querySelector('[data-burst]'));
+      this.#aim = this.svg.querySelector('[data-aim]');
+      this.#line = this.svg.querySelector('[data-aim-line]');
+      this.#head = this.svg.querySelector('[data-aim-head]');
+      this.#ring = this.svg.querySelector('[data-ring]');
+
+      const hit = this.svg.querySelector('[data-hit]');
+      hit?.addEventListener('pointerdown', (event) => this.#grab(event as PointerEvent));
+      // Only a touch that starts on the ball is held; anywhere else the page scrolls as usual.
+      hit?.addEventListener('touchstart', (event) => event.preventDefault(), { passive: false });
+      // Pressing anywhere on the drawing while it plays by itself hands the ball over.
+      this.stage.addEventListener('pointerdown', () => {
+        this.touched = true;
+        this.stopDemo();
+      });
+      this.stage.addEventListener('pointermove', (event) => this.#drag(event));
+      this.stage.addEventListener('pointerup', (event) => this.#release(event));
+      this.stage.addEventListener('pointercancel', (event) => this.#cancel(event));
+      this.stage.addEventListener('keydown', (event) => this.#key(event));
+      this.stage.addEventListener('focus', () => {
+        this.touched = true;
+        this.stopDemo();
+        if (this.state === 'ready' && this.stage.matches(':focus-visible')) this.showAim();
+      });
+      this.stage.addEventListener('blur', () => {
+        if (this.state === 'ready') this.hideAim();
+      });
+    }
+
+    /** Where the ball sits waiting. */
+    abstract get origin(): Vec;
+    /** Set the ball off with this aim. */
+    abstract launch(aim: Vec): void;
+    /** Advance one frame; true while there's still something moving. */
+    abstract frame(dt: number): boolean;
+    /** Run the current attempt straight to its result (reduced motion). */
+    abstract settle(): void;
+    /** Drop the attempt in flight and put everything back where it waits. */
+    abstract place(): void;
+
+    override invite() {
+      if (this.touched || this.state !== 'ready' || !motionOk()) return;
+      this.fire(this.demoAim, true);
+    }
+
+    abstract get demoAim(): Vec;
+
+    fire(aim: Vec, demo = false) {
+      if (this.state !== 'ready' && this.state !== 'aiming') return;
+      this.hideAim();
+      this.state = 'flying';
+      this.demo = demo;
+      this.acc = 0;
+      this.stage.classList.add('is-busy');
+      this.launch(aim);
+      if (motionOk()) this.tick.start();
+      else this.settle();
+    }
+
+    /** The ball leaves, and comes back at its spot. */
+    reset(instant = false) {
+      this.state = 'resetting';
+      const back = () => {
+        this.place();
+        this.ball.classList.remove('is-gone');
+        this.state = 'ready';
+        this.demo = false;
+        this.stage.classList.remove('is-busy');
+        if (document.activeElement === this.stage && this.stage.matches(':focus-visible')) this.showAim();
+      };
+      if (instant || !motionOk()) {
+        back();
+        return;
+      }
+      this.ball.classList.add('is-gone');
+      window.setTimeout(back, 180);
+    }
+
+    stopDemo() {
+      if (!this.demo) return;
+      this.reset(true);
+    }
+
+    drawBall(ball: Ball) {
+      this.ball.setAttribute('transform', `translate(${fixed(ball.x)} ${fixed(ball.y)})`);
+      this.spin?.setAttribute('transform', `rotate(${ball.turn.toFixed(1)})`);
+    }
+
+    showAim(aim = this.aim) {
+      const { x: ox, y: oy } = this.origin;
+      const length = Math.hypot(aim.x, aim.y);
+      const ux = length ? aim.x / length : 0;
+      const uy = length ? aim.y / length : 0;
+      const from = this.radius + 6;
+      const tx = ox + aim.x;
+      const ty = oy + aim.y;
+      this.#line?.setAttribute('d', length > from ? `M${fixed(ox + ux * from)} ${fixed(oy + uy * from)}L${fixed(tx)} ${fixed(ty)}` : '');
+      // A chevron at the tip.
+      const bx = tx - ux * 6;
+      const by = ty - uy * 6;
+      this.#head?.setAttribute(
+        'd',
+        length > from ? `M${fixed(bx - uy * 4.5)} ${fixed(by + ux * 4.5)}L${fixed(tx)} ${fixed(ty)}L${fixed(bx + uy * 4.5)} ${fixed(by - ux * 4.5)}` : '',
+      );
+      this.#ring?.setAttribute('stroke-dasharray', `${(powerOf(aim, this.maxPull) * 100).toFixed(1)} 100`);
+      this.#aim?.classList.add('is-on');
+      this.ball.classList.add('is-aiming');
+    }
+
+    hideAim() {
+      this.#aim?.classList.remove('is-on');
+      this.ball.classList.remove('is-aiming');
+    }
+
+    #grab(event: PointerEvent) {
+      this.touched = true;
+      this.stopDemo();
+      if (this.state !== 'ready' || event.button !== 0) return;
+      this.#pointer = event.pointerId;
+      this.#down = this.point(event);
+      this.#moved = false;
+      this.state = 'aiming';
+      this.stage.setPointerCapture(event.pointerId);
+      this.stage.classList.add('is-grabbing');
+    }
+
+    #drag(event: PointerEvent) {
+      if (event.pointerId !== this.#pointer) return;
+      const p = this.point(event);
+      if (!this.#moved && Math.hypot(p.x - this.#down.x, p.y - this.#down.y) < 4) return;
+      this.#moved = true;
+      const { x, y } = this.origin;
+      this.aim = clampAim({ x: p.x - x, y: p.y - y }, this.maxPull);
+      this.showAim();
+    }
+
+    #release(event: PointerEvent) {
+      if (event.pointerId !== this.#pointer) return;
+      this.#drag(event);
+      this.#pointer = null;
+      this.stage.classList.remove('is-grabbing');
+      // A tap, or barely a pull: nothing happens.
+      if (!this.#moved || Math.hypot(this.aim.x, this.aim.y) < 14) {
+        this.state = 'ready';
+        this.hideAim();
+        return;
+      }
+      this.fire(this.aim);
+    }
+
+    #cancel(event: PointerEvent) {
+      if (event.pointerId !== this.#pointer) return;
+      this.#pointer = null;
+      this.stage.classList.remove('is-grabbing');
+      this.state = 'ready';
+      this.hideAim();
+    }
+
+    #key(event: KeyboardEvent) {
+      const shootKey = event.key === ' ' || event.key === 'Enter';
+      if (!shootKey && !ARROWS.includes(event.key)) return;
+      event.preventDefault();
+      this.touched = true;
+      this.stopDemo();
+      if (this.state !== 'ready') return;
+      if (shootKey) {
+        if (!event.repeat) this.fire(this.aim);
+        return;
+      }
+      const next = nudgeAim(this.aim, event.key, this.maxPull, event.shiftKey ? 6 : 2);
+      if (next) this.aim = next;
+      this.showAim();
+    }
+  }
+
+  class Hoops extends BallGame {
+    spot: number = COURT.spots[0];
+    shot: Shot | null = null;
+    score = 0;
+    streak = 0;
+    readonly #shadow = this.svg.querySelector('[data-shadow]');
+    readonly #net = this.svg.querySelector('[data-net]');
+    readonly #score = this.card.querySelector('[data-score]');
+    readonly #streak = this.card.querySelector('[data-streak]');
+
+    constructor(card: HTMLElement) {
+      super(card, COURT.maxPull, COURT.aim, COURT.ball);
+    }
+
+    override get origin() {
+      return { x: this.spot, y: COURT.floor - COURT.ball };
+    }
+
+    override get demoAim() {
+      return COURT.demo;
+    }
+
+    override launch(aim: Vec) {
+      this.shot = shoot(this.spot, aim);
+    }
+
+    override frame(dt: number) {
+      const shot = this.shot;
+      let moving = false;
+      if (shot && this.state === 'flying') {
+        this.acc += dt;
+        while (this.acc >= STEP) {
+          const before = shot.result;
+          stepShot(shot);
+          if (!before && shot.result) this.decided(shot);
+          this.acc -= STEP;
+        }
+        this.drawBall(shot.ball);
+        const wait = shot.result?.made ? 1.2 : 0.9;
+        if (shot.result && (shot.since > wait || shotGone(shot))) this.reset();
+        else moving = true;
+      }
+      return this.burst.update(dt, 160) || moving;
+    }
+
+    override settle() {
+      const shot = this.shot;
+      if (!shot) return;
+      while (!shot.result) stepShot(shot);
+      this.decided(shot);
+      this.drawBall(shot.ball);
+      window.setTimeout(() => this.reset(), 1300);
+    }
+
+    override place() {
+      this.shot = null;
+      this.drawBall(restingBall(this.spot));
+    }
+
+    override drawBall(ball: Ball) {
+      super.drawBall(ball);
+      if (!this.#shadow) return;
+      const height = COURT.floor - COURT.ball - ball.y;
+      this.#shadow.setAttribute('cx', fixed(ball.x));
+      this.#shadow.setAttribute('opacity', fixed(Math.max(0.15, 1 - height / 110)));
+    }
+
+    decided(shot: Shot) {
+      const result = shot.result;
+      if (!result || this.demo) return;
+      if (result.made) {
+        this.score += shot.points;
+        this.streak += 1;
+        this.spot = nextSpot(this.spot);
+        this.call(`${shot.points} points`);
+        this.restart(this.#net, 'is-swish');
+        this.burst.fire(COURT.rim.back + 16, COURT.rim.y, -Math.PI / 2, Math.PI * 0.9);
+      } else {
+        this.streak = 0;
+        this.call({ rim: 'Off the rim', glass: 'Off the glass', air: 'Air ball' }[result.miss], true);
+      }
+      if (this.#score) this.#score.textContent = String(this.score);
+      if (this.#streak) this.#streak.textContent = String(this.streak);
+      this.announce(callShot(result, shot.points, { score: this.score, streak: this.streak }));
+    }
+  }
+
+  const KICK_CALLS: Record<KickResult, string> = {
+    goal: 'Goal!',
+    saved: 'Saved',
+    post: 'Off the post',
+    wide: 'Wide',
+    out: 'Out',
+    short: 'Not enough on it',
+  };
+
+  class Pitch extends BallGame {
+    spot = 0;
+    attempt = 0;
+    keeper = keeperStart(0);
+    play: Kick | null = null;
+    goals = 0;
+    shots = 0;
+    readonly #keeper = this.svg.querySelector('[data-keeper]');
+    readonly #net = this.svg.querySelector('[data-net]');
+    readonly #goals = this.card.querySelector('[data-goals]');
+    readonly #shots = this.card.querySelector('[data-shots]');
+
+    constructor(card: HTMLElement) {
+      super(card, PITCH.maxPull, PITCH.aim, PITCH.ball);
+    }
+
+    override get origin() {
+      return PITCH.spots[this.spot] ?? PITCH.spots[0];
+    }
+
+    override get demoAim() {
+      return PITCH.demo;
+    }
+
+    override launch(aim: Vec) {
+      this.play = kick(this.origin, aim, this.keeper);
+    }
+
+    #drawKeeper(y: number) {
+      this.#keeper?.setAttribute('transform', `translate(0 ${fixed(y - keeperStart(0))})`);
+    }
+
+    override frame(dt: number) {
+      const play = this.play;
+      let moving = false;
+      if (play && this.state === 'flying') {
+        this.acc += dt;
+        while (this.acc >= STEP) {
+          const before = play.result;
+          stepKick(play);
+          if (!before && play.result) this.decided(play);
+          this.acc -= STEP;
+        }
+        this.drawBall(play.ball);
+        this.#drawKeeper(play.keeper);
+        const { x, y } = play.ball;
+        const gone = x < -10 || x > 330 || y < -10 || y > 180;
+        if (play.result && (gone || play.since > 1.4 || (play.since > 0.6 && kickStopped(play)))) this.reset();
+        else moving = true;
+      }
+      return this.burst.update(dt, 0) || moving;
+    }
+
+    override settle() {
+      const play = this.play;
+      if (!play) return;
+      while (!play.result) stepKick(play);
+      this.decided(play);
+      this.drawBall(play.ball);
+      this.#drawKeeper(play.keeper);
+      window.setTimeout(() => this.reset(), 1300);
+    }
+
+    override place() {
+      if (!this.demo && this.play) {
+        // After a goal the ball moves somewhere new; the keeper sets up again for every kick.
+        if (this.play.result === 'goal') this.spot = nextKickSpot(this.spot);
+        this.attempt += 1;
+        this.keeper = keeperStart(this.attempt);
+      }
+      this.play = null;
+      const { x, y } = this.origin;
+      this.drawBall({ x, y, vx: 0, vy: 0, turn: 0 });
+      this.#drawKeeper(this.keeper);
+    }
+
+    decided(play: Kick) {
+      const result = play.result;
+      if (!result || this.demo) return;
+      this.shots += 1;
+      if (result === 'goal') {
+        this.goals += 1;
+        this.call(KICK_CALLS.goal);
+        this.restart(this.#net, 'is-ripple');
+        this.burst.fire(PITCH.right + 2, play.ball.y, Math.PI, Math.PI * 1.1);
+      } else {
+        this.call(KICK_CALLS[result], true);
+      }
+      if (this.#goals) this.#goals.textContent = String(this.goals);
+      if (this.#shots) this.#shots.textContent = String(this.shots);
+      this.announce(callKick(result, this.goals, this.shots));
+    }
+  }
+
+  function readBest(): number | null {
+    try {
+      return parseBest(localStorage.getItem(BEST_KEY));
+    } catch {
+      return null;
+    }
+  }
+
+  function saveBest(time: number) {
+    try {
+      localStorage.setItem(BEST_KEY, String(time));
+    } catch {
+      // Private browsing or storage turned off: the best time lasts until the page closes.
+    }
+  }
+
+  class Pool extends Game {
+    race: Race = newRace();
+    best = readBest();
+    cooling = false;
+    acc = 0;
+    #idle = 0;
+    readonly #swimmer = this.svg.querySelector<SVGGElement>('[data-swimmer]');
+    readonly #wake = this.svg.querySelector('[data-wake]');
+    readonly #time = this.card.querySelector('[data-time]');
+    readonly #best = this.card.querySelector('[data-best]');
+    readonly tick = ticker((dt) => this.frame(dt));
+
+    constructor(card: HTMLElement) {
+      super(card);
+      this.#showBest();
+      this.draw();
+      const arms: Record<string, Arm> = { ArrowLeft: 'left', ArrowRight: 'right' };
+      this.stage.addEventListener('keydown', (event) => {
+        const arm = arms[event.key];
+        if (!arm) return;
+        event.preventDefault();
+        if (!event.repeat) this.stroke(arm);
+      });
+      for (const pad of card.querySelectorAll<HTMLButtonElement>('[data-pad]')) {
+        pad.addEventListener('click', () => this.stroke(pad.dataset['pad'] === 'right' ? 'right' : 'left'));
+      }
+    }
+
+    stroke(arm: Arm) {
+      this.touched = true;
+      if (this.cooling) return;
+      const starting = this.race.time === null;
+      if (!stroke(this.race, arm)) return;
+      if (starting) this.acc = 0;
+      if (this.#swimmer) this.#swimmer.dataset['stroke'] = arm;
+      this.restart(this.svg.querySelector(`[data-arm="${arm}"]`), 'is-pulling');
+      this.restart(this.card.querySelector(`[data-pad="${arm}"]`), 'is-hit');
+      clearTimeout(this.#idle);
+      // Stop for long enough and the race is called off.
+      this.#idle = window.setTimeout(() => this.#back(), 8000);
+      this.tick.start();
+    }
+
+    frame(dt: number) {
+      const race = this.race;
+      if (race.finished || race.time === null) return false;
+      this.acc += dt;
+      while (this.acc >= STEP && !race.finished) {
+        stepRace(race);
+        this.acc -= STEP;
+      }
+      this.draw();
+      if (race.finished) this.#finish();
+      return !race.finished;
+    }
+
+    draw() {
+      const race = this.race;
+      this.#swimmer?.setAttribute('transform', `translate(${fixed(race.x)} ${POOL.lane})`);
+      this.#wake?.setAttribute('opacity', fixed(Math.min(1, 0.25 + race.speed / 60)));
+      if (this.#time) this.#time.textContent = formatSeconds(race.time ?? 0);
+    }
+
+    #showBest() {
+      if (this.#best) this.#best.textContent = this.best === null ? '–' : formatSeconds(this.best);
+    }
+
+    #finish() {
+      const time = this.race.time ?? 0;
+      const before = this.best;
+      clearTimeout(this.#idle);
+      if (before === null || time < before) {
+        this.best = time;
+        saveBest(time);
+        this.#showBest();
+      }
+      this.call(`${formatSeconds(time)} s`, before !== null && time >= before);
+      this.announce(callFinish(time, before));
+      this.cooling = true;
+      this.#idle = window.setTimeout(() => this.#back(), 2000);
+    }
+
+    /** Back to the start wall for another go. */
+    #back() {
+      clearTimeout(this.#idle);
+      const swimmer = this.#swimmer;
+      const again = () => {
+        this.race = newRace();
+        this.cooling = false;
+        this.draw();
+        swimmer?.classList.remove('is-gone');
+      };
+      if (!swimmer || !motionOk()) {
+        again();
+        return;
+      }
+      this.cooling = true;
+      swimmer.classList.add('is-gone');
+      window.setTimeout(again, 220);
+    }
+  }
+
+  class Books extends Game {
+    readonly books: SVGRectElement[];
+    current = 3;
+    out: number | null = null;
+
+    constructor(card: HTMLElement) {
+      super(card);
+      this.books = [...this.svg.querySelectorAll<SVGRectElement>('[data-book]')];
+      this.books.forEach((book, i) => {
+        book.addEventListener('click', () => {
+          this.touched = true;
+          this.#mark(i);
+          this.toggle(i);
+        });
+      });
+      this.#mark(this.current);
+      this.stage.addEventListener('keydown', (event) => {
+        const step = ({ ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 } as Record<string, number>)[event.key];
+        const pull = event.key === ' ' || event.key === 'Enter';
+        if (!step && !pull) return;
+        event.preventDefault();
+        this.touched = true;
+        if (step) this.#mark(Math.min(this.books.length - 1, Math.max(0, this.current + step)));
+        else this.toggle(this.current);
+      });
+    }
+
+    #mark(i: number) {
+      this.books[this.current]?.classList.remove('is-current');
+      this.current = i;
+      this.books[i]?.classList.add('is-current');
+    }
+
+    toggle(i: number, quiet = false) {
+      const n = this.books.length;
+      if (this.out === i) {
+        this.books[i]?.classList.remove('is-out');
+        this.out = null;
+        if (!quiet) this.announce(`Book ${i + 1} is back on the shelf.`);
+        return;
+      }
+      if (this.out !== null) this.books[this.out]?.classList.remove('is-out');
+      this.out = i;
+      this.books[i]?.classList.add('is-out');
+      if (!quiet) this.announce(`Pulled out book ${i + 1} of ${n}.`);
+    }
+
+    override invite() {
+      if (this.touched || !motionOk()) return;
+      this.toggle(3, true);
+      window.setTimeout(() => {
+        if (!this.touched && this.out === 3) this.toggle(3, true);
+      }, 1100);
+    }
+  }
+
   class PastimeCards extends HTMLElement {
     connectedCallback() {
-      if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
-      const cards = [...this.querySelectorAll<HTMLElement>('.pastime')];
-      const play = (card: HTMLElement) => {
-        if (card.classList.contains('is-playing')) return;
-        card.classList.add('is-playing');
-        card.addEventListener('animationend', () => card.classList.remove('is-playing'), { once: true });
+      const games: Game[] = [];
+      const make = (game: string, build: (card: HTMLElement) => Game) => {
+        const card = this.querySelector<HTMLElement>(`[data-game="${game}"]`);
+        if (card) games.push(build(card));
       };
-      // Each drawing plays once as it scrolls into view, then again on hover.
+      make('court', (card) => new Hoops(card));
+      make('pitch', (card) => new Pitch(card));
+      make('pool', (card) => new Pool(card));
+      make('books', (card) => new Books(card));
+
+      // Each drawing plays itself once as it scrolls into view, unless you got there first.
       const observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
             if (!entry.isIntersecting) continue;
             observer.unobserve(entry.target);
-            play(entry.target as HTMLElement);
+            games.find((game) => game.card === entry.target)?.invite();
           }
         },
         { threshold: 0.7 },
       );
-      for (const card of cards) {
-        observer.observe(card);
-        card.addEventListener('pointerenter', () => play(card));
-      }
+      for (const game of games) observer.observe(game.card);
     }
   }
   customElements.define('pastime-cards', PastimeCards);
@@ -188,19 +1045,54 @@ const matchday = '/projects/matchday-ml/';
   }
 
   .pastime {
+    position: relative;
     display: grid;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     overflow: hidden;
     border: 1px solid var(--rule-strong);
     border-radius: 10px;
     background: var(--paper-raised);
   }
 
+  /* The drawing you play in. Only a drag that starts on the ball is held, so the page still scrolls. */
+  .pastime__stage {
+    position: relative;
+    container-type: inline-size;
+    border-bottom: 1px solid var(--rule-strong);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .pastime__stage:focus-visible {
+    outline-offset: -4px;
+    border-radius: 9px 9px 0 0;
+  }
+
   .pastime__art {
     display: block;
     width: 100%;
     height: auto;
-    border-bottom: 1px solid var(--rule-strong);
+  }
+
+  .pastime__how {
+    padding: 0.6rem 1.125rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  .pastime__keys {
+    display: block;
+  }
+
+  /* Phones get the touch instructions only. */
+  @media (hover: none) and (pointer: coarse) {
+    .pastime__keys {
+      display: none;
+    }
   }
 
   .pastime__text {
@@ -241,6 +1133,205 @@ const matchday = '/projects/matchday-ml/';
     font-weight: 600;
   }
 
+  /* The score bug in the corner, the way a broadcast shows it. Dark in both themes. */
+  .bug {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.7rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    background: rgb(21 24 28 / 0.9);
+    color: #f3f4f0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  .bug b {
+    color: #ffd60a;
+    font-weight: 700;
+  }
+
+  .pastime--pitch .bug,
+  .pastime--pool .bug {
+    right: auto;
+    left: 0.5rem;
+  }
+
+  /* The big call over the drawing, printed slightly out of register like the page headings. */
+  .call {
+    --call-ink: var(--ink);
+    position: absolute;
+    inset: 16% 0 auto;
+    display: grid;
+    justify-items: center;
+    font-family: var(--font-display);
+    font-size: 11cqi;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .call > span {
+    grid-area: 1 / 1;
+  }
+
+  .call__c {
+    color: var(--process-cyan);
+    translate: -0.03em 0.024em;
+  }
+
+  .call__m {
+    color: var(--process-magenta);
+    translate: 0.03em -0.018em;
+  }
+
+  /* Positioned, so the ink prints over the two shifted plates. */
+  .call__k {
+    position: relative;
+    color: var(--call-ink);
+  }
+
+  .call--quiet {
+    font-size: 7cqi;
+    font-weight: 650;
+  }
+
+  .call--quiet .call__c,
+  .call--quiet .call__m {
+    display: none;
+  }
+
+  .pastime--pitch .call,
+  .pastime--pool .call {
+    --call-ink: #fff;
+  }
+
+  .pastime--pitch .call__k,
+  .pastime--pool .call__k {
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  }
+
+  .call.is-on {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .call.is-on {
+      animation: call 1400ms var(--ease-out) both;
+    }
+  }
+
+  @keyframes call {
+    0% {
+      opacity: 0;
+      transform: scale(0.82);
+    }
+    14% {
+      opacity: 1;
+      transform: scale(1.04);
+    }
+    24%,
+    78% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-6%);
+    }
+  }
+
+  /* Aiming: a dotted line out to where you're pulling, and a ring round the ball for the power. */
+  .aim {
+    display: none;
+    pointer-events: none;
+  }
+
+  .aim.is-on {
+    display: inline;
+  }
+
+  .aim__line,
+  .aim__head {
+    fill: none;
+    stroke: var(--aim, var(--ink));
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .aim__line {
+    stroke-dasharray: 0.1 6;
+  }
+
+  .aim__track,
+  .aim__ring {
+    fill: none;
+    stroke-width: 2.5;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .aim__track {
+    stroke: var(--aim, var(--ink));
+    stroke-opacity: 0.25;
+  }
+
+  .aim__ring {
+    stroke: var(--process-magenta);
+    stroke-linecap: round;
+  }
+
+  .is-aiming .aim__track,
+  .is-aiming .aim__ring {
+    opacity: 1;
+  }
+
+  .ball {
+    transition: opacity 160ms ease;
+  }
+
+  .ball.is-gone {
+    opacity: 0;
+  }
+
+  .hit {
+    fill: transparent;
+    pointer-events: all;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .is-grabbing,
+  .is-grabbing .hit {
+    cursor: grabbing;
+  }
+
+  .is-busy .hit {
+    cursor: default;
+  }
+
+  /* The burst's dots are made at run time, so they sit outside the scoped styles. */
+  .pastime__art :global(.dot--c) {
+    fill: var(--process-cyan);
+  }
+
+  .pastime__art :global(.dot--m) {
+    fill: var(--process-magenta);
+  }
+
+  .pastime__art :global(.dot--y) {
+    fill: var(--process-yellow);
+  }
+
   /* Court */
   .court__wall {
     fill: var(--wall);
@@ -260,6 +1351,12 @@ const matchday = '/projects/matchday-ml/';
     opacity: 0.35;
   }
 
+  .court__three {
+    stroke: var(--court-line);
+    stroke-width: 2;
+    opacity: 0.85;
+  }
+
   .court__pole {
     fill: none;
     stroke: var(--ink-2);
@@ -270,6 +1367,19 @@ const matchday = '/projects/matchday-ml/';
     fill: none;
     stroke: var(--ink-2);
     stroke-width: 1.3;
+    pointer-events: none;
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+  }
+
+  .court__net.is-swish {
+    animation: swish 520ms var(--ease-out);
+  }
+
+  @keyframes swish {
+    30% {
+      transform: scale(0.86, 1.3);
+    }
   }
 
   .court__board {
@@ -282,76 +1392,30 @@ const matchday = '/projects/matchday-ml/';
     stroke: #e5532d;
     stroke-width: 4;
     stroke-linecap: round;
+    pointer-events: none;
   }
 
-  .court__ball circle {
+  .court__shadow {
+    fill: rgb(0 0 0 / 0.3);
+  }
+
+  .court__ball {
     fill: #e8742a;
     stroke: #3b1d0c;
     stroke-width: 1.5;
   }
 
-  .court__ball path {
+  .court__seams {
     fill: none;
     stroke: #3b1d0c;
     stroke-width: 1.4;
   }
 
-  /* A jump shot: across at a steady pace, up and down on a curve, through the net. */
-  .is-playing .ball-x {
-    animation: shot-x 1300ms linear;
-  }
-
-  .is-playing .ball-y {
-    animation: shot-y 1300ms;
-  }
-
-  .is-playing .court__ball {
-    animation: shot-spin 1300ms linear;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  @keyframes shot-x {
-    0% {
-      transform: none;
-    }
-    70%,
-    100% {
-      transform: translateX(-229px);
-    }
-  }
-
-  @keyframes shot-y {
-    0% {
-      transform: none;
-      animation-timing-function: cubic-bezier(0.3, 0.6, 0.6, 1);
-    }
-    38% {
-      transform: translateY(-108px);
-      animation-timing-function: cubic-bezier(0.4, 0, 0.7, 0.4);
-    }
-    70% {
-      transform: translateY(-65px);
-      opacity: 1;
-      animation-timing-function: ease-in;
-    }
-    88% {
-      transform: translateY(-42px);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(-34px);
-      opacity: 0;
-    }
-  }
-
-  @keyframes shot-spin {
-    to {
-      transform: rotate(-360deg);
-    }
-  }
-
   /* Pitch */
+  .pastime--pitch {
+    --aim: #fff;
+  }
+
   .pitch__grass {
     fill: var(--grass);
   }
@@ -371,48 +1435,42 @@ const matchday = '/projects/matchday-ml/';
     stroke-width: 3;
   }
 
-  .pitch__ball circle {
+  .pitch__net {
+    fill: rgb(255 255 255 / 0.2);
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+  }
+
+  .pitch__net.is-ripple {
+    animation: ripple 600ms var(--ease-out);
+  }
+
+  @keyframes ripple {
+    25% {
+      transform: scaleX(1.45);
+    }
+  }
+
+  .keeper__arms {
+    stroke: #ffd60a;
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+
+  .keeper__head {
+    fill: #2a1a10;
+  }
+
+  .pitch__ball {
     fill: #fff;
     stroke: #1d1d1d;
     stroke-width: 1.3;
   }
 
-  .pitch__ball path {
+  .pitch__patches {
     fill: #1d1d1d;
     stroke: #1d1d1d;
     stroke-width: 1;
-  }
-
-  .is-playing .roll {
-    animation: roll 1400ms cubic-bezier(0.2, 0.7, 0.3, 1);
-  }
-
-  .is-playing .pitch__ball {
-    animation: spin 1400ms cubic-bezier(0.2, 0.7, 0.3, 1);
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  @keyframes roll {
-    70% {
-      transform: translateX(152px);
-      opacity: 1;
-    }
-    85% {
-      transform: translateX(152px);
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(152px);
-      opacity: 0;
-    }
-  }
-
-  @keyframes spin {
-    70%,
-    100% {
-      transform: rotate(720deg);
-    }
   }
 
   /* Pool */
@@ -442,7 +1500,15 @@ const matchday = '/projects/matchday-ml/';
     stroke-width: 4;
   }
 
-  .pool__swimmer circle {
+  .swimmer {
+    transition: opacity 200ms ease;
+  }
+
+  .swimmer.is-gone {
+    opacity: 0;
+  }
+
+  .pool__head {
     fill: #f2544a;
   }
 
@@ -456,29 +1522,57 @@ const matchday = '/projects/matchday-ml/';
 
   .pool__wake {
     stroke-width: 2;
-    opacity: 0.8;
   }
 
-  .is-playing .swim {
-    animation: swim 2200ms ease-in-out;
-  }
-
-  .is-playing .pool__arm {
-    animation: stroke 550ms linear 4;
+  /* One arm at a time, the one that just pulled. */
+  .pool__arm {
     transform-box: fill-box;
-    transform-origin: 30% 100%;
+    transform-origin: 0 50%;
   }
 
-  @keyframes swim {
-    to {
-      transform: translateX(244px);
+  [data-stroke='left'] [data-arm='right'],
+  [data-stroke='right'] [data-arm='left'] {
+    display: none;
+  }
+
+  .pool__arm.is-pulling {
+    animation: pull 340ms var(--ease-out);
+  }
+
+  @keyframes pull {
+    from {
+      transform: scaleX(1.35);
+      opacity: 0.5;
     }
   }
 
-  @keyframes stroke {
-    50% {
-      transform: scaleY(-1);
-    }
+  .pads {
+    position: absolute;
+    inset: auto 0.5rem 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .pad {
+    min-width: 4.75rem;
+    min-height: 2.25rem;
+    padding: 0.3rem 1rem;
+    border: 1.5px solid rgb(255 255 255 / 0.9);
+    border-radius: 999px;
+    background: rgb(8 38 58 / 0.5);
+    color: #fff;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    transition: background-color 120ms ease;
+  }
+
+  .pad:hover,
+  .pad.is-hit {
+    background: rgb(8 38 58 / 0.75);
   }
 
   /* Books */
@@ -496,21 +1590,28 @@ const matchday = '/projects/matchday-ml/';
     fill: var(--b);
     stroke: color-mix(in srgb, var(--ink) 35%, transparent);
     stroke-width: 1;
+    cursor: pointer;
+    transition: translate 420ms var(--ease-out);
   }
 
-  .is-playing .books__pick {
-    animation: pull 1600ms var(--ease-out);
-  }
-
-  @keyframes pull {
-    35%,
-    70% {
-      transform: translateY(-34px);
+  @media (hover: hover) {
+    .books__row rect:hover:not(.is-out) {
+      translate: 0 -4px;
     }
   }
 
+  .books__row rect.is-out {
+    translate: 0 -34px;
+  }
+
+  .pastime__stage:focus-visible .books__row rect.is-current {
+    stroke: var(--magenta);
+    stroke-width: 2.5;
+  }
+
   @media print {
-    .pastime__art {
+    .pastime__stage,
+    .pastime__how {
       display: none;
     }
   }
