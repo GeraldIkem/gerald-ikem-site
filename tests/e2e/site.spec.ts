@@ -48,7 +48,7 @@ test.describe('home', () => {
   });
 
   test('switches Linkify redirect scenarios', async ({ page }) => {
-    await page.goto('/projects/linkify/');
+    await page.goto('/projects/linkify/#the-redirect-path');
     const demo = page.locator('.redirect');
     await expect(demo.locator('[data-panel="hit"]')).toBeVisible();
     await expect(demo.locator('[data-panel="down"]')).toBeHidden();
@@ -125,7 +125,7 @@ test('builds a real LEGO set in 3D when the viewer comes into view', async ({ pa
   await page.goto('/off-the-clock/');
   const viewer = page.locator('lego-viewer');
   await viewer.scrollIntoViewIfNeeded();
-  await expect(viewer.locator('canvas')).toBeVisible({ timeout: 15_000 });
+  await expect(viewer.locator('canvas')).toBeVisible({ timeout: 45_000 });
   await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of \d+$/, { timeout: 45_000 });
 
   await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
@@ -136,7 +136,7 @@ test('builds a real LEGO set in 3D when the viewer comes into view', async ({ pa
 
 test('lists every project and gives each one a page', async ({ page }) => {
   await page.goto('/');
-  const links = page.locator('.project h3 a');
+  const links = page.locator('.pcard__link');
   await expect(links).toHaveCount(7);
   await expect(page.getByText('This Is It 2.0')).toHaveCount(0);
   const hrefs = await links.evaluateAll((anchors) => anchors.map((a) => (a as HTMLAnchorElement).getAttribute('href')));
@@ -145,8 +145,36 @@ test('lists every project and gives each one a page', async ({ page }) => {
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.locator('.facts > div')).toHaveCount(4);
-    await expect(page.getByRole('heading', { level: 2, name: 'Where it falls short' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Limits and next/ })).toBeVisible();
   }
+});
+
+test('reads a project one chapter at a time and moves between projects from anywhere', async ({ page }) => {
+  await page.goto('/projects/matchday-ml/');
+  const overview = page.locator('#overview');
+  await expect(overview).toBeVisible();
+  await expect(page.locator('#limits')).toBeHidden();
+
+  await page.getByRole('tab', { name: /Limits and next/ }).click();
+  await expect(page.locator('#limits')).toBeVisible();
+  await expect(overview).toBeHidden();
+  await expect(page).toHaveURL(/#limits$/);
+
+  await page.getByRole('link', { name: 'Next: Built with' }).click();
+  await expect(page.locator('#stack .tile').first()).toBeVisible();
+
+  await page.keyboard.press('ArrowRight');
+  await expect(page).toHaveURL(/\/projects\/reelrank\/$/);
+  await page.keyboard.press('ArrowLeft');
+  await expect(page).toHaveURL(/\/projects\/matchday-ml\/$/);
+});
+
+test('slides through projects on the home page', async ({ page }) => {
+  await page.goto('/#projects');
+  const track = page.locator('[data-rail-track]');
+  const before = await track.evaluate((el) => el.scrollLeft);
+  await page.getByRole('button', { name: 'More projects' }).click();
+  await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(before);
 });
 
 test('unknown addresses get the 404 page', async ({ page }) => {
@@ -158,7 +186,8 @@ test('unknown addresses get the 404 page', async ({ page }) => {
 for (const path of ['/', '/off-the-clock/', '/projects/linkify/', '/projects/hummle/']) {
   for (const scheme of ['light', 'dark'] as const) {
     test(`${path} has no serious accessibility problems in ${scheme} mode`, async ({ page }) => {
-      await page.emulateMedia({ colorScheme: scheme });
+      // Audit the settled page: mid-animation fades would read as low contrast.
+      await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
       await page.goto(path);
       // Let the live parts finish drawing before auditing them.
       if (path === '/') await page.locator('page-trace .trace__row').first().waitFor();

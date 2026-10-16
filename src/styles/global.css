@@ -124,6 +124,56 @@ html {
   navigation: auto;
 }
 
+/*
+ * Moving between projects slides the page sideways, in the direction you
+ * went. The direction is set as a view-transition type by the project page.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html:active-view-transition-type(slide-next)::view-transition-old(root) {
+    animation: 300ms var(--ease-out) both slide-out-left;
+  }
+
+  html:active-view-transition-type(slide-next)::view-transition-new(root) {
+    animation: 380ms var(--ease-out) both slide-in-right;
+  }
+
+  html:active-view-transition-type(slide-prev)::view-transition-old(root) {
+    animation: 300ms var(--ease-out) both slide-out-right;
+  }
+
+  html:active-view-transition-type(slide-prev)::view-transition-new(root) {
+    animation: 380ms var(--ease-out) both slide-in-left;
+  }
+}
+
+@keyframes slide-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-14%);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(14%);
+  }
+}
+
+@keyframes slide-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(14%);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-14%);
+  }
+}
+
 body {
   min-height: 100dvh;
   overflow-x: clip;

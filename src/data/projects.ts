@@ -31,7 +31,8 @@ export interface Section {
   body?: string[];
   points?: string[];
   problems?: Problem[];
-  table?: { caption?: string; head: string[]; rows: string[][] };
+  /** `bars` is the column to draw as bars, scaled to its largest value. */
+  table?: { caption?: string; head: string[]; rows: string[][]; bars?: number };
   /** An interactive piece that lives on this project's page. */
   demo?: 'redirect' | 'rtf';
 }
@@ -211,6 +212,7 @@ export const projects: Project[] = [
         ],
         table: {
           caption: 'Microbenchmark: 13 pages, depth 1, three trials, Java 17',
+          bars: 3,
           head: ['Situation', 'One worker', 'Concurrent', 'Speed-up'],
           rows: [
             ['Server takes 120 ms to answer', '2,167 ms', '735 ms', 'about 2.95×'],
@@ -311,6 +313,7 @@ export const projects: Project[] = [
         ],
         table: {
           caption: 'Held-out results',
+          bars: 3,
           head: ['League', 'Chosen model', 'Games', 'Accuracy', 'Log loss', 'Brier'],
           rows: [
             ['Premier League', 'Goals plus recent form', '1,140', '53.4%', '0.983', '0.586'],
@@ -382,6 +385,7 @@ export const projects: Project[] = [
         ],
         table: {
           caption: 'Test results, top 10 recommendations',
+          bars: 3,
           head: ['Approach', 'Precision', 'Recall', 'NDCG', 'MRR', 'Coverage'],
           rows: [
             ['Popularity', '0.060', '0.039', '0.071', '0.143', '0.077'],

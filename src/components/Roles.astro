@@ -2,6 +2,7 @@
 import { stints, toolbox } from '~/data/career';
 import { formatRange } from '~/lib/timeline';
 import PayDemo from './PayDemo.astro';
+import StackTiles from './StackTiles.astro';
 
 const work = stints.filter((stint) => stint.track === 'work');
 const study = stints.filter((stint) => stint.track === 'study');
@@ -50,16 +51,7 @@ const study = stints.filter((stint) => stint.track === 'study');
   }
 
   <h3 class="roles__group">What I work with</h3>
-  <dl class="toolbox">
-    {
-      toolbox.map((row) => (
-        <div>
-          <dt>{row.area}</dt>
-          <dd>{row.items}</dd>
-        </div>
-      ))
-    }
-  </dl>
+  <StackTiles groups={toolbox} />
 </div>
 
 <style>
@@ -120,33 +112,4 @@ const study = stints.filter((stint) => stint.track === 'study');
     border-top: 1px solid var(--rule);
   }
 
-  .toolbox {
-    display: grid;
-    gap: 0.875rem;
-    margin-top: -1.25rem;
-  }
-
-  .toolbox div {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.125rem;
-  }
-
-  .toolbox dt {
-    font-weight: 600;
-    font-size: var(--text-sm);
-  }
-
-  .toolbox dd {
-    color: var(--ink-2);
-    font-size: var(--text-sm);
-    max-width: 42rem;
-  }
-
-  @media (min-width: 40rem) {
-    .toolbox div {
-      grid-template-columns: 11rem minmax(0, 1fr);
-      gap: 1.5rem;
-    }
-  }
 </style>

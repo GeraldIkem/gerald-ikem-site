@@ -1,0 +1,292 @@
+---
+/**
+ * A stack drawn as tiles sized by how much I actually use each tool: the
+ * more places a tool appears (projects and my job), the bigger its tile and
+ * the longer its bar. Hover or focus a tile to see where it was used.
+ */
+import { techOf } from '~/data/tech';
+import { maxUsage, usageOf } from '~/data/usage';
+
+interface Props {
+  groups: Array<{ label: string; items: string[] }>;
+}
+
+const tierOf = (count: number) => (count >= 4 ? 3 : count >= 2 ? 2 : 1);
+let order = 0;
+const groups = Astro.props.groups.map((group) => ({
+  label: group.label,
+  items: group.items
+    .map((name) => {
+      const tech = techOf(name);
+      const use = usageOf(name);
+      return { tech, use, tier: tierOf(use.count) };
+    })
+    .sort((a, b) => b.use.count - a.use.count)
+    .map((item) => ({ ...item, i: order++ })),
+}));
+
+const describe = (name: string, count: number, where: string[]) =>
+  count === 0 ? name : `${name}, used in ${count} ${count === 1 ? 'place' : 'places'}: ${where.join(', ')}`;
+---
+
+<stack-tiles class="tiles">
+  {
+    groups.map((group) => (
+      <div class="tiles__row">
+        <p class="tiles__label">{group.label}</p>
+        <ul class="tiles__list">
+          {group.items.map(({ tech, use, tier, i }) => (
+            <li
+              class="tile"
+              data-tier={tier}
+              tabindex="0"
+              aria-label={describe(tech.name, use.count, use.where)}
+              style={`--c:${tech.color};--t:${tech.text};--share:${maxUsage ? use.count / maxUsage : 0};--i:${i}`}
+            >
+              <span class="tile__badge" aria-hidden="true">
+                {tech.path ? (
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d={tech.path} />
+                  </svg>
+                ) : (
+                  <span class="tile__initials">{tech.initials}</span>
+                )}
+              </span>
+              <span class="tile__text" aria-hidden="true">
+                <span class="tile__name">{tech.name}</span>
+                {use.count > 0 && (
+                  <span class="tile__uses">
+                    {use.count} {use.count === 1 ? 'place' : 'places'}
+                  </span>
+                )}
+              </span>
+              {use.count > 0 && <span class="tile__bar" aria-hidden="true" />}
+              {use.count > 0 && (
+                <span class="tile__where" aria-hidden="true">
+                  {use.where.join(', ')}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+  <p class="tiles__key">Bigger tiles are tools I use in more places, across my projects and my job at Payaza.</p>
+</stack-tiles>
+
+<script>
+  class StackTiles extends HTMLElement {
+    connectedCallback() {
+      if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+        this.classList.add('is-shown');
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer.disconnect();
+          this.classList.add('is-shown', 'is-animating');
+        },
+        { threshold: 0.2 },
+      );
+      observer.observe(this);
+    }
+  }
+  customElements.define('stack-tiles', StackTiles);
+</script>
+
+<style>
+  .tiles {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .tiles__row {
+    display: grid;
+    gap: 0.5rem 1.25rem;
+    align-items: center;
+  }
+
+  @media (min-width: 44rem) {
+    .tiles__row {
+      grid-template-columns: 8rem minmax(0, 1fr);
+    }
+  }
+
+  .tiles__label {
+    color: var(--ink-2);
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+
+  .tiles__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.85rem 0.6rem 0.5rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 8px;
+    background: var(--paper-raised);
+    overflow: visible;
+    cursor: default;
+    transition: border-color 150ms ease, transform 200ms var(--ease-out), box-shadow 200ms ease;
+  }
+
+  .tile:hover,
+  .tile:focus-visible {
+    border-color: var(--ink-3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -16px rgb(0 0 0 / 0.5);
+    z-index: 2;
+  }
+
+  /* The logo sits on its own brand colour, like an app icon, so it reads on any background. */
+  .tile__badge {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--badge);
+    height: var(--badge);
+    border-radius: 6px;
+    background: var(--c);
+    color: var(--t);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  }
+
+  .tile__badge svg {
+    width: 60%;
+    height: 60%;
+    fill: currentColor;
+  }
+
+  .tile__initials {
+    font-size: calc(var(--badge) * 0.36);
+    font-weight: 700;
+  }
+
+  .tile__text {
+    display: grid;
+    line-height: 1.15;
+  }
+
+  .tile__name {
+    font-weight: 650;
+    font-size: var(--name);
+    white-space: nowrap;
+  }
+
+  .tile__uses {
+    color: var(--ink-3);
+    font-size: 0.75rem;
+  }
+
+  /* How often it's used, as a bar along the bottom edge. */
+  .tile__bar {
+    position: absolute;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.25rem;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(var(--c), var(--c)) left / calc(var(--share) * 100%) 100% no-repeat,
+      var(--rule);
+  }
+
+  /* Where it was used, on hover or focus. */
+  .tile__where {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 0.4rem);
+    z-index: 3;
+    width: max-content;
+    max-width: 18rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.75rem;
+    line-height: 1.35;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+
+  .tile:hover .tile__where,
+  .tile:focus-visible .tile__where {
+    opacity: 1;
+    transform: none;
+  }
+
+  .tile[data-tier='3'] {
+    --badge: 2.6rem;
+    --name: var(--text-md);
+    padding: 0.7rem 1.1rem 0.85rem 0.7rem;
+  }
+
+  .tile[data-tier='2'] {
+    --badge: 2rem;
+    --name: var(--text-base);
+  }
+
+  .tile[data-tier='1'] {
+    --badge: 1.55rem;
+    --name: var(--text-sm);
+  }
+
+  .tiles__key {
+    margin-top: 0.25rem;
+    color: var(--ink-3);
+    font-size: var(--text-xs);
+  }
+
+  /* Tiles settle in biggest first, then their bars fill. */
+  .tiles.is-animating .tile {
+    animation: tile-in 480ms var(--ease-out) backwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+
+  .tiles.is-animating .tile__bar {
+    animation: bar-in 900ms var(--ease-out) backwards;
+    animation-delay: calc(var(--i) * 45ms + 250ms);
+  }
+
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.94);
+    }
+  }
+
+  @keyframes bar-in {
+    from {
+      background-size: 0 100%, auto;
+    }
+  }
+
+  @media print {
+    .tile__badge,
+    .tile__bar,
+    .tile__where,
+    .tiles__key {
+      display: none;
+    }
+
+    .tile {
+      padding: 0;
+      border: 0;
+      background: none;
+    }
+  }
+</style>
