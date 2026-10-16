@@ -48,6 +48,7 @@
   --text-hero: clamp(3.5rem, 1rem + 12.5vw, 10rem);
 
   --gutter: clamp(1rem, 4vw, 3rem);
+  --header-h: 3.75rem;
   --measure: 38rem;
   --page: 76rem;
   --radius: 4px;
@@ -111,7 +112,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: 2rem;
+  /* Anchored sections land below the sticky header. */
+  scroll-padding-top: calc(var(--header-h) + 1rem);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -322,7 +324,7 @@ code,
 
   .section__head {
     position: sticky;
-    top: 2rem;
+    top: calc(var(--header-h) + 1.5rem);
   }
 }
 

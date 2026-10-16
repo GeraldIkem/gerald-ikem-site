@@ -755,7 +755,7 @@ const speculation = JSON.stringify({ prerender: [{ source: 'list', urls: [prevUr
 
   .markers {
     position: sticky;
-    top: 0;
+    top: var(--header-h);
     z-index: 5;
     margin-inline: calc(var(--gutter) * -1);
     padding: 0.6rem var(--gutter);
@@ -816,7 +816,7 @@ const speculation = JSON.stringify({ prerender: [{ source: 'list', urls: [prevUr
 
   @media (min-width: 60rem) {
     .markers {
-      top: 1.5rem;
+      top: calc(var(--header-h) + 1.5rem);
       align-self: start;
       margin: 0;
       padding: 0;
@@ -863,7 +863,7 @@ const speculation = JSON.stringify({ prerender: [{ source: 'list', urls: [prevUr
 
   .chapter {
     padding-block: 1.5rem 2rem;
-    scroll-margin-top: 4.5rem;
+    scroll-margin-top: calc(var(--header-h) + 4rem);
   }
 
   .chapter:focus {

@@ -11,7 +11,16 @@ function collectErrors(page: Page): string[] {
 }
 
 test.describe('home', () => {
-  test('leads with the name, the role and a way to get in touch', async ({ page }) => {
+  test('keeps LinkedIn, GitHub and the résumé in the header while scrolling', async ({ page }) => {
+    await page.goto('/');
+    await page.mouse.wheel(0, 2500);
+    const header = page.locator('[data-site-header]');
+    await expect(header.getByRole('link', { name: 'LinkedIn' })).toBeInViewport();
+    await expect(header.getByRole('link', { name: 'GitHub' })).toBeInViewport();
+    await expect(header.getByRole('link', { name: /Résumé/ })).toHaveAttribute('href', /\.pdf$/);
+  });
+
+test('leads with the name, the role and a way to get in touch', async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto('/');
     // The cyan and magenta print plates are hidden from assistive tech, so the name reads once.
@@ -57,9 +66,23 @@ test.describe('home', () => {
     await expect(demo.locator('[data-panel="hit"]')).toBeHidden();
   });
 
-  test('career rows link to the role details', async ({ page }) => {
+  test('the career story fills the skill bucket as you scroll', async ({ page, isMobile }) => {
     await page.goto('/');
-    await page.locator('.career__row[href="#payaza"]').click();
+    const story = page.locator('career-story');
+    if (isMobile) {
+      // Phones get the whole story at once, with the full bucket underneath.
+      await expect(story).not.toHaveClass(/is-live/);
+      await expect(story.locator('.chip[data-skill="Spring Boot"]')).toBeVisible();
+      return;
+    }
+    await expect(story).toHaveClass(/is-live/);
+    const springBoot = story.locator('.chip[data-skill="Spring Boot"]');
+    await expect(springBoot).toBeHidden();
+    const payaza = story.locator('[data-step]').filter({ hasText: 'Backend engineer' });
+    await payaza.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await expect(springBoot).toBeVisible();
+    await expect(story.locator('[data-year]')).toHaveText('Nov 2025');
+    await payaza.getByRole('link', { name: 'Backend engineer' }).click();
     await expect(page).toHaveURL(/#payaza$/);
     await expect(page.locator('#payaza')).toBeInViewport();
   });
@@ -169,12 +192,11 @@ test('reads a project one chapter at a time and moves between projects from anyw
   await expect(page).toHaveURL(/\/projects\/matchday-ml\/$/);
 });
 
-test('slides through projects on the home page', async ({ page }) => {
+test('shows every project on the home page at once', async ({ page }) => {
   await page.goto('/#projects');
-  const track = page.locator('[data-rail-track]');
-  const before = await track.evaluate((el) => el.scrollLeft);
-  await page.getByRole('button', { name: 'More projects' }).click();
-  await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(before);
+  const cards = page.locator('.pcard');
+  await expect(cards).toHaveCount(7);
+  for (const card of await cards.all()) await expect(card).toBeVisible();
 });
 
 test('unknown addresses get the 404 page', async ({ page }) => {
@@ -186,6 +208,7 @@ test('unknown addresses get the 404 page', async ({ page }) => {
 for (const path of ['/', '/off-the-clock/', '/projects/linkify/', '/projects/hummle/']) {
   for (const scheme of ['light', 'dark'] as const) {
     test(`${path} has no serious accessibility problems in ${scheme} mode`, async ({ page }) => {
+      test.slow(); // axe walks every node, which takes a while on the long pages when tests run in parallel.
       // Audit the settled page: mid-animation fades would read as low contrast.
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
       await page.goto(path);

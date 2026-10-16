@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '~/layouts/Base.astro';
 import PageTrace from '~/components/PageTrace.astro';
-import CareerTrace from '~/components/CareerTrace.astro';
+import CareerStory from '~/components/CareerStory.astro';
 import Roles from '~/components/Roles.astro';
 import Projects from '~/components/Projects.astro';
 import Shelf from '~/components/Shelf.astro';
@@ -45,10 +45,10 @@ const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'
   <section class="section wrap" id="work" aria-labelledby="work-title">
     <div class="section__head">
       <h2 id="work-title">Work</h2>
-      <p>Three roles and two degrees since 2019, often more than one at a time. Pick a row to jump to the details.</p>
+      <p>Scroll through it: each step adds what I picked up along the way, and the things I keep using grow.</p>
     </div>
     <div class="section__body">
-      <CareerTrace />
+      <CareerStory />
       <Roles />
     </div>
   </section>

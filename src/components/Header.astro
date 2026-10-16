@@ -1,6 +1,8 @@
 ---
+import { siGithub } from 'simple-icons';
 import Mark from './Mark.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import { site } from '~/data/site';
 
 interface Props {
   home?: boolean;
@@ -17,33 +19,95 @@ const nav = [
 const current = Astro.url.pathname;
 ---
 
-<header class="site-header wrap">
-  <a class="site-header__home" href="/" aria-label="Gerald Ikem, home">
-    <Mark />
-    <span class:list={['site-header__name', { 'site-header__name--hidden': home }]}>Gerald Ikem</span>
-  </a>
-  <nav aria-label="Main">
-    <ul>
-      {
-        nav.map((item) => (
-          <li>
-            <a href={item.href} aria-current={item.href === current ? 'page' : undefined}>
-              {item.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
-  <ThemeToggle />
+<!-- Sticky, so LinkedIn, GitHub and the résumé are one click away from anywhere. -->
+<header class="site-header" data-site-header>
+  <div class="site-header__inner wrap">
+    <a class="site-header__home" href="/" aria-label="Gerald Ikem, home">
+      <Mark />
+      <span class:list={['site-header__name', { 'site-header__name--hidden': home }]}>Gerald Ikem</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={item.href === current ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="quick">
+      <a class="quick__icon" href={site.links.linkedin} aria-label="LinkedIn" title="LinkedIn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="2" y="2" width="20" height="20" rx="4" />
+          <path class="quick__cut" d="M7 10v7M7 7v.01M11 17v-4.2c0-1.6 1.1-2.8 2.6-2.8s2.4 1 2.4 2.8V17M11 10v7" />
+        </svg>
+      </a>
+      <a class="quick__icon" href={site.links.github} aria-label="GitHub" title="GitHub">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={siGithub.path} /></svg>
+      </a>
+      <a class="quick__resume" href={site.resume} download>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" /></svg>
+        <span>Résumé</span>
+      </a>
+      <ThemeToggle />
+      <details class="menu">
+        <summary aria-label="Menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </summary>
+        <ul>
+          {
+            nav.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </details>
+    </div>
+  </div>
 </header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  if (header) {
+    // A hairline under the bar once the page has scrolled under it.
+    const onScroll = () => header.classList.toggle('is-stuck', scrollY > 8);
+    onScroll();
+    addEventListener('scroll', onScroll, { passive: true });
+    // Close the phone menu after choosing a link.
+    header.querySelector('.menu')?.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) header.querySelector('.menu')?.removeAttribute('open');
+    });
+  }
+</script>
 
 <style>
   .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 200ms ease;
+  }
+
+  .site-header.is-stuck {
+    border-bottom-color: var(--rule);
+  }
+
+  .site-header__inner {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding-block: 1.25rem;
+    height: var(--header-h);
   }
 
   .site-header__home {
@@ -67,42 +131,174 @@ const current = Astro.url.pathname;
     clip: rect(0 0 0 0);
   }
 
-  nav ul {
+  .site-nav ul {
     display: flex;
-    flex-wrap: wrap;
     gap: 0.25rem 1.5rem;
     padding: 0;
     list-style: none;
   }
 
-  nav a {
+  .site-nav a {
     color: var(--ink-2);
     text-decoration: none;
     font-size: var(--text-sm);
     padding-block: 0.5rem;
   }
 
-  nav a:hover,
-  nav a[aria-current='page'] {
+  .site-nav a:hover,
+  .site-nav a[aria-current='page'] {
     color: var(--ink);
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
     text-underline-offset: 0.35em;
   }
 
-  @media (max-width: 40rem) {
+  .quick {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.75rem;
+    padding-left: 1rem;
+    border-left: 1px solid var(--rule);
+  }
+
+  .quick__icon,
+  .menu summary {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+
+  .quick__icon:hover,
+  .menu summary:hover {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+  }
+
+  .quick__icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: currentColor;
+  }
+
+  .quick__cut {
+    fill: none;
+    stroke: var(--paper);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+
+  .quick__resume {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-inline: 0.25rem;
+    padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 150ms ease;
+  }
+
+  .quick__resume:hover {
+    background: var(--magenta);
+    color: var(--on-magenta);
+  }
+
+  .quick__resume svg,
+  .menu svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .menu {
+    position: relative;
+    display: none;
+  }
+
+  .menu summary {
+    list-style: none;
+  }
+
+  .menu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu ul {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    display: grid;
+    min-width: 11rem;
+    padding: 0.4rem;
+    list-style: none;
+    border: 1px solid var(--rule-strong);
+    border-radius: 8px;
+    background: var(--paper-raised);
+    box-shadow: 0 18px 40px -20px rgb(0 0 0 / 0.5);
+  }
+
+  .menu a {
+    display: block;
+    padding: 0.6rem 0.75rem;
+    border-radius: 6px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .menu a:hover {
+    background: color-mix(in srgb, var(--ink) 7%, transparent);
+  }
+
+  /* Phones: the section links fold into a menu; the quick links stay out. */
+  @media (max-width: 52rem) {
+    .site-nav {
+      display: none;
+    }
+
+    .menu {
+      display: block;
+    }
+
+    .quick {
+      margin-left: 0;
+      padding-left: 0;
+      border-left: 0;
+      gap: 0.1rem;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .quick__resume span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    .quick__resume {
+      padding: 0.55rem;
+      margin-inline: 0.1rem;
+    }
+  }
+
+  @media print {
     .site-header {
-      flex-wrap: wrap;
-      row-gap: 0.25rem;
-    }
-
-    nav {
-      order: 3;
-      width: 100%;
-    }
-
-    nav ul {
-      gap: 0.25rem 1.125rem;
+      position: static;
+      backdrop-filter: none;
     }
   }
 </style>
