@@ -8,3 +8,6 @@ playwright-report/
 .DS_Store
 Thumbs.db
 __pycache__/
+
+# Phone photos for scripts/spines.mjs; only the processed WebPs are committed.
+/photos/

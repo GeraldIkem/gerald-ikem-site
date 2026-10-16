@@ -7,10 +7,21 @@ interface Props {
 
 const { book } = Astro.props;
 const { label, volume } = spineLabel(book.title);
+// The spine's own size, so the browser reserves the right space before it loads.
+const photoHeight = 1000;
+const photoWidth = Math.round(photoHeight * (book.spineRatio ?? 0.2));
 ---
 
-<span class="spine__body">
-  {volume !== null && <span class="spine__vol">{volume}</span>}
-  <span class="spine__title">{label}</span>
-  <span class="spine__foot">{publisherMark(book.publisher)}</span>
-</span>
+{
+  book.spineImage ? (
+    <span class="spine__body spine__body--photo">
+      <img class="spine__photo" src={book.spineImage} alt="" width={photoWidth} height={photoHeight} loading="lazy" decoding="async" draggable="false" />
+    </span>
+  ) : (
+    <span class="spine__body">
+      {volume !== null && <span class="spine__vol">{volume}</span>}
+      <span class="spine__title">{label}</span>
+      <span class="spine__foot">{publisherMark(book.publisher)}</span>
+    </span>
+  )
+}

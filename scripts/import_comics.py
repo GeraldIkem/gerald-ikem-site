@@ -69,8 +69,8 @@ def size_of(title: str, fmt: str) -> str:
     return SIZE.get(fmt, "trade")
 
 
-def cover_url(comic: ET.Element) -> str | None:
-    for path in ("coverfrontdefault", "coverfrontlarge", "coverfront"):
+def cover_url(comic: ET.Element, side: str = "front") -> str | None:
+    for path in (f"cover{side}default", f"cover{side}large", f"cover{side}"):
         url = text(comic, path)
         if url.startswith("https://"):
             return url
@@ -113,6 +113,10 @@ def convert(xml_path: Path) -> list[dict]:
                 "coverUrl": cover_url(comic),
             }
         )
+        # Only in the export after "Update from Core" in CLZ with back covers switched on.
+        back = cover_url(comic, "back")
+        if back:
+            books[-1]["backUrl"] = back
     order = {"shelf": 0, "ordered": 1, "read": 2, "wishlist": 3}
     books.sort(key=lambda b: (order[b["status"]], b["publisher"], b["title"].lower()))
     return books
@@ -124,11 +128,12 @@ def main() -> None:
     xml_path = Path(sys.argv[1])
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_OUT
     books = convert(xml_path)
-    # Cover files and colours come from scripts/covers.mjs; keep them across re-imports.
+    # Cover files and colours come from scripts/covers.mjs, spines and backs from
+    # scripts/spines.mjs; keep them across re-imports.
     if out.exists():
         previous = {book["id"]: book for book in json.loads(out.read_text(encoding="utf-8"))}
         for book in books:
-            for key in ("cover", "coverColor", "coverRatio"):
+            for key in ("cover", "coverColor", "coverRatio", "spineImage", "spineRatio", "backImage"):
                 if key in previous.get(book["id"], {}):
                     book[key] = previous[book["id"]][key]
     out.parent.mkdir(parents=True, exist_ok=True)
