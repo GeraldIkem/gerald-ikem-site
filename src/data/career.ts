@@ -79,11 +79,11 @@ export const stints: Stint[] = [
   },
 ];
 
-export const toolbox: Array<{ area: string; items: string }> = [
-  { area: 'Languages', items: 'Java 17 and 21, Kotlin, Python, TypeScript, SQL, C and C++' },
-  { area: 'Backend', items: 'Spring Boot, Spring Security, Spring Data JPA and Hibernate, JDBC, REST, JWT, Flyway, Node.js' },
-  { area: 'Data', items: 'PostgreSQL, Redis, SQLite, HikariCP' },
-  { area: 'Cloud and delivery', items: 'AWS (EC2, VPC, Lambda, API Gateway, S3, IAM, EKS), Docker, Kubernetes, GitHub Actions, Cloudflare Workers' },
-  { area: 'Testing', items: 'JUnit 5, Testcontainers, integration tests against real databases' },
-  { area: 'Machine learning', items: 'PyTorch, scikit-learn, pandas, Hugging Face, Whisper, ranking and calibration metrics' },
+export const toolbox: Array<{ label: string; items: string[] }> = [
+  { label: 'Languages', items: ['Java', 'Kotlin', 'Python', 'TypeScript', 'SQL', 'C++'] },
+  { label: 'Backend', items: ['Spring Boot', 'Spring Security', 'Hibernate (JPA)', 'JDBC', 'Flyway', 'Node.js'] },
+  { label: 'Data', items: ['PostgreSQL', 'Redis', 'SQLite'] },
+  { label: 'Cloud and delivery', items: ['AWS', 'Docker', 'Kubernetes', 'GitHub Actions', 'Cloudflare Workers'] },
+  { label: 'Testing', items: ['JUnit 5', 'Testcontainers'] },
+  { label: 'Machine learning', items: ['PyTorch', 'scikit-learn', 'pandas', 'Hugging Face', 'Whisper'] },
 ];

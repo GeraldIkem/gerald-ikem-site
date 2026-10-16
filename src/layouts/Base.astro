@@ -72,6 +72,7 @@ const person = {
         if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
       } catch {}
     </script>
+    <slot name="head" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
