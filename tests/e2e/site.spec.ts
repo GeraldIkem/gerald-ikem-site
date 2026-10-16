@@ -83,7 +83,10 @@ test.describe('off the clock', () => {
     await spine.click();
     await expect(spine).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('[data-text] h3')).toHaveText(title ?? '');
-    await expect(page.locator('.book3d .cover__title')).toHaveText((await spine.getAttribute('data-label')) ?? '');
+    // The book comes off the shelf wearing its real cover.
+    const cover = page.locator('.book3d .cover--real img');
+    await expect(cover).toHaveAttribute('src', (await spine.getAttribute('data-cover')) ?? '');
+    await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
     expect(errors).toEqual([]);
   });
 
