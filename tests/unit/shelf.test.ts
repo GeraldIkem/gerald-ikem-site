@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import comics from '../../src/data/comics.json';
-import { countBy, describe as describeBook, hash, shelfOrder, spineStyle, type Book } from '~/lib/shelf';
+import { countBy, describe as describeBook, hash, publisherMark, shelfOrder, spineLabel, spineStyle, type Book } from '~/lib/shelf';
 
 const book = (overrides: Partial<Book>): Book => ({
   id: '1',
@@ -67,5 +67,31 @@ describe('the exported collection', () => {
   it('counts every status', () => {
     const counts = countBy(books);
     expect(counts.shelf + counts.ordered + counts.wishlist + counts.read).toBe(books.length);
+  });
+});
+
+describe('spineLabel', () => {
+  it('moves the volume number off the title', () => {
+    expect(spineLabel('Green Lantern by Geoff Johns Omnibus Vol. 2')).toEqual({ label: 'Green Lantern by Geoff Johns', volume: 2 });
+    expect(spineLabel('Batman by Darwyn Cooke: The Absolute Edition Vol. 1')).toEqual({ label: 'Batman by Darwyn Cooke', volume: 1 });
+  });
+
+  it('drops edition words and reads worded book numbers', () => {
+    expect(spineLabel('Batman: Under the Red Hood — The Deluxe Edition')).toEqual({ label: 'Batman: Under the Red Hood', volume: null });
+    expect(spineLabel('Black Panther: A Nation Under Our Feet — Book One')).toEqual({ label: 'Black Panther: A Nation Under Our Feet', volume: 1 });
+    expect(spineLabel('Wolverine: Weapon X - Deluxe Edition').label).toBe('Wolverine: Weapon X');
+  });
+
+  it('keeps titles that have nothing to strip', () => {
+    expect(spineLabel('Spider-Man: Blue')).toEqual({ label: 'Spider-Man: Blue', volume: null });
+  });
+});
+
+describe('publisherMark', () => {
+  it('shortens publisher names for the spine foot', () => {
+    expect(publisherMark('DC Comics')).toBe('DC');
+    expect(publisherMark('Marvel Comics')).toBe('Marvel');
+    expect(publisherMark('Image Comics')).toBe('Image');
+    expect(publisherMark('Abrams')).toBe('Abrams');
   });
 });

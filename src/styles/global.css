@@ -26,6 +26,13 @@
   --span-render: #8a8f96;
   --selection: #ffe666;
 
+  /* Process inks at full strength, for print plates, bands and dots. */
+  --process-cyan: #00a8e8;
+  --process-magenta: #e6007e;
+  --process-yellow: #ffd60a;
+  --plate-blend: multiply;
+  --on-magenta: #ffffff;
+
   --font-display: 'Familjen Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: var(--font-display);
   --font-mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
@@ -64,6 +71,8 @@
   --span-asset: #5e9bb6;
   --span-render: #7d848c;
   --selection: #6b5a00;
+  --plate-blend: screen;
+  --on-magenta: #15181c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -84,6 +93,8 @@
     --span-asset: #5e9bb6;
     --span-render: #7d848c;
     --selection: #6b5a00;
+    --plate-blend: screen;
+    --on-magenta: #15181c;
   }
 }
 
@@ -115,6 +126,7 @@ html {
 
 body {
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
@@ -326,6 +338,83 @@ code,
   width: 1rem;
   height: 1rem;
   flex: none;
+}
+
+/* The loud button: magenta ink, used once per page. */
+.button--accent {
+  border-color: var(--magenta);
+  background: var(--magenta);
+  color: var(--on-magenta);
+}
+
+.button--accent:hover {
+  background: transparent;
+  color: var(--magenta);
+}
+
+/*
+ * Full-width colour bands. Each one resets the text tokens so everything
+ * inside stays readable whatever the page theme is.
+ */
+.band {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.band > .section {
+  border-top: 0;
+}
+
+.band + .section,
+.band + .band > .section {
+  border-top: 0;
+}
+
+.band--yellow {
+  --ink: #1d2024;
+  --ink-2: #3a3f46;
+  --ink-3: #4b5058;
+  --link: #1d2024;
+  --rule: rgb(29 32 36 / 0.18);
+  --section-ink: #1d2024;
+  background: var(--process-yellow);
+  color: var(--ink);
+}
+
+.band--magenta {
+  --ink: #ffffff;
+  --ink-2: rgb(255 255 255 / 0.86);
+  --ink-3: rgb(255 255 255 / 0.75);
+  --link: #ffffff;
+  --rule: rgb(255 255 255 / 0.3);
+  --paper: #b8005f;
+  --magenta: #ffffff;
+  --cyan: var(--process-yellow);
+  --section-ink: var(--process-yellow);
+  background: #b8005f;
+  color: var(--ink);
+}
+
+/* Ben-Day dots, the texture of a printed comic. */
+.dots {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle, var(--dot, var(--process-magenta)) 0 34%, transparent 36%);
+  background-size: var(--dot-size, 14px) var(--dot-size, 14px);
+  mask-image: radial-gradient(closest-side, #000 15%, transparent);
+}
+
+/* Each section heading carries a short bar of its own ink. */
+.section__head h2::before {
+  content: '';
+  display: block;
+  width: 2.75rem;
+  height: 0.45rem;
+  margin-bottom: 1.125rem;
+  border-radius: 1px;
+  background: var(--section-ink, var(--cyan));
 }
 
 /* The bordered panel every trace sits in. */

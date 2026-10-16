@@ -1,0 +1,84 @@
+---
+/**
+ * A heading printed the way comics are: cyan and magenta plates under the
+ * black, each slightly out of register. The plates drift with the pointer.
+ */
+interface Props {
+  text: string;
+  id?: string;
+  class?: string;
+}
+
+const { text, id, class: className } = Astro.props;
+---
+
+<h1 class:list={['misregister', className]} id={id}>
+  <span class="misregister__plate misregister__plate--c" aria-hidden="true">{text}</span>
+  <span class="misregister__plate misregister__plate--m" aria-hidden="true">{text}</span>
+  <span class="misregister__ink">{text}</span>
+</h1>
+
+<script>
+  const motionOk = matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  const finePointer = matchMedia('(pointer: fine)').matches;
+
+  for (const heading of document.querySelectorAll<HTMLElement>('.misregister')) {
+    if (!motionOk || !finePointer) continue;
+    let frame = 0;
+    const area = heading.closest('section') ?? heading;
+    area.addEventListener('pointermove', (event) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const box = heading.getBoundingClientRect();
+        const x = ((event.clientX - (box.left + box.width / 2)) / (box.width / 2)) || 0;
+        const y = ((event.clientY - (box.top + box.height / 2)) / innerHeight) * 2 || 0;
+        heading.style.setProperty('--mx', Math.max(-1, Math.min(1, x)).toFixed(3));
+        heading.style.setProperty('--my', Math.max(-1, Math.min(1, y)).toFixed(3));
+      });
+    });
+    area.addEventListener('pointerleave', () => {
+      cancelAnimationFrame(frame);
+      heading.style.setProperty('--mx', '0');
+      heading.style.setProperty('--my', '0');
+    });
+  }
+</script>
+
+<style>
+  .misregister {
+    --mx: 0;
+    --my: 0;
+    position: relative;
+    isolation: isolate;
+    width: fit-content;
+  }
+
+  .misregister__plate {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: var(--plate-blend);
+    pointer-events: none;
+    user-select: none;
+    transition: transform 450ms var(--ease-out);
+  }
+
+  .misregister__plate--c {
+    color: var(--process-cyan);
+    transform: translate(calc(-0.02em - var(--mx) * 0.025em), calc(0.016em - var(--my) * 0.025em));
+  }
+
+  .misregister__plate--m {
+    color: var(--process-magenta);
+    transform: translate(calc(0.022em + var(--mx) * 0.025em), calc(-0.013em + var(--my) * 0.025em));
+  }
+
+  .misregister__ink {
+    position: relative;
+  }
+
+  @media print {
+    .misregister__plate {
+      display: none;
+    }
+  }
+</style>

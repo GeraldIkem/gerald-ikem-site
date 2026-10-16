@@ -6,9 +6,16 @@ import threadfern from '~/assets/projects/threadfern-preview.jpg';
 import reelrank from '~/assets/projects/reelrank.jpg';
 import skyloom from '~/assets/projects/skyloom-preview.jpg';
 
+/** A project's own colours, taken from its live site. */
+export interface Brand {
+  bg: string;
+  accent: string;
+}
+
 export interface Feature {
   id: string;
   name: string;
+  brand: Brand;
   url: string;
   linkText: string;
   status?: string;
@@ -24,6 +31,7 @@ export const features: Feature[] = [
   {
     id: 'hummle',
     name: 'Hummle',
+    brand: { bg: '#1b1f2a', accent: '#f4d35e' },
     url: 'https://hummle.app',
     linkText: 'hummle.app',
     status: 'In progress',
@@ -42,6 +50,7 @@ export const features: Feature[] = [
   {
     id: 'linkify',
     name: 'Linkify',
+    brand: { bg: '#4b2fe6', accent: '#f2684b' },
     url: 'https://uselinkify.com',
     linkText: 'uselinkify.com',
     summary:
@@ -58,6 +67,7 @@ export const features: Feature[] = [
   {
     id: 'quickread',
     name: 'QuickRead',
+    brand: { bg: '#173d2e', accent: '#d6f36b' },
     url: 'https://usequickread.com',
     linkText: 'usequickread.com',
     summary:
@@ -75,6 +85,7 @@ export const features: Feature[] = [
 
 export interface Smaller {
   name: string;
+  brand: Brand;
   url: string;
   linkText: string;
   what: string;
@@ -86,6 +97,7 @@ export interface Smaller {
 export const smaller: Smaller[] = [
   {
     name: 'Threadfern',
+    brand: { bg: '#251a33', accent: '#d9f27a' },
     url: 'https://threadfern.dev/demo',
     linkText: 'threadfern.dev',
     what: 'A concurrent web crawler with a searchable index of what it finds.',
@@ -95,6 +107,7 @@ export const smaller: Smaller[] = [
   },
   {
     name: 'Matchday ML',
+    brand: { bg: '#16243c', accent: '#e8cc5a' },
     url: 'https://matchdayml.com',
     linkText: 'matchdayml.com',
     what: 'Pregame win, draw and loss forecasts for the Premier League, La Liga, the Champions League, the NBA and the WNBA.',
@@ -103,6 +116,7 @@ export const smaller: Smaller[] = [
   },
   {
     name: 'ReelRank',
+    brand: { bg: '#15131f', accent: '#d4f05a' },
     url: 'https://www.reelrank.dev',
     linkText: 'reelrank.dev',
     what: 'Film recommendations from the films you already love.',
@@ -112,6 +126,7 @@ export const smaller: Smaller[] = [
   },
   {
     name: 'Skyloom',
+    brand: { bg: '#2f4257', accent: '#f59e42' },
     url: 'https://skyloom.app',
     linkText: 'skyloom.app',
     what: 'A weather app whose sky changes with the hourly forecast.',
@@ -121,6 +136,7 @@ export const smaller: Smaller[] = [
   },
   {
     name: 'This Is It 2.0 avatars',
+    brand: { bg: '#7c2bbd', accent: '#ffd23f' },
     url: 'https://thisisitavatar.com',
     linkText: 'thisisitavatar.com',
     what: 'An avatar maker for This Is It 2.0, an event in Winnipeg in August 2026.',
