@@ -21,7 +21,7 @@ const comics = defineCollection({
     // Real spine and back images from scripts/spines.mjs (or CLZ Core backs via scripts/covers.mjs).
     backUrl: z.url().nullable().optional(),
     spineImage: z.string().startsWith('/spines/').optional(),
-    spineRatio: z.number().min(0.03).max(0.6).optional(),
+    spineRatio: z.number().min(0.01).max(0.6).optional(),
     backImage: z.string().startsWith('/backs/').optional(),
   }),
 });
