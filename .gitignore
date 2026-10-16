@@ -11,3 +11,7 @@ __pycache__/
 
 # Phone photos for scripts/spines.mjs; only the processed WebPs are committed.
 /photos/
+
+# Working notes that stay on this PC: the photo guide and where each spine and back image came from.
+/docs/
+/src/data/comic-image-sources.json
