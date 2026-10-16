@@ -171,6 +171,8 @@ test.describe('off the clock', () => {
 });
 
 test('the off-the-clock tally jumps to each part of the page', async ({ page }) => {
+  // The jump lands on the LEGO viewer; with less motion its model appears at once instead of building.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/off-the-clock/');
   const tally = page.getByRole('navigation', { name: 'On this page' });
   await expect(tally.getByRole('link')).toHaveCount(3);
