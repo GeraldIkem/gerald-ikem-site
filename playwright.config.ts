@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const port = 4322;
+// Parallel checkouts can each preview on their own port: PREVIEW_PORT=4331 npx playwright test
+const port = Number(process.env['PREVIEW_PORT'] ?? 4322);
 
 export default defineConfig({
   testDir: 'tests/e2e',
