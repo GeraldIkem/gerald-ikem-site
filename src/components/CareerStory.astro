@@ -39,7 +39,7 @@ const finalCounts = new Map(skills.map((skill) => [skill.key, stepKeys.filter((k
 // Dots in the same month sit side by side instead of on top of each other.
 const projectDots = milestones
   .filter((m) => m.kind)
-  .map((m, index, all) => {
+  .map((m, _index, all) => {
     const same = all.filter((other) => other.date === m.date);
     const nudge = same.indexOf(m) - (same.length - 1) / 2;
     return { date: m.date, left: cursorAt(m.date), kind: m.kind, nudge };
