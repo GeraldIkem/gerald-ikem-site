@@ -28,7 +28,7 @@ const groups = [
 <div class="roles">
   {
     groups.map((group) => (
-      <>
+      <div class="roles__col">
         <h3 class="roles__group">{group.title}</h3>
         <div class="roles__grid">
           {group.items.map((stint) => (
@@ -78,7 +78,7 @@ const groups = [
             </article>
           ))}
         </div>
-      </>
+      </div>
     ))
   }
 </div>
@@ -86,16 +86,30 @@ const groups = [
 <style>
   .roles {
     display: grid;
+    gap: 2.5rem 1.5rem;
+    margin-top: 3.5rem;
+  }
+
+  .roles__col {
+    display: grid;
+    align-content: start;
     gap: 1rem;
-    margin-top: 4rem;
+    min-width: 0;
   }
 
   .roles__group {
     font-size: var(--text-md);
   }
 
-  .roles__group:not(:first-child) {
-    margin-top: 1.5rem;
+  /* Wide screens: jobs and education side by side. */
+  @media (min-width: 72rem) {
+    .roles {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+
+    .roles__col:last-child .roles__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .roles__grid {

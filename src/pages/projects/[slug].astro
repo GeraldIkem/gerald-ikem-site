@@ -55,7 +55,7 @@ const nextUrl = `/projects/${next.slug}/`;
 const speculation = JSON.stringify({ prerender: [{ source: 'list', urls: [prevUrl, nextUrl] }] });
 ---
 
-<Base title={project.name} description={`${project.name}: ${project.oneLine}`}>
+<Base title={project.name} description={`${project.name}: ${project.oneLine}`} narrow>
   <script is:inline slot="head">
     // Tell the incoming page which way to slide, before it first paints.
     addEventListener('pagereveal', (event) => {

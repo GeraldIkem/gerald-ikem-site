@@ -125,8 +125,13 @@ export class LegoBuild {
     this.#controls.enableZoom = false;
     this.#controls.enabled = options.interactive;
     this.#controls.autoRotateSpeed = 1.1;
+    // Drawing stops once nothing moves; a drag starts it again.
+    this.#controls.addEventListener('start', () => this.#loop());
 
-    this.#resize = new ResizeObserver(() => this.#fit());
+    this.#resize = new ResizeObserver(() => {
+      this.#fit();
+      this.#loop();
+    });
     this.#resize.observe(container);
     this.#fit();
     this.#loop();
@@ -184,6 +189,7 @@ export class LegoBuild {
       }
       this.#callbacks.onProgress?.(this.#totalSteps, this.#totalSteps);
       this.#finish();
+      this.#loop();
       return;
     }
     for (const unit of this.#units) unit.object.visible = false;
@@ -203,7 +209,8 @@ export class LegoBuild {
 
   #finish() {
     this.#building = false;
-    this.#controls.autoRotate = true;
+    // A slow turn shows the finished model off, unless the visitor asked for less motion.
+    this.#controls.autoRotate = !this.#reducedMotion;
     this.#callbacks.onDone?.();
   }
 
@@ -236,9 +243,10 @@ export class LegoBuild {
     cancelAnimationFrame(this.#frame);
     if (!this.#visible || document.hidden) return;
     if (this.#building) this.#tick(performance.now() - this.#start);
-    this.#controls.update();
+    const moved = this.#controls.update();
     this.#renderer.render(this.#scene, this.#camera);
-    this.#frame = requestAnimationFrame(this.#loop);
+    // Keep drawing only while something is moving: the build, the turn, or a drag settling.
+    if (this.#building || this.#controls.autoRotate || moved) this.#frame = requestAnimationFrame(this.#loop);
   };
 
   #tick(elapsed: number) {
