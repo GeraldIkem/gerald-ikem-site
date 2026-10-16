@@ -329,8 +329,8 @@ test.describe('sports you can play', () => {
     const start = await swimmer.getAttribute('transform');
     await pool.getByRole('button', { name: 'Left arm' }).click();
     await pool.getByRole('button', { name: 'Right arm' }).click();
-    await expect(swimmer).not.toHaveAttribute('transform', start ?? '');
-    await expect(pool.locator('[data-time]')).not.toHaveText('0.00');
+    await expect(swimmer).not.toHaveAttribute('transform', start ?? '', inPlay);
+    await expect(pool.locator('[data-time]')).not.toHaveText('0.00', inPlay);
   });
 
   test('pulls a book off the shelf by pointer and by keyboard', async ({ page }) => {
