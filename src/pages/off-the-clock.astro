@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import Base from '~/layouts/Base.astro';
 import Shelf from '~/components/Shelf.astro';
 import Misregister from '~/components/Misregister.astro';
+import LegoBricks from '~/components/LegoBricks.astro';
+import { legoSets } from '~/data/lego';
 import { countBy, type Book } from '~/lib/shelf';
 
 const comics: Book[] = (await getCollection('comics')).map((entry) => ({ ...entry.data, id: entry.id }));
@@ -62,6 +64,19 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
     </div>
   </section>
 
+  <section class="section wrap" id="lego" aria-labelledby="lego-title" style="--section-ink: var(--process-yellow)">
+    <div class="section__head">
+      <h2 id="lego-title">LEGO</h2>
+      <p>
+        {legoSets.filter((set) => set.built).length} sets built and {legoSets.filter((set) => !set.built).length} still
+        waiting. Cars, Batmobiles, ships, and a detective in a bookcase.
+      </p>
+    </div>
+    <div class="section__body">
+      <LegoBricks />
+    </div>
+  </section>
+
   <section class="section wrap" aria-labelledby="else-title" style="--section-ink: var(--cyan)">
     <div class="section__head">
       <h2 id="else-title">Everything else</h2>
@@ -79,10 +94,6 @@ const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
         <li>
           <h3>Swimming</h3>
           <p>The one sport here with no screen anywhere nearby.</p>
-        </li>
-        <li>
-          <h3>LEGO</h3>
-          <p>I build sets, and I’ve played through LEGO Batman, LEGO Marvel and LEGO Pirates of the Caribbean.</p>
         </li>
         <li>
           <h3>Books</h3>
