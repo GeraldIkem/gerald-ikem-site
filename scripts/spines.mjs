@@ -138,7 +138,7 @@ async function processPhoto(file, kind, fix, key, ratio) {
   if (!fix.scan && !flags.has('--scan')) {
     let corners = fix.corners ?? (await findCorners(input, notes, key));
     // Corners typed in by hand only need to be close: each side snaps to the edge beside it.
-    if (fix.corners && fix.snap !== false) corners = await snapCorners(input, corners, notes);
+    if (fix.corners && fix.snap !== false) corners = await snapCorners(input, corners, notes, fix.reach);
     if (fix.trim) corners = trim(corners, fix.trim);
     if (flags.has('--debug') && fix.corners) await drawDebug(input, corners, key);
     flat = await warp(input, corners, ratio);
@@ -330,7 +330,7 @@ function plausible(corners, patchArea) {
  * sample points along the side, look across it for the sharpest change in
  * brightness, fit a line through those points and intersect neighbouring sides.
  */
-async function snapCorners(input, rough, notes) {
+async function snapCorners(input, rough, notes, within = 0.025) {
   const { data, info } = await sharp(input)
     .resize({ width: 1400, height: 1400, fit: 'inside' })
     .greyscale()
@@ -348,7 +348,7 @@ async function snapCorners(input, rough, notes) {
     return (data[i] * (1 - fx) + data[i + 1] * fx) * (1 - fy) + (data[i + w] * (1 - fx) + data[i + w + 1] * fx) * fy;
   };
   const corners = rough.map(([x, y]) => [x * scale, y * scale]);
-  const reach = Math.max(6, Math.max(w, h) * 0.025);
+  const reach = Math.max(6, Math.max(w, h) * within);
   const lines = corners.map((a, i) => {
     const b = corners[(i + 1) % 4];
     const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
