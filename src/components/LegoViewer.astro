@@ -48,6 +48,7 @@ const first = modelled[0];
     #build: LegoBuild | null = null;
     #loading: Promise<LegoBuild | null> | null = null;
     #current: HTMLButtonElement | null = null;
+    #onScreen = false;
 
     connectedCallback() {
       const picks = [...this.querySelectorAll<HTMLButtonElement>('[data-url]')];
@@ -55,15 +56,26 @@ const first = modelled[0];
       this.querySelector('[data-replay]')?.addEventListener('click', () => this.#build?.build());
 
       // Load three.js and the first model only when the viewer comes near the screen.
-      const observer = new IntersectionObserver(
+      const near = new IntersectionObserver(
         (entries) => {
-          const visible = entries.some((entry) => entry.isIntersecting);
-          this.#build?.setVisible(visible);
-          if (visible && !this.#current && picks[0]) this.#show(picks[0]);
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          near.disconnect();
+          if (!this.#current && picks[0]) this.#show(picks[0]);
         },
         { rootMargin: '200px 0px' },
       );
-      observer.observe(this);
+      near.observe(this);
+
+      // Draw only while a real part of the viewer is on screen, not a sliver at the edge.
+      const seen = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[entries.length - 1];
+          this.#onScreen = !!entry && entry.intersectionRatio >= 0.2;
+          this.#build?.setVisible(this.#onScreen);
+        },
+        { threshold: [0, 0.2] },
+      );
+      seen.observe(this);
     }
 
     async #engine(): Promise<LegoBuild | null> {
@@ -77,6 +89,7 @@ const first = modelled[0];
             reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
             interactive: matchMedia('(pointer: fine)').matches,
           });
+          this.#build.setVisible(this.#onScreen);
           return this.#build;
         } catch {
           this.#status('This browser could not start 3D graphics, so the model can’t be shown here.');
