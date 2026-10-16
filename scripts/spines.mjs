@@ -28,11 +28,18 @@
 // (width over height) sets a spine's when the photo was taken at an angle.
 // "crop": [left, top, width, height] cuts a region out first, and "from": "file.jpg"
 // reads another file, so one photo of a full jacket can give both the spine and
-// the back. "scan": true skips detection for that image. "glare": false leaves
-// bright patches alone and a number (default 0.15) sets how much haze can come off, "correct": false skips the colour and lighting correction,
-// and "drop": true removes that book's spine or back so it falls back to the
-// printed one. "source" and "url" record where an image came from in
-// src/data/comic-image-sources.json.
+// the back. "scan": true skips detection for that image.
+//
+// Glare: "also": [{ "from": "other.jpg", "corners": [...] }, ...] names other
+// photos of the same face. They are lined up with this one and, where this one
+// is brighter than the other in every way a reflection would make it, the
+// other's real pixels are used, so a streak in one photo is filled from another
+// ("match" sets how well they must line up, default 0.45). "glare": false leaves
+// bright patches alone and a number (default 0.15) sets how much haze can come
+// off; "streaks": false skips the soft-shine pass. "correct": false skips all
+// colour and lighting correction, and "drop": true removes that book's spine or
+// back so it falls back to the printed one. "source" and "url" record where an
+// image came from in src/data/comic-image-sources.json.
 
 import { mkdir, readFile, readdir, rm, writeFile, access } from 'node:fs/promises';
 import path from 'node:path';
@@ -154,6 +161,63 @@ if (problems.length) console.log(`Check these:\n  ${problems.join('\n  ')}`);
 /** Straighten and crop one photo; returns a sharp pipeline sized for the site. */
 async function processPhoto(file, kind, fix, key, ratio, book) {
   const notes = [];
+  const scan = fix.scan || flags.has('--scan');
+  let flat = await flatten(file, fix, ratio, key, notes);
+  let { width, height } = await sharp(flat).metadata();
+  if (width > height && !fix.rotate) {
+    // Spines and backs both stand taller than wide. Turn a sideways photo so the
+    // book's head, assumed to be on the left, ends up at the top.
+    flat = await sharp(flat).rotate(90).png({ compressionLevel: 1 }).toBuffer();
+    [width, height] = [height, width];
+    notes.push('the photo was sideways, so it was turned a quarter clockwise. If it is upside down, add "rotate": 270 in fixes.json.');
+  }
+
+  const size = kind === 'spine' ? { height: Math.min(SPINE_HEIGHT, height) } : { width: Math.min(BACK_WIDTH, width) };
+  const scale = size.height ? size.height / height : size.width / width;
+  const out = { width: Math.round(width * scale), height: Math.round(height * scale) };
+  let data = await rawAt(flat, out);
+
+  // Other photos of the same face fill in glare: shrink-wrap streaks fall in
+  // different places in each photo, so where this one is brighter than all of
+  // another's pixels nearby, that photo's real pixels are used instead.
+  for (const [index, alt] of (fix.also ?? []).entries()) {
+    try {
+      let altFlat = await flatten(path.join(folder, alt.from), alt, ratio, `${key}-also${index + 1}`, notes);
+      const meta = await sharp(altFlat).metadata();
+      if (meta.width > meta.height && !alt.rotate) altFlat = await sharp(altFlat).rotate(90).png({ compressionLevel: 1 }).toBuffer();
+      let filled = fillGlare(data, await rawAt(altFlat, out), out.width, out.height, alt.match);
+      if (filled.score < (alt.match ?? 0.45)) {
+        const turned = await sharp(altFlat).rotate(180).png({ compressionLevel: 1 }).toBuffer();
+        const second = fillGlare(data, await rawAt(turned, out), out.width, out.height, alt.match);
+        if (second.score > filled.score) filled = second;
+      }
+      data = filled.data;
+      if (flags.has('--debug')) notes.push(`${key} also ${alt.from}: ${filled.shift}, filled ${(filled.share * 100).toFixed(1)}% of the face`);
+    } catch (error) {
+      notes.push(`also ${alt.from}: ${error.message}`);
+    }
+  }
+
+  const corrected =
+    fix.correct === false
+      ? data
+      : await correct(data, out.width, out.height, {
+          cover: book.cover,
+          scan,
+          glare: fix.glare === false ? 0 : typeof fix.glare === 'number' ? fix.glare : 0.15,
+          streaks: fix.streaks === false ? 0 : typeof fix.streaks === 'number' ? fix.streaks : 1,
+          shineMap: flags.has('--debug') ? path.join(folder, 'debug', `${key}-shine.png`) : null,
+        });
+  return {
+    image: sharp(corrected, { raw: { width: out.width, height: out.height, channels: 3 } }),
+    width: out.width,
+    height: out.height,
+    notes,
+  };
+}
+
+/** Read, crop, straighten and turn one photo; returns a PNG buffer of the book's face. */
+async function flatten(file, fix, ratio, key, notes) {
   let input = await sharp(await readFile(file))
     .rotate()
     .png({ compressionLevel: 1 })
@@ -162,10 +226,8 @@ async function processPhoto(file, kind, fix, key, ratio, book) {
     const [left, top, width, height] = fix.crop.map(Math.round);
     input = await sharp(input).extract({ left, top, width, height }).png({ compressionLevel: 1 }).toBuffer();
   }
-
-  const scan = fix.scan || flags.has('--scan');
   let flat = input;
-  if (!scan) {
+  if (!(fix.scan || flags.has('--scan'))) {
     let corners = fix.corners ?? (await findCorners(input, notes, key));
     // Corners typed in by hand only need to be close: each side snaps to the edge beside it.
     if (fix.corners && fix.snap !== false) corners = await snapCorners(input, corners, notes, fix.reach);
@@ -180,34 +242,349 @@ async function processPhoto(file, kind, fix, key, ratio, book) {
     if (flags.has('--debug')) await drawDebug(input, corners, key);
   }
   if (fix.rotate) flat = await sharp(flat).rotate(fix.rotate).png({ compressionLevel: 1 }).toBuffer();
+  return flat;
+}
 
-  let { width, height } = await sharp(flat).metadata();
-  if (width > height && !fix.rotate) {
-    // Spines and backs both stand taller than wide. Turn a sideways photo so the
-    // book's head, assumed to be on the left, ends up at the top.
-    flat = await sharp(flat).rotate(90).png({ compressionLevel: 1 }).toBuffer();
-    [width, height] = [height, width];
-    notes.push('the photo was sideways, so it was turned a quarter clockwise. If it is upside down, add "rotate": 270 in fixes.json.');
-  }
-
-  const size = kind === 'spine' ? { height: Math.min(SPINE_HEIGHT, height) } : { width: Math.min(BACK_WIDTH, width) };
-  const scale = size.height ? size.height / height : size.width / width;
-  const out = { width: Math.round(width * scale), height: Math.round(height * scale) };
-  const { data } = await sharp(flat)
-    .resize({ ...out, fit: 'fill', kernel: 'lanczos3' })
+async function rawAt(image, { width, height }) {
+  const { data } = await sharp(image)
+    .resize({ width, height, fit: 'fill', kernel: 'lanczos3' })
     .removeAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
-  const corrected =
-    fix.correct === false
-      ? data
-      : await correct(data, out.width, out.height, { cover: book.cover, scan, glare: fix.glare === false ? 0 : typeof fix.glare === 'number' ? fix.glare : 0.15 });
-  return {
-    image: sharp(corrected, { raw: { width: out.width, height: out.height, channels: 3 } }),
-    width: out.width,
-    height: out.height,
-    notes,
+  return data;
+}
+
+/**
+ * Fill glare in `base` from `other`, a second photo of the same face at the same
+ * size. `other` is first lined up (a small shift and stretch found by matching
+ * edges) and its tones fitted to `base`'s; then wherever `base` is brighter than
+ * every `other` pixel within a few pixels' reach, by more than a print could
+ * differ, that area is taken from `other`. Lettering is in both photos, so it
+ * stays; a streak is only in one.
+ */
+function fillGlare(base, other, w, h, minMatch = 0.45) {
+  const n = w * h;
+  const lum = (img) => {
+    const y = new Float32Array(n);
+    for (let p = 0; p < n; p++) y[p] = 0.299 * img[p * 3] + 0.587 * img[p * 3 + 1] + 0.114 * img[p * 3 + 2];
+    return y;
   };
+  const yb = lum(base);
+  const yo = lum(other);
+
+  // 1. Alignment: a shift and stretch about the centre, found on edge maps at low resolution.
+  const f = Math.min(1, 260 / Math.max(w, h));
+  const sw = Math.max(8, Math.round(w * f));
+  const sh = Math.max(8, Math.round(h * f));
+  const shrink = (y) => {
+    const small = new Float32Array(sw * sh);
+    for (let j = 0; j < sh; j++) {
+      for (let i = 0; i < sw; i++) {
+        let sum = 0;
+        let count = 0;
+        for (let y0 = Math.floor(j / f); y0 < Math.min(h, Math.floor((j + 1) / f)); y0++) {
+          for (let x0 = Math.floor(i / f); x0 < Math.min(w, Math.floor((i + 1) / f)); x0++) {
+            sum += y[y0 * w + x0];
+            count += 1;
+          }
+        }
+        small[j * sw + i] = count ? sum / count : 0;
+      }
+    }
+    // High-pass: edges and lettering, not overall tone, decide the match.
+    const low = blur(small, sw, sh, 3);
+    for (let k = 0; k < small.length; k++) small[k] -= low[k];
+    return small;
+  };
+  const a = shrink(yb);
+  const b = shrink(yo);
+  const sample = (img, W, H, x, y) => {
+    if (x < 0 || y < 0 || x > W - 1.001 || y > H - 1.001) return NaN;
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const fx = x - x0;
+    const fy = y - y0;
+    const k = y0 * W + x0;
+    return (img[k] * (1 - fx) + img[k + 1] * fx) * (1 - fy) + (img[k + W] * (1 - fx) + img[k + W + 1] * fx) * fy;
+  };
+  const score = ([dx, dy, sx, sy], stride = 1) => {
+    const cx = sw / 2;
+    const cy = sh / 2;
+    let sab = 0;
+    let saa = 0;
+    let sbb = 0;
+    for (let j = Math.round(sh * 0.04); j < sh * 0.96; j += stride) {
+      for (let i = Math.round(sw * 0.06); i < sw * 0.94; i += stride) {
+        const v = sample(b, sw, sh, (i - cx) / sx + cx - dx, (j - cy) / sy + cy - dy);
+        if (Number.isNaN(v)) continue;
+        const u = a[j * sw + i];
+        sab += u * v;
+        saa += u * u;
+        sbb += v * v;
+      }
+    }
+    return sab / Math.sqrt(saa * sbb + 1e-9);
+  };
+  // Coarse first: every shift and stretch on a grid, scored on every other pixel.
+  let best = [0, 0, 1, 1];
+  let bestScore = -1;
+  for (let sy = 0.9; sy <= 1.101; sy += 0.025) {
+    for (let sx = 0.85; sx <= 1.151; sx += 0.05) {
+      for (let dy = -Math.round(sh * 0.08); dy <= sh * 0.08; dy += 1) {
+        for (let dx = -Math.round(sw * 0.12); dx <= sw * 0.12; dx += 1) {
+          const value = score([dx, dy, sx, sy], 2);
+          if (value > bestScore) {
+            best = [dx, dy, sx, sy];
+            bestScore = value;
+          }
+        }
+      }
+    }
+  }
+  bestScore = score(best);
+  let steps = [1, 1, 0.0125, 0.025];
+  for (let round = 0; round < 7; round++) {
+    let improved = true;
+    while (improved) {
+      improved = false;
+      for (let k = 0; k < 4; k++) {
+        for (const sign of [-1, 1]) {
+          const trial = [...best];
+          trial[k] += sign * steps[k];
+          const value = score(trial);
+          if (value > bestScore) {
+            best = trial;
+            bestScore = value;
+            improved = true;
+          }
+        }
+      }
+    }
+    steps = steps.map((v) => v / 2);
+  }
+  if (bestScore < minMatch) return { data: base, share: 0, score: bestScore, shift: `no match (${bestScore.toFixed(2)})` };
+
+  // Resample `other` into place at full size.
+  const [dx, dy, sx, sy] = [best[0] / f, best[1] / f, best[2], best[3]];
+  const cx = w / 2;
+  const cy = h / 2;
+  const placed = new Float32Array(n * 3);
+  const valid = new Uint8Array(n);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const ox = (x - cx) / sx + cx - dx;
+      const oy = (y - cy) / sy + cy - dy;
+      if (ox < 0 || oy < 0 || ox > w - 1.001 || oy > h - 1.001) continue;
+      const x0 = Math.floor(ox);
+      const y0 = Math.floor(oy);
+      const fx = ox - x0;
+      const fy = oy - y0;
+      const p = y * w + x;
+      valid[p] = 1;
+      for (let c = 0; c < 3; c++) {
+        const k = (y0 * w + x0) * 3 + c;
+        placed[p * 3 + c] =
+          (other[k] * (1 - fx) + other[k + 3] * fx) * (1 - fy) + (other[k + w * 3] * (1 - fx) + other[k + w * 3 + 3] * fx) * fy;
+      }
+    }
+  }
+
+  // 2. Tones: a straight line per channel from `other` to `base`, refitted
+  // without the pixels where either has glare.
+  for (let c = 0; c < 3; c++) {
+    let keep = (p) => valid[p];
+    let gain = 1;
+    let offset = 0;
+    for (let iteration = 0; iteration < 4; iteration++) {
+      let count = 0;
+      let mx = 0;
+      let my = 0;
+      let sxx = 0;
+      let sxy = 0;
+      for (let p = 0; p < n; p += 3) {
+        if (!keep(p)) continue;
+        const x = placed[p * 3 + c];
+        const y = base[p * 3 + c];
+        count += 1;
+        mx += x;
+        my += y;
+        sxx += x * x;
+        sxy += x * y;
+      }
+      if (count < 50) break;
+      mx /= count;
+      my /= count;
+      gain = clamp((sxy / count - mx * my) / Math.max(sxx / count - mx * mx, 1e-6), 0.5, 2);
+      offset = my - gain * mx;
+      let residual = 0;
+      for (let p = 0; p < n; p += 3) if (keep(p)) residual += (base[p * 3 + c] - gain * placed[p * 3 + c] - offset) ** 2;
+      const sigma = Math.sqrt(residual / count) + 1;
+      const g = gain;
+      const o = offset;
+      keep = (p) => valid[p] && Math.abs(base[p * 3 + c] - g * placed[p * 3 + c] - o) < sigma * 2;
+    }
+    for (let p = 0; p < n; p++) placed[p * 3 + c] = clamp(gain * placed[p * 3 + c] + offset, 0, 255);
+  }
+
+  // 3. Local refinement: the spine is curved and the two photos were taken from
+  // different angles, so one shift and stretch can't line up every letter. Each
+  // tile finds its own small shift; tiles that don't match well aren't filled.
+  const local = refine(base, placed, valid, w, h);
+
+  // 4. Where `base` is brighter, in any channel, than everything `other` has
+  // close by, it's glare (shine off the wrap is often tinted, like a blue window).
+  const reach = Math.max(1, Math.round(Math.max(w, h) * 0.002));
+  const excess = new Float32Array(n);
+  const sumBase = new Float32Array(n);
+  const sumOther = new Float32Array(n);
+  for (let c = 0; c < 3; c++) {
+    const b = new Float32Array(n);
+    const o = new Float32Array(n);
+    for (let p = 0; p < n; p++) {
+      b[p] = base[p * 3 + c];
+      o[p] = local.data[p * 3 + c];
+      sumBase[p] += b[p];
+      sumOther[p] += o[p];
+    }
+    const nearMax = maxFilter(blur(o, w, h, 1), w, h, reach);
+    const soft = blur(b, w, h, 1);
+    for (let p = 0; p < n; p++) excess[p] = Math.max(excess[p], soft[p] - nearMax[p]);
+  }
+  let mask = new Float32Array(n);
+  for (let p = 0; p < n; p++) {
+    if (!(local.trust[p] > 0)) continue;
+    // Glare only adds light: the other photo must be clearly darker overall and
+    // no brighter in any channel. Lettering that merely differs in tint between
+    // the two photos fails this and is left alone.
+    let darker = true;
+    for (let c = 0; c < 3; c++) if (local.data[p * 3 + c] > base[p * 3 + c] + 3) darker = false;
+    if (!darker) continue;
+    const ratio = sumOther[p] / Math.max(sumBase[p], 1);
+    mask[p] = smooth((excess[p] - 16) / 22) * smooth((0.85 - ratio) / 0.15) * local.trust[p];
+  }
+  // Drop thin slivers along lettering, then feather the edges.
+  const open = Math.max(1, Math.round(reach / 2));
+  mask = maxFilter(minFilter(mask, w, h, open), w, h, open);
+  mask = blur(mask, w, h, 1.5);
+  const out = Buffer.from(base);
+  let share = 0;
+  for (let p = 0; p < n; p++) {
+    // Never brighten: only take the other photo's pixel where it is the darker one.
+    const m = local.trust[p] > 0 && sumOther[p] < sumBase[p] ? clamp(mask[p], 0, 1) : 0;
+    if (m <= 0.01) continue;
+    share += m;
+    for (let c = 0; c < 3; c++) {
+      const k = p * 3 + c;
+      out[k] = Math.round(base[k] * (1 - m) + local.data[k] * m);
+    }
+  }
+  return {
+    data: out,
+    share: share / n,
+    score: bestScore,
+    shift: `aligned by ${dx.toFixed(1)},${dy.toFixed(1)} px ×${sx.toFixed(3)},${sy.toFixed(3)} (match ${bestScore.toFixed(2)})`,
+  };
+}
+
+/**
+ * Per-tile shifts of `placed` onto `base` (a few pixels each way), smoothed into
+ * a field and applied. Returns the moved image and a trust map: 1 where the tile
+ * matched well, fading to 0 where it didn't.
+ */
+function refine(base, placed, valid, w, h) {
+  const n = w * h;
+  const yb = new Float32Array(n);
+  const yo = new Float32Array(n);
+  for (let p = 0; p < n; p++) {
+    yb[p] = 0.299 * base[p * 3] + 0.587 * base[p * 3 + 1] + 0.114 * base[p * 3 + 2];
+    yo[p] = 0.299 * placed[p * 3] + 0.587 * placed[p * 3 + 1] + 0.114 * placed[p * 3 + 2];
+  }
+  const lowB = blur(yb, w, h, 3);
+  const lowO = blur(yo, w, h, 3);
+  for (let p = 0; p < n; p++) {
+    yb[p] -= lowB[p];
+    yo[p] -= lowO[p];
+  }
+  const cols = w < h ? 2 : Math.max(2, Math.round(w / (h / 2)));
+  const rows = w < h ? Math.max(4, Math.round(h / (w / 2))) : 2;
+  const tw = w / cols;
+  const th = h / rows;
+  const reach = Math.max(3, Math.round(Math.max(w, h) * 0.008));
+  const shifts = [];
+  for (let r = 0; r < rows; r++) {
+    for (let q = 0; q < cols; q++) {
+      const x0 = Math.round(q * tw);
+      const y0 = Math.round(r * th);
+      const x1 = Math.round((q + 1) * tw);
+      const y1 = Math.round((r + 1) * th);
+      let best = { dx: 0, dy: 0, score: -1 };
+      for (let dy = -reach; dy <= reach; dy++) {
+        for (let dx = -reach; dx <= reach; dx++) {
+          let sab = 0;
+          let saa = 0;
+          let sbb = 0;
+          for (let y = y0; y < y1; y += 2) {
+            const oy = y + dy;
+            if (oy < 0 || oy >= h) continue;
+            for (let x = x0; x < x1; x += 2) {
+              const ox = x + dx;
+              if (ox < 0 || ox >= w || !valid[oy * w + ox]) continue;
+              const a = yb[y * w + x];
+              const b = yo[oy * w + ox];
+              sab += a * b;
+              saa += a * a;
+              sbb += b * b;
+            }
+          }
+          // Flat tiles (plain colour) can't be matched; they score low.
+          const value = saa > 50 && sbb > 50 ? sab / Math.sqrt(saa * sbb) : -1;
+          if (value > best.score) best = { dx, dy, score: value };
+        }
+      }
+      shifts.push({ ...best, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
+    }
+  }
+  // Tiles that matched poorly take their neighbours' shift but are not trusted.
+  const good = shifts.filter((t) => t.score > 0.55);
+  const median = (values) => values.sort((a, b) => a - b)[values.length >> 1] ?? 0;
+  const fallback = { dx: median(good.map((t) => t.dx)), dy: median(good.map((t) => t.dy)) };
+  for (const t of shifts) {
+    if (t.score <= 0.55) Object.assign(t, fallback);
+    t.trust = smooth((t.score - 0.5) / 0.2);
+  }
+  // Bilinear field between tile centres.
+  const at = (q, r) => shifts[clamp(r, 0, rows - 1) * cols + clamp(q, 0, cols - 1)];
+  const data = new Float32Array(n * 3);
+  const trust = new Float32Array(n);
+  for (let y = 0; y < h; y++) {
+    const fr = clamp(y / th - 0.5, 0, rows - 1);
+    const r0 = Math.floor(fr);
+    const ty = fr - r0;
+    for (let x = 0; x < w; x++) {
+      const fq = clamp(x / tw - 0.5, 0, cols - 1);
+      const q0 = Math.floor(fq);
+      const tx = fq - q0;
+      const mix = (key) =>
+        (at(q0, r0)[key] * (1 - tx) + at(q0 + 1, r0)[key] * tx) * (1 - ty) +
+        (at(q0, r0 + 1)[key] * (1 - tx) + at(q0 + 1, r0 + 1)[key] * tx) * ty;
+      const ox = x + mix('dx');
+      const oy = y + mix('dy');
+      const p = y * w + x;
+      if (ox < 0 || oy < 0 || ox > w - 1.001 || oy > h - 1.001) continue;
+      const xi = Math.floor(ox);
+      const yi = Math.floor(oy);
+      const fx = ox - xi;
+      const fy = oy - yi;
+      if (!valid[yi * w + xi]) continue;
+      trust[p] = mix('trust');
+      for (let c = 0; c < 3; c++) {
+        const k = (yi * w + xi) * 3 + c;
+        data[p * 3 + c] =
+          (placed[k] * (1 - fx) + placed[k + 3] * fx) * (1 - fy) + (placed[k + w * 3] * (1 - fx) + placed[k + w * 3 + 3] * fx) * fy;
+      }
+    }
+  }
+  return { data, trust, tiles: shifts };
 }
 
 /** Median colour of the photo just outside the book's outline. */
@@ -306,7 +683,7 @@ async function backgroundAtEdges(flat, background) {
  *     strength, since the back and spine carry different artwork from the front.
  * Scans skip the first two: their lighting is already even.
  */
-async function correct(data, w, h, { cover, scan, glare }) {
+async function correct(data, w, h, { cover, scan, glare, streaks = 1, shineMap = null }) {
   const n = w * h;
   const lin = new Float32Array(n * 3);
   for (let i = 0; i < n * 3; i++) lin[i] = SRGB_TO_LINEAR[data[i]];
@@ -361,6 +738,69 @@ async function correct(data, w, h, { cover, scan, glare }) {
         const lift = clamp(veil[p] - floor, 0, glare) * 0.8;
         const remove = Math.max(patch, lift);
         if (remove > 0) for (let c = 0; c < 3; c++) lin[p * 3 + c] = Math.max(lin[p * 3 + c] - remove, 0);
+      }
+    }
+
+    // 2b. Shine off the shrink-wrap is soft-edged, while print
+    // is crisp. Where a patch is brighter than the dark print around it, and
+    // nothing within reach has a crisp edge (so it isn't lettering or artwork),
+    // the excess is taken off and its tint eased toward the surrounding colour.
+    // It only lowers light that is there; it adds nothing and redraws nothing.
+    if (streaks) {
+      const short = Math.min(w, h);
+      const reach = Math.max(3, Math.round(short * 0.08));
+      const y = luminance();
+      const floor = blur(minFilter(y, w, h, reach), w, h, reach / 2);
+      const grad = new Float32Array(n);
+      for (let yy = 1; yy < h - 1; yy++) {
+        for (let x = 1; x < w - 1; x++) {
+          const p = yy * w + x;
+          grad[p] = Math.max(Math.abs(y[p + 1] - y[p - 1]), Math.abs(y[p + w] - y[p - w])) / 2;
+        }
+      }
+      // The crispest edge anywhere the floor could have come from.
+      const crisp = maxFilter(grad, w, h, reach + 2);
+      const weight = new Float32Array(n);
+      for (let p = 0; p < n; p++) {
+        const excess = y[p] - floor[p];
+        if (excess <= 0.006) continue;
+        const sharpness = crisp[p] / (excess + 0.004);
+        const soft = 1 - smooth((sharpness - 0.2) / 0.25);
+        const dark = 1 - smooth((floor[p] - 0.04) / 0.12);
+        weight[p] = soft * dark * smooth((excess - 0.006) / 0.03);
+      }
+      const spread = blur(weight, w, h, 1.2);
+      // Surrounding colour, from the pixels that aren't shine.
+      const keepW = new Float32Array(n);
+      for (let p = 0; p < n; p++) keepW[p] = 1 - clamp(spread[p], 0, 1);
+      const around = [0, 1, 2].map((c) => {
+        const weighted = new Float32Array(n);
+        for (let p = 0; p < n; p++) weighted[p] = lin[p * 3 + c] * keepW[p];
+        return blur(weighted, w, h, reach);
+      });
+      const aroundW = blur(keepW, w, h, reach);
+      for (let p = 0; p < n; p++) {
+        const m = clamp(spread[p], 0, 1) * streaks;
+        if (m <= 0.01) continue;
+        const remove = Math.max(y[p] - floor[p], 0) * m * 0.85;
+        const target = Math.max(y[p] - remove, 0);
+        for (let c = 0; c < 3; c++) {
+          const k = p * 3 + c;
+          const lowered = Math.max(lin[k] - remove, 0);
+          // The surrounding colour at the lowered brightness.
+          const ref = aroundW[p] > 0.05 ? around[c][p] / aroundW[p] : lowered;
+          const refY = aroundW[p] > 0.05
+            ? (0.2126 * around[0][p] + 0.7152 * around[1][p] + 0.0722 * around[2][p]) / aroundW[p]
+            : target;
+          const tinted = refY > 0.002 ? ref * (target / refY) : lowered;
+          lin[k] = clamp(lowered * (1 - m * 0.6) + tinted * m * 0.6, 0, 1);
+        }
+      }
+      if (shineMap) {
+        const map = Buffer.alloc(n);
+        for (let p = 0; p < n; p++) map[p] = Math.round(clamp(spread[p], 0, 1) * 255);
+        await mkdir(path.dirname(shineMap), { recursive: true });
+        await sharp(map, { raw: { width: w, height: h, channels: 1 } }).png().toFile(shineMap);
       }
     }
   }
@@ -497,8 +937,14 @@ async function coverStats(cover) {
   return coverCache.get(cover);
 }
 
-/** Smallest value within `radius` pixels, each way. */
-function minFilter(values, w, h, radius) {
+/** Largest value within `radius` pixels across and `down` pixels up and down. */
+function maxFilter(values, w, h, radius, down = radius) {
+  const negated = Float32Array.from(values, (v) => -v);
+  return Float32Array.from(minFilter(negated, w, h, radius, down), (v) => -v);
+}
+
+/** Smallest value within `radius` pixels across and `down` pixels up and down. */
+function minFilter(values, w, h, radius, down = radius) {
   const across = new Float32Array(values.length);
   const out = new Float32Array(values.length);
   for (let y = 0; y < h; y++) {
@@ -511,7 +957,7 @@ function minFilter(values, w, h, radius) {
   for (let x = 0; x < w; x++) {
     for (let y = 0; y < h; y++) {
       let low = Infinity;
-      for (let i = Math.max(0, y - radius); i <= Math.min(h - 1, y + radius); i++) low = Math.min(low, across[i * w + x]);
+      for (let i = Math.max(0, y - down); i <= Math.min(h - 1, y + down); i++) low = Math.min(low, across[i * w + x]);
       out[y * w + x] = low;
     }
   }
