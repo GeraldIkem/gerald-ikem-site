@@ -244,8 +244,7 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/95/95_466699_0_.jpg",
     "cover": "/covers/466699.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.725,
-    "backImage": "/backs/466699.webp"
+    "coverRatio": 0.725
   },
   {
     "id": "772235",
@@ -830,7 +829,7 @@
     "coverRatio": 0.666,
     "backImage": "/backs/790998.webp",
     "spineImage": "/spines/790998.webp",
-    "spineRatio": 0.169
+    "spineRatio": 0.166
   },
   {
     "id": "764502",

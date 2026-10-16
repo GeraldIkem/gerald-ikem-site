@@ -4,9 +4,11 @@
 //   photos/1143890-spine.jpg   photos/1143890-back.jpg
 //
 // The script finds the book against the background, straightens it (rotation and
-// perspective), crops it, writes public/spines/<id>.webp and public/backs/<id>.webp,
-// and fills in spineImage, spineRatio and backImage. docs/spine-photos.md has the
-// shooting guide.
+// perspective), crops it, evens out the lighting and matches the colours to the
+// book's front cover (see correct() below), writes public/spines/<id>.webp and
+// public/backs/<id>.webp, and fills in spineImage, spineRatio and backImage.
+// Shoot each book square-on, flash off, on a plain background that contrasts
+// with it, with a margin of background on every side.
 //
 // Usage:
 //   node scripts/spines.mjs [folder]   process the photos in folder (default: photos/)
@@ -26,10 +28,13 @@
 // (width over height) sets a spine's when the photo was taken at an angle.
 // "crop": [left, top, width, height] cuts a region out first, and "from": "file.jpg"
 // reads another file, so one photo of a full jacket can give both the spine and
-// the back. "scan": true skips detection for that image. "source" and "url" record
-// where an image came from in src/data/comic-image-sources.json.
+// the back. "scan": true skips detection for that image. "glare": false leaves
+// bright patches alone and a number (default 0.15) sets how much haze can come off, "correct": false skips the colour and lighting correction,
+// and "drop": true removes that book's spine or back so it falls back to the
+// printed one. "source" and "url" record where an image came from in
+// src/data/comic-image-sources.json.
 
-import { mkdir, readFile, readdir, writeFile, access } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile, access } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -48,6 +53,16 @@ const SPINE_HEIGHT = 1000;
 const ANALYSIS_SIZE = 900;
 const NAME = /^(\d+)[-_ ](spine|back)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
 
+const SRGB_TO_LINEAR = Float32Array.from({ length: 256 }, (_, i) => {
+  const c = i / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+});
+const clamp = (value, low, high) => Math.min(Math.max(value, low), high);
+const smooth = (t) => {
+  const x = clamp(t, 0, 1);
+  return x * x * (3 - 2 * x);
+};
+const coverCache = new Map();
 const exists = (file) => access(file).then(() => true, () => false);
 const readJson = async (file, fallback) => ((await exists(file)) ? JSON.parse(await readFile(file, 'utf8')) : fallback);
 const books = JSON.parse(await readFile(dataPath, 'utf8'));
@@ -92,7 +107,21 @@ for (const [key, file] of [...jobs].sort()) {
     const fix = fixes[key] ?? {};
     // A back is the same size as the front, so it takes the front's proportions.
     const ratio = fix.ratio ?? (kind === 'back' ? book.coverRatio : undefined);
-    const result = await processPhoto(path.join(folder, file), kind, fix, key, ratio);
+    if (fix.drop) {
+      // A photo that still looks wrong after correction: the book falls back to the printed spine.
+      if (!dryRun) await rm(path.join(root, 'public', kind === 'spine' ? 'spines' : 'backs', `${id}.webp`), { force: true });
+      if (kind === 'spine') {
+        delete book.spineImage;
+        delete book.spineRatio;
+      } else {
+        delete book.backImage;
+      }
+      if (sources[id]) delete sources[id][kind];
+      if (sources[id] && !Object.keys(sources[id]).length) delete sources[id];
+      console.log(`drop  ${kind} of ${book.title}`);
+      continue;
+    }
+    const result = await processPhoto(path.join(folder, file), kind, fix, key, ratio, book);
     const outDir = dryRun ? path.join(folder, 'out') : path.join(root, 'public', kind === 'spine' ? 'spines' : 'backs');
     await mkdir(outDir, { recursive: true });
     await result.image.webp({ quality: 82 }).toFile(path.join(outDir, dryRun ? `${key}.webp` : `${id}.webp`));
@@ -123,7 +152,7 @@ console.log(`\nProcessed ${done} of ${jobs.size} images${dryRun ? ` into ${path.
 if (problems.length) console.log(`Check these:\n  ${problems.join('\n  ')}`);
 
 /** Straighten and crop one photo; returns a sharp pipeline sized for the site. */
-async function processPhoto(file, kind, fix, key, ratio) {
+async function processPhoto(file, kind, fix, key, ratio, book) {
   const notes = [];
   let input = await sharp(await readFile(file))
     .rotate()
@@ -134,14 +163,21 @@ async function processPhoto(file, kind, fix, key, ratio) {
     input = await sharp(input).extract({ left, top, width, height }).png({ compressionLevel: 1 }).toBuffer();
   }
 
+  const scan = fix.scan || flags.has('--scan');
   let flat = input;
-  if (!fix.scan && !flags.has('--scan')) {
+  if (!scan) {
     let corners = fix.corners ?? (await findCorners(input, notes, key));
     // Corners typed in by hand only need to be close: each side snaps to the edge beside it.
     if (fix.corners && fix.snap !== false) corners = await snapCorners(input, corners, notes, fix.reach);
     if (fix.trim) corners = trim(corners, fix.trim);
-    if (flags.has('--debug') && fix.corners) await drawDebug(input, corners, key);
     flat = await warp(input, corners, ratio);
+    // Any background still showing along an edge comes off.
+    const leftover = await backgroundAtEdges(flat, await backgroundAround(input, corners));
+    if (leftover) {
+      corners = trim(corners, leftover);
+      flat = await warp(input, corners, ratio);
+    }
+    if (flags.has('--debug')) await drawDebug(input, corners, key);
   }
   if (fix.rotate) flat = await sharp(flat).rotate(fix.rotate).png({ compressionLevel: 1 }).toBuffer();
 
@@ -157,12 +193,351 @@ async function processPhoto(file, kind, fix, key, ratio) {
   const size = kind === 'spine' ? { height: Math.min(SPINE_HEIGHT, height) } : { width: Math.min(BACK_WIDTH, width) };
   const scale = size.height ? size.height / height : size.width / width;
   const out = { width: Math.round(width * scale), height: Math.round(height * scale) };
+  const { data } = await sharp(flat)
+    .resize({ ...out, fit: 'fill', kernel: 'lanczos3' })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const corrected =
+    fix.correct === false
+      ? data
+      : await correct(data, out.width, out.height, { cover: book.cover, scan, glare: fix.glare === false ? 0 : typeof fix.glare === 'number' ? fix.glare : 0.15 });
   return {
-    image: sharp(flat).resize({ ...out, fit: 'fill', kernel: 'lanczos3' }),
+    image: sharp(corrected, { raw: { width: out.width, height: out.height, channels: 3 } }),
     width: out.width,
     height: out.height,
     notes,
   };
+}
+
+/** Median colour of the photo just outside the book's outline. */
+async function backgroundAround(input, corners) {
+  const { data, info } = await sharp(input)
+    .resize({ width: ANALYSIS_SIZE, height: ANALYSIS_SIZE, fit: 'inside' })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const scale = info.width / (await sharp(input).metadata()).width;
+  const c = corners.map(([x, y]) => [x * scale, y * scale]);
+  const centre = [c.reduce((s, p) => s + p[0], 0) / 4, c.reduce((s, p) => s + p[1], 0) / 4];
+  const gap = Math.max(info.width, info.height) * 0.02;
+  const samples = [];
+  for (let i = 0; i < 4; i++) {
+    const a = c[i];
+    const b = c[(i + 1) % 4];
+    for (let t = 0.1; t <= 0.9; t += 0.02) {
+      const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      const away = [p[0] - centre[0], p[1] - centre[1]];
+      const length = Math.hypot(...away) || 1;
+      const x = Math.round(p[0] + (away[0] / length) * gap);
+      const y = Math.round(p[1] + (away[1] / length) * gap);
+      if (x < 0 || y < 0 || x >= info.width || y >= info.height) continue;
+      const k = (y * info.width + x) * 3;
+      samples.push([data[k], data[k + 1], data[k + 2]]);
+    }
+  }
+  if (samples.length < 12) return null;
+  const median = (values) => values.sort((p, q) => p - q)[values.length >> 1];
+  const colour = [0, 1, 2].map((ch) => median(samples.map((s) => s[ch])));
+  const spread = median(samples.map((s) => Math.hypot(s[0] - colour[0], s[1] - colour[1], s[2] - colour[2])));
+  return { colour, spread };
+}
+
+/**
+ * How much of each edge of the straightened book is still background: lines of
+ * pixels, counted in from the edge, where most pixels match the background colour.
+ * Returns fractions for trim(), or null when the edges are clean.
+ */
+async function backgroundAtEdges(flat, background) {
+  // A busy background (a shelf, a patterned rug) can't be told apart from the book.
+  if (!background || background.spread > 35) return null;
+  const { data, info } = await sharp(flat)
+    .resize({ width: 600, height: 600, fit: 'inside' })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const { width: w, height: h } = info;
+  const limit = Math.min(Math.max(30, background.spread * 2.5), 55);
+  const isBackground = (x, y) => {
+    const k = (y * w + x) * 3;
+    const [r, g, b] = background.colour;
+    return Math.hypot(data[k] - r, data[k + 1] - g, data[k + 2] - b) < limit;
+  };
+  const run = (count, length, at) => {
+    let lines = 0;
+    for (let i = 0; i < Math.ceil(count * 0.03); i++) {
+      let matches = 0;
+      for (let j = 0; j < length; j++) if (at(i, j)) matches += 1;
+      if (matches / length < 0.7) break;
+      lines = i + 1;
+    }
+    return lines ? lines / count + 0.003 : 0;
+  };
+  const edges = {
+    top: run(h, w, (i, j) => isBackground(j, i)),
+    bottom: run(h, w, (i, j) => isBackground(j, h - 1 - i)),
+    left: run(w, h, (i, j) => isBackground(i, j)),
+    right: run(w, h, (i, j) => isBackground(w - 1 - i, j)),
+  };
+  return Object.values(edges).some(Boolean) ? edges : null;
+}
+
+/*
+ * Colour and lighting correction, so photos taken in different rooms sit together
+ * on the shelf. It only adjusts the pixels that are there, in this order:
+ *  1. Flatten uneven lighting: divide out a large-radius illumination map (a heavy
+ *     blur of the brightness), at partial strength so the design's own light and
+ *     dark areas survive.
+ *  2. Remove glare: shrinkwrap glare is white light added on top of the artwork, so
+ *     a broad bright patch that is paler than the colours around it has that excess
+ *     subtracted.
+ *  3. White balance from the photo's near-white areas (barcode box, white type).
+ *  4. Match the book's own clean front cover from CLZ: black and white points (so
+ *     brightness and contrast agree) and the spread of its colours, at partial
+ *     strength, since the back and spine carry different artwork from the front.
+ * Scans skip the first two: their lighting is already even.
+ */
+async function correct(data, w, h, { cover, scan, glare }) {
+  const n = w * h;
+  const lin = new Float32Array(n * 3);
+  for (let i = 0; i < n * 3; i++) lin[i] = SRGB_TO_LINEAR[data[i]];
+  const long = Math.max(w, h);
+  const luminance = () => {
+    const y = new Float32Array(n);
+    for (let p = 0; p < n; p++) y[p] = 0.2126 * lin[p * 3] + 0.7152 * lin[p * 3 + 1] + 0.0722 * lin[p * 3 + 2];
+    return y;
+  };
+
+  if (!scan) {
+    // 1. Illumination: geometric mean brightness over a third of the book.
+    const y = luminance();
+    const logY = new Float32Array(n);
+    for (let p = 0; p < n; p++) logY[p] = Math.log(y[p] + 0.01);
+    const light = blur(logY, w, h, long * 0.3);
+    let mean = 0;
+    for (let p = 0; p < n; p++) mean += light[p];
+    mean /= n;
+    for (let p = 0; p < n; p++) {
+      const gain = Math.min(Math.max(Math.exp((mean - light[p]) * 0.6), 0.78), 1.3);
+      for (let c = 0; c < 3; c++) lin[p * 3 + c] *= gain;
+    }
+
+    // 2. Glare is white light added on top of the print, so it is subtracted, never painted over.
+    if (glare) {
+      const y2 = luminance();
+      const saturation = new Float32Array(n);
+      const darkest = new Float32Array(n);
+      for (let p = 0; p < n; p++) {
+        const r = lin[p * 3];
+        const g = lin[p * 3 + 1];
+        const b = lin[p * 3 + 2];
+        const max = Math.max(r, g, b);
+        darkest[p] = Math.min(r, g, b);
+        saturation[p] = max > 0.01 ? (max - darkest[p]) / max : 0;
+      }
+      // A broad patch that is brighter and paler than the colours around it.
+      const near = blur(y2, w, h, long * 0.012);
+      const around = blur(y2, w, h, long * 0.07);
+      const nearSat = blur(saturation, w, h, long * 0.012);
+      const aroundSat = blur(saturation, w, h, long * 0.07);
+      // A veil: in print, the weakest of the three channels is near zero somewhere in
+      // almost every small neighbourhood (black, or a saturated colour). Where even that
+      // minimum is lifted across a broad patch, the lift is glare. Thin white type sits
+      // next to black, so it doesn't count.
+      const veil = blur(minFilter(darkest, w, h, Math.max(2, Math.round(long * 0.015))), w, h, long * 0.03);
+      const floor = percentile(veil, 0.2);
+      for (let p = 0; p < n; p++) {
+        const excess = near[p] - around[p];
+        const patch = excess * smooth((excess - 0.012) / 0.06) * smooth((aroundSat[p] - nearSat[p] - 0.03) / 0.12) * 0.9;
+        const lift = clamp(veil[p] - floor, 0, glare) * 0.8;
+        const remove = Math.max(patch, lift);
+        if (remove > 0) for (let c = 0; c < 3; c++) lin[p * 3 + c] = Math.max(lin[p * 3 + c] - remove, 0);
+      }
+    }
+  }
+
+  const lab = new Float32Array(n * 3);
+  for (let p = 0; p < n; p++) linearToLab(lin, p * 3, lab, p * 3);
+
+  // 3. White balance: near-white pixels should have no tint.
+  let count = 0;
+  let sumA = 0;
+  let sumB = 0;
+  for (let p = 0; p < n; p++) {
+    const k = p * 3;
+    if (lab[k] > 65 && Math.hypot(lab[k + 1], lab[k + 2]) < 14) {
+      count += 1;
+      sumA += lab[k + 1];
+      sumB += lab[k + 2];
+    }
+  }
+  if (count > n * 0.003) {
+    const shiftA = clamp(sumA / count, -10, 10);
+    const shiftB = clamp(sumB / count, -10, 10);
+    for (let p = 0; p < n; p++) {
+      lab[p * 3 + 1] -= shiftA;
+      lab[p * 3 + 2] -= shiftB;
+    }
+  }
+
+  // 4. Tone and colour from the front cover.
+  const reference = cover ? await coverStats(cover) : null;
+  if (reference) {
+    const own = labStats(lab, n);
+    // Black and white points: a lifted, hazy black or a dull white moves toward the cover's.
+    const black = own.l1 + clamp(reference.l1 - own.l1, -20, 20) * 0.9;
+    const white = own.l99 + clamp(reference.l99 - own.l99, -15, 15) * 0.8;
+    const stretch = clamp((white - black) / Math.max(own.l99 - own.l1, 1), 0.85, 1.45);
+    // The colours' spread and centre move partway toward the cover's.
+    const spreadA = 1 + (clamp(reference.sa / Math.max(own.sa, 1), 0.8, 1.3) - 1) * 0.5;
+    const spreadB = 1 + (clamp(reference.sb / Math.max(own.sb, 1), 0.8, 1.3) - 1) * 0.5;
+    const shiftA = clamp(reference.ma - own.ma, -8, 8) * 0.5;
+    const shiftB = clamp(reference.mb - own.mb, -8, 8) * 0.5;
+    for (let p = 0; p < n; p++) {
+      const k = p * 3;
+      lab[k] = clamp(black + (lab[k] - own.l1) * stretch, 0, 100);
+      lab[k + 1] = own.ma + (lab[k + 1] - own.ma) * spreadA + shiftA;
+      lab[k + 2] = own.mb + (lab[k + 2] - own.mb) * spreadB + shiftB;
+    }
+  }
+
+  const out = Buffer.alloc(n * 3);
+  for (let p = 0; p < n; p++) labToSrgb(lab, p * 3, out, p * 3);
+  return out;
+}
+
+/** Linear sRGB to CIELAB (D65). */
+function linearToLab(src, i, dst, j) {
+  const r = src[i];
+  const g = src[i + 1];
+  const b = src[i + 2];
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const fx = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047);
+  const fy = f(0.2126 * r + 0.7152 * g + 0.0722 * b);
+  const fz = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+  dst[j] = 116 * fy - 16;
+  dst[j + 1] = 500 * (fx - fy);
+  dst[j + 2] = 200 * (fy - fz);
+}
+
+/** CIELAB (D65) to 8-bit sRGB. */
+function labToSrgb(src, i, dst, j) {
+  const fy = (src[i] + 16) / 116;
+  const fx = fy + src[i + 1] / 500;
+  const fz = fy - src[i + 2] / 200;
+  const inv = (t) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
+  const x = 0.95047 * inv(fx);
+  const y = inv(fy);
+  const z = 1.08883 * inv(fz);
+  const rgb = [
+    3.2406 * x - 1.5372 * y - 0.4986 * z,
+    -0.9689 * x + 1.8758 * y + 0.0415 * z,
+    0.0557 * x - 0.204 * y + 1.057 * z,
+  ];
+  for (let c = 0; c < 3; c++) {
+    const v = clamp(rgb[c], 0, 1);
+    dst[j + c] = Math.round(255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055));
+  }
+}
+
+/** Percentiles of lightness and the centre and spread of each colour axis. */
+function labStats(lab, n) {
+  const step = Math.max(1, Math.floor(n / 60000));
+  const l = [];
+  const a = [];
+  const b = [];
+  for (let p = 0; p < n; p += step) {
+    l.push(lab[p * 3]);
+    a.push(lab[p * 3 + 1]);
+    b.push(lab[p * 3 + 2]);
+  }
+  const sorted = (values) => values.sort((x, y) => x - y);
+  const at = (values, q) => values[Math.min(values.length - 1, Math.floor(values.length * q))];
+  sorted(l);
+  sorted(a);
+  sorted(b);
+  return {
+    l1: at(l, 0.01),
+    l99: at(l, 0.99),
+    ma: at(a, 0.5),
+    mb: at(b, 0.5),
+    sa: (at(a, 0.84) - at(a, 0.16)) / 2,
+    sb: (at(b, 0.84) - at(b, 0.16)) / 2,
+  };
+}
+
+async function coverStats(cover) {
+  if (!coverCache.has(cover)) {
+    const file = path.join(root, 'public', cover);
+    let stats = null;
+    if (await exists(file)) {
+      const { data, info } = await sharp(file)
+        .resize({ width: 260 })
+        .removeAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const n = info.width * info.height;
+      const lin = new Float32Array(n * 3);
+      for (let i = 0; i < n * 3; i++) lin[i] = SRGB_TO_LINEAR[data[i]];
+      const lab = new Float32Array(n * 3);
+      for (let p = 0; p < n; p++) linearToLab(lin, p * 3, lab, p * 3);
+      stats = labStats(lab, n);
+    }
+    coverCache.set(cover, stats);
+  }
+  return coverCache.get(cover);
+}
+
+/** Smallest value within `radius` pixels, each way. */
+function minFilter(values, w, h, radius) {
+  const across = new Float32Array(values.length);
+  const out = new Float32Array(values.length);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let low = Infinity;
+      for (let i = Math.max(0, x - radius); i <= Math.min(w - 1, x + radius); i++) low = Math.min(low, values[y * w + i]);
+      across[y * w + x] = low;
+    }
+  }
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      let low = Infinity;
+      for (let i = Math.max(0, y - radius); i <= Math.min(h - 1, y + radius); i++) low = Math.min(low, across[i * w + x]);
+      out[y * w + x] = low;
+    }
+  }
+  return out;
+}
+
+function percentile(values, q) {
+  const step = Math.max(1, Math.floor(values.length / 50000));
+  const sample = [];
+  for (let i = 0; i < values.length; i += step) sample.push(values[i]);
+  sample.sort((a, b) => a - b);
+  return sample[Math.min(sample.length - 1, Math.floor(sample.length * q))];
+}
+
+/** Gaussian-like blur: three box passes each way, edges averaging only what's there. */
+function blur(values, w, h, sigma) {
+  const radius = Math.max(1, Math.round(Math.sqrt((12 * sigma * sigma) / 3 + 1) / 2));
+  let a = Float32Array.from(values);
+  let b = new Float32Array(values.length);
+  const pass = (src, dst, length, count, index) => {
+    const prefix = new Float64Array(length + 1);
+    for (let line = 0; line < count; line++) {
+      for (let i = 0; i < length; i++) prefix[i + 1] = prefix[i] + src[index(line, i)];
+      for (let i = 0; i < length; i++) {
+        const lo = Math.max(0, i - radius);
+        const hi = Math.min(length - 1, i + radius);
+        dst[index(line, i)] = (prefix[hi + 1] - prefix[lo]) / (hi - lo + 1);
+      }
+    }
+  };
+  for (let k = 0; k < 3; k++) {
+    pass(a, b, w, h, (y, x) => y * w + x);
+    pass(b, a, h, w, (x, y) => y * w + x);
+  }
+  return a;
 }
 
 /**
