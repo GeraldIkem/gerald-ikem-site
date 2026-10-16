@@ -1,9 +1,9 @@
 name: CI
 
+# Only my own pushes run the tests; nobody else's pull requests use this repo's runners.
 on:
   push:
     branches: [main]
-  pull_request:
 
 permissions:
   contents: read
