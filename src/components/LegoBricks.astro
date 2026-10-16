@@ -23,6 +23,7 @@ const studsFor = (name: string) => Math.min(Math.max(Math.ceil(name.length / 6),
             <span class="brick__face">
               <span class="brick__name">{set.name}</span>
               {set.note && <span class="brick__note">{set.note}</span>}
+              {set.model && <span class="brick__badge">3D</span>}
             </span>
           </li>
         ))
@@ -44,6 +45,7 @@ const studsFor = (name: string) => Math.min(Math.max(Math.ceil(name.length / 6),
             <span class="brick__face">
               <span class="brick__name">{set.name}</span>
               {set.note && <span class="brick__note">{set.note}</span>}
+              {set.model && <span class="brick__badge">3D</span>}
             </span>
           </li>
         ))
@@ -132,6 +134,17 @@ const studsFor = (name: string) => Math.min(Math.max(Math.ceil(name.length / 6),
     font-size: var(--text-sm);
     font-weight: 650;
     line-height: 1.15;
+  }
+
+  .brick__badge {
+    justify-self: start;
+    margin-top: 0.2rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--process-yellow);
+    color: #1d2024;
+    font-size: 0.7rem;
+    font-weight: 700;
   }
 
   .brick__note {

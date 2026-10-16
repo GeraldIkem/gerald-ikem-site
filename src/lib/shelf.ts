@@ -11,13 +11,13 @@ export interface Book {
   pages: number | null;
   year: number | null;
   note: string;
-  coverUrl?: string | null;
+  coverUrl?: string | null | undefined;
   /** Local WebP of the front cover, written by scripts/covers.mjs. */
-  cover?: string;
+  cover?: string | undefined;
   /** Main colour along the cover's left edge, used for the spine. */
-  coverColor?: string;
+  coverColor?: string | undefined;
   /** Cover width divided by height. */
-  coverRatio?: number;
+  coverRatio?: number | undefined;
 }
 
 /** Spine heights in rem, roughly in proportion to the real formats. */
