@@ -132,6 +132,35 @@ test.describe('off the clock', () => {
     await expect(page.locator('[data-filter][aria-pressed="true"]')).toHaveCount(1);
   });
 
+  test('shows the real spine where there is a photo of it, and still names the book', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto('/off-the-clock/');
+    const photographed = page.locator('.spine:not([hidden]):has(.spine__photo)');
+    test.skip((await photographed.count()) === 0, 'No spine photos yet');
+    const spine = photographed.first();
+    const title = (await spine.getAttribute('data-title')) ?? '';
+    await expect(spine).toHaveAccessibleName(`${title}. ${await spine.getAttribute('data-state')}.`);
+    const image = spine.locator('.spine__photo');
+    await expect(image).toHaveAttribute('alt', '');
+    await spine.scrollIntoViewIfNeeded();
+    await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    expect(errors).toEqual([]);
+  });
+
+  test('puts the real back cover on the 3D book', async ({ page }) => {
+    const backs: string[] = [];
+    page.on('response', (response) => {
+      if (response.ok() && response.url().includes('/backs/')) backs.push(new URL(response.url()).pathname);
+    });
+    await page.goto('/off-the-clock/');
+    const withBack = page.locator('.spine:not([hidden])[data-back-image^="/backs/"]');
+    test.skip((await withBack.count()) === 0, 'No back covers yet');
+    await expect(page.locator('.shelf__stage canvas')).toBeVisible({ timeout: 15_000 });
+    const spine = withBack.last();
+    await spine.click();
+    await expect.poll(() => backs).toContain(await spine.getAttribute('data-back-image'));
+  });
+
   test('moves through the shelf with the arrow keys', async ({ page }) => {
     await page.goto('/off-the-clock/');
     const first = page.locator('.spine:not([hidden])').first();
