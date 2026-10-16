@@ -1,0 +1,108 @@
+---
+import Mark from './Mark.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  home?: boolean;
+}
+
+const { home = false } = Astro.props;
+const prefix = home ? '' : '/';
+const nav = [
+  { href: `${prefix}#work`, label: 'Work' },
+  { href: `${prefix}#projects`, label: 'Projects' },
+  { href: '/off-the-clock/', label: 'Off the clock' },
+  { href: `${prefix}#contact`, label: 'Contact' },
+];
+const current = Astro.url.pathname;
+---
+
+<header class="site-header wrap">
+  <a class="site-header__home" href="/" aria-label="Gerald Ikem, home">
+    <Mark />
+    <span class:list={['site-header__name', { 'site-header__name--hidden': home }]}>Gerald Ikem</span>
+  </a>
+  <nav aria-label="Main">
+    <ul>
+      {
+        nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={item.href === current ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <ThemeToggle />
+</header>
+
+<style>
+  .site-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 1.25rem;
+  }
+
+  .site-header__home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-right: auto;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-base);
+    letter-spacing: -0.01em;
+  }
+
+  .site-header__name--hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    padding-block: 0.5rem;
+  }
+
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.35em;
+  }
+
+  @media (max-width: 40rem) {
+    .site-header {
+      flex-wrap: wrap;
+      row-gap: 0.25rem;
+    }
+
+    nav {
+      order: 3;
+      width: 100%;
+    }
+
+    nav ul {
+      gap: 0.25rem 1.125rem;
+    }
+  }
+</style>

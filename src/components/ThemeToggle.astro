@@ -1,0 +1,70 @@
+<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark theme">
+  <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false">
+    <circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+    <path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"></path>
+  </svg>
+</button>
+
+<script>
+  const STORAGE_KEY = 'theme';
+  const root = document.documentElement;
+
+  function effectiveTheme(): 'light' | 'dark' {
+    const set = root.dataset['theme'];
+    if (set === 'light' || set === 'dark') return set;
+    return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function sync(button: HTMLButtonElement) {
+    const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    button.setAttribute('aria-label', `Switch to ${next} theme`);
+    button.title = `Switch to ${next} theme`;
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+    sync(button);
+    button.addEventListener('click', () => {
+      const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+      root.dataset['theme'] = next;
+      try {
+        localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // Private windows can refuse storage; the choice still holds for this page.
+      }
+      sync(button);
+    });
+  }
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--rule-strong);
+  }
+
+  .theme-toggle svg {
+    transition: transform 400ms var(--ease-out);
+  }
+
+  :global([data-theme='dark']) .theme-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .theme-toggle svg {
+      transform: rotate(180deg);
+    }
+  }
+</style>

@@ -1,0 +1,256 @@
+---
+import { axis, stints } from '~/data/career';
+import { formatRange, monthIndex, spanGeometry, toYearMonth, yearTicks } from '~/lib/timeline';
+
+const now = toYearMonth(new Date());
+const rows = [...stints]
+  .sort((a, b) => monthIndex(a.start) - monthIndex(b.start))
+  .map((stint) => ({ stint, geometry: spanGeometry(stint, axis, now) }));
+const ticks = yearTicks(axis);
+const nowLeft = spanGeometry({ start: now, end: now }, axis, now).left;
+
+function length(start: string, end: string): string {
+  const months = monthIndex(end) - monthIndex(start) + 1;
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  if (years === 0) return `${rest} mo`;
+  return rest === 0 ? `${years} yr` : `${years} yr ${rest} mo`;
+}
+---
+
+<figure class="career panel">
+  <figcaption class="career__head">
+    <span class="career__title">Career, as a trace</span>
+    <span class="career__legend">
+      <span class="career__key career__key--work">Work</span>
+      <span class="career__key career__key--study">Study</span>
+      <span class="career__key career__key--planned">Planned</span>
+    </span>
+  </figcaption>
+  <div class="career__grid">
+    <div class="career__axis" aria-hidden="true">
+      {ticks.map((tick) => <span class="career__tick" style={`--at:${tick.left}%`}>{tick.year}</span>)}
+      <span class="career__now" style={`--at:${nowLeft}%`}><span>Now</span></span>
+    </div>
+    <ol class="career__rows">
+      {
+        rows.map(({ stint, geometry }) => (
+          <li>
+            <a class="career__row" href={`#${stint.id}`} data-track={stint.track}>
+              <span class="career__label">
+                <span class="career__org">{stint.short}</span>
+                <span class="career__dates">{formatRange(stint)}</span>
+              </span>
+              <span class="career__track">
+                <span
+                  class:list={['career__bar', { 'career__bar--ongoing': geometry.ongoing }]}
+                  style={`--left:${geometry.left}%;--width:${geometry.width}%;--future:${geometry.futureShare}%`}
+                />
+              </span>
+              <span class="career__length">
+                {stint.end ? length(stint.start, stint.end) : `${length(stint.start, now)}+`}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</figure>
+
+<style>
+  .career {
+    --label-w: 12.5rem;
+    --len-w: 5rem;
+    --pad: 1.125rem;
+    --gap: 1rem;
+    font-size: var(--text-sm);
+  }
+
+  .career__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    padding: 0.875rem var(--pad);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .career__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .career__legend {
+    display: flex;
+    gap: 1rem;
+    color: var(--ink-2);
+    font-size: var(--text-xs);
+  }
+
+  .career__key::before {
+    content: '';
+    display: inline-block;
+    width: 1.25rem;
+    height: 0.5rem;
+    margin-right: 0.4rem;
+    border-radius: 2px;
+    vertical-align: 0.05em;
+  }
+
+  .career__key--work::before {
+    background: var(--cyan);
+  }
+
+  .career__key--study::before {
+    background: var(--magenta);
+  }
+
+  .career__key--planned::before {
+    background: repeating-linear-gradient(135deg, var(--ink-3) 0 2px, transparent 2px 5px);
+    box-shadow: inset 0 0 0 1px var(--ink-3);
+  }
+
+  .career__grid {
+    position: relative;
+    padding: 2.25rem 0 2.25rem;
+  }
+
+  .career__axis {
+    position: absolute;
+    inset: 0 calc(var(--len-w) + var(--pad) + var(--gap)) 0 calc(var(--label-w) + var(--pad) + var(--gap));
+    pointer-events: none;
+  }
+
+  .career__tick {
+    position: absolute;
+    top: 0.75rem;
+    bottom: 0;
+    left: var(--at);
+    padding-left: 0.3rem;
+    border-left: 1px dashed var(--rule);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .career__now {
+    position: absolute;
+    top: 2rem;
+    bottom: 0;
+    left: var(--at);
+    border-left: 1.5px solid var(--ink);
+    z-index: 1;
+  }
+
+  .career__now span {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0.3rem;
+    padding: 0 0.3rem;
+    background: var(--yellow);
+    color: #1d2024;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 2px;
+  }
+
+  .career__rows {
+    padding: 0;
+    list-style: none;
+  }
+
+  .career__row {
+    display: grid;
+    grid-template-columns: var(--label-w) minmax(0, 1fr) var(--len-w);
+    align-items: center;
+    gap: var(--gap);
+    padding: 0.5rem var(--pad);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .career__row:hover,
+  .career__row:focus-visible {
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+
+  .career__row:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .career__label {
+    display: grid;
+    line-height: 1.3;
+  }
+
+  .career__org {
+    font-weight: 600;
+  }
+
+  .career__dates {
+    color: var(--ink-3);
+    font-size: var(--text-xs);
+  }
+
+  .career__track {
+    position: relative;
+    height: 0.875rem;
+  }
+
+  .career__bar {
+    --tone: var(--cyan);
+    position: absolute;
+    inset-block: 0;
+    left: var(--left);
+    width: var(--width);
+    border-radius: 2px;
+    /* The planned part of a span is hatched rather than solid. */
+    background:
+      repeating-linear-gradient(135deg, var(--tone) 0 2px, transparent 2px 5px) right / var(--future) 100% no-repeat,
+      linear-gradient(var(--tone), var(--tone)) left / calc(100% - var(--future)) 100% no-repeat;
+    box-shadow: inset 0 0 0 1px var(--tone);
+  }
+
+  [data-track='study'] .career__bar {
+    --tone: var(--magenta);
+  }
+
+  /* Still going: the bar runs into the now line and fades. */
+  .career__bar--ongoing {
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.25rem), transparent);
+  }
+
+  .career__length {
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 40rem) {
+    .career {
+      --label-w: 7.5rem;
+      --len-w: 0rem;
+      --pad: 0.75rem;
+      --gap: 0.5rem;
+    }
+
+    .career__length {
+      display: none;
+    }
+
+    .career__row {
+      grid-template-columns: var(--label-w) minmax(0, 1fr);
+    }
+
+    .career__axis {
+      right: var(--pad);
+    }
+
+    .career__tick:nth-child(even) {
+      color: transparent;
+    }
+  }
+</style>

@@ -1,0 +1,152 @@
+---
+import { stints, toolbox } from '~/data/career';
+import { formatRange } from '~/lib/timeline';
+import PayDemo from './PayDemo.astro';
+
+const work = stints.filter((stint) => stint.track === 'work');
+const study = stints.filter((stint) => stint.track === 'study');
+---
+
+<div class="roles">
+  {
+    work.map((stint) => (
+      <article class="role" id={stint.id}>
+        <header class="role__head">
+          <h3>
+            {stint.role}, {stint.org}
+          </h3>
+          <p class="role__meta">
+            {formatRange(stint)}
+            {stint.place && <>, {stint.place}</>}
+          </p>
+        </header>
+        {stint.points.length > 0 && (
+          <ul class="role__points">
+            {stint.points.map((point) => (
+              <li>{point}</li>
+            ))}
+          </ul>
+        )}
+        {stint.id === 'payaza' && <PayDemo />}
+      </article>
+    ))
+  }
+
+  <h3 class="roles__group">Education</h3>
+  {
+    study.map((stint) => (
+      <article class="role role--study" id={stint.id}>
+        <header class="role__head">
+          <h4>{stint.org}</h4>
+          <p class="role__meta">
+            {stint.role}. {formatRange(stint)}.
+          </p>
+        </header>
+        {stint.points.map((point) => (
+          <p class="role__note">{point}</p>
+        ))}
+      </article>
+    ))
+  }
+
+  <h3 class="roles__group">What I work with</h3>
+  <dl class="toolbox">
+    {
+      toolbox.map((row) => (
+        <div>
+          <dt>{row.area}</dt>
+          <dd>{row.items}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
+
+<style>
+  .roles {
+    display: grid;
+    gap: 2.75rem;
+    margin-top: 3rem;
+  }
+
+  .role {
+    scroll-margin-top: 2rem;
+  }
+
+  .role:target .role__head h3,
+  .role:target .role__head h4 {
+    background: linear-gradient(var(--yellow), var(--yellow)) 0 88% / 100% 0.35em no-repeat;
+  }
+
+  .role__head {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .role__head h4 {
+    font-size: var(--text-base);
+  }
+
+  .role__meta {
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .role__points {
+    display: grid;
+    gap: 0.625rem;
+    max-width: var(--measure);
+    margin-top: 1rem;
+    padding-left: 1.125rem;
+  }
+
+  .role__points li::marker {
+    color: var(--cyan);
+  }
+
+  .role--study + .role--study {
+    margin-top: -1.25rem;
+  }
+
+  .role__note {
+    margin-top: 0.375rem;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .roles__group {
+    margin-top: 1rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .toolbox {
+    display: grid;
+    gap: 0.875rem;
+    margin-top: -1.25rem;
+  }
+
+  .toolbox div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.125rem;
+  }
+
+  .toolbox dt {
+    font-weight: 600;
+    font-size: var(--text-sm);
+  }
+
+  .toolbox dd {
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+    max-width: 42rem;
+  }
+
+  @media (min-width: 40rem) {
+    .toolbox div {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+</style>

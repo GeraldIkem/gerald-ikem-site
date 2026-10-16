@@ -1,0 +1,24 @@
+---
+interface Props {
+  size?: number;
+}
+const { size = 28 } = Astro.props;
+---
+
+<svg class="mark" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <rect class="mark__root" x="5" y="7.5" width="22" height="4" rx="1"></rect>
+  <rect class="mark__a" x="9" y="14" width="9" height="4" rx="1"></rect>
+  <rect class="mark__b" x="16" y="20.5" width="11" height="4" rx="1"></rect>
+</svg>
+
+<style>
+  .mark__root {
+    fill: var(--ink);
+  }
+  .mark__a {
+    fill: var(--cyan);
+  }
+  .mark__b {
+    fill: var(--magenta);
+  }
+</style>

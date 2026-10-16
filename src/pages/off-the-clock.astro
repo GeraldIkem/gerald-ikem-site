@@ -1,0 +1,195 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '~/layouts/Base.astro';
+import Shelf from '~/components/Shelf.astro';
+import { countBy, type Book } from '~/lib/shelf';
+
+const comics: Book[] = (await getCollection('comics')).map((entry) => ({ ...entry.data, id: entry.id }));
+const counts = countBy(comics);
+const owned = comics.filter((book) => book.status === 'shelf');
+const marvel = owned.filter((book) => book.publisher === 'Marvel Comics').length;
+const dc = owned.filter((book) => book.publisher === 'DC Comics').length;
+---
+
+<Base
+  title="Off the clock"
+  description="Gerald Ikem’s comic shelf, with his notes on every book, plus basketball, swimming, LEGO and books."
+>
+  <section class="intro wrap">
+    <h1>Off the clock</h1>
+    <p class="lede">
+      Away from work I read comics, play basketball, swim, build LEGO and collect books. The comics take up the most
+      room, so they get most of this page.
+    </p>
+  </section>
+
+  <section class="section wrap" aria-labelledby="shelf-title">
+    <div class="section__head">
+      <h2 id="shelf-title">The comic shelf</h2>
+      <p>
+        {owned.length} books on the shelf: {dc} from DC, {marvel} from Marvel. I read runs in order, so most of my
+        notes are about what comes next.
+      </p>
+    </div>
+    <div class="section__body">
+      <Shelf />
+      <dl class="legend">
+        <div>
+          <dt><span class="swatch swatch--shelf"></span>Solid</dt>
+          <dd>On my shelf</dd>
+        </div>
+        <div>
+          <dt><span class="swatch swatch--ordered"></span>Striped</dt>
+          <dd>Ordered, not here yet</dd>
+        </div>
+        <div>
+          <dt><span class="swatch swatch--wishlist"></span>Outline</dt>
+          <dd>On the wishlist</dd>
+        </div>
+        <div>
+          <dt><span class="swatch swatch--read"></span>Faded</dt>
+          <dd>Read, but no longer mine</dd>
+        </div>
+      </dl>
+      <p class="fineprint">
+        DC spines are blue, Marvel’s red. Height follows the format, and thickness follows the page count where I
+        have it. The list comes straight from my collection catalogue: a short Python script turns its export into
+        the data for this page, so the shelf stays current. Right now that’s {counts.ordered} on order and {counts.wishlist} on
+        the wishlist.
+      </p>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="else-title">
+    <div class="section__head">
+      <h2 id="else-title">Everything else</h2>
+    </div>
+    <div class="section__body">
+      <ul class="hobbies">
+        <li>
+          <h3>Basketball</h3>
+          <p>I play, and I follow the NBA and WNBA closely enough that both ended up in Matchday ML.</p>
+        </li>
+        <li>
+          <h3>Football</h3>
+          <p>The Premier League, La Liga and the Champions League. They’re in Matchday ML too.</p>
+        </li>
+        <li>
+          <h3>Swimming</h3>
+          <p>The one sport here with no screen anywhere nearby.</p>
+        </li>
+        <li>
+          <h3>LEGO</h3>
+          <p>I build sets, and I’ve played through LEGO Batman, LEGO Marvel and LEGO Pirates of the Caribbean.</p>
+        </li>
+        <li>
+          <h3>Books</h3>
+          <p>Comics aren’t the only thing I collect. The bookshelf is filling up as well.</p>
+        </li>
+      </ul>
+      <p class="back"><a href="/#work">Back to my work</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro {
+    padding-block: clamp(2rem, 6vw, 4.5rem) clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .intro h1 {
+    font-size: clamp(2.75rem, 1rem + 7vw, 6rem);
+    font-weight: 650;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+  }
+
+  .intro .lede {
+    margin-top: 1.25rem;
+    color: var(--ink-2);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.75rem;
+    margin-top: 1.5rem;
+    font-size: var(--text-xs);
+  }
+
+  .legend div {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .legend dt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+  }
+
+  .legend dd {
+    color: var(--ink-2);
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 0.7rem;
+    height: 1.1rem;
+    border-radius: 2px 2px 0 0;
+    background: oklch(0.4 0.11 245);
+  }
+
+  .swatch--ordered {
+    background:
+      repeating-linear-gradient(135deg, oklch(0.4 0.11 245) 0 3px, transparent 3px 7px),
+      color-mix(in oklch, oklch(0.4 0.11 245) 30%, var(--paper));
+  }
+
+  .swatch--wishlist {
+    background: none;
+    outline: 1.5px dashed oklch(0.4 0.11 245);
+    outline-offset: -1.5px;
+  }
+
+  .swatch--read {
+    opacity: 0.45;
+  }
+
+  .fineprint {
+    margin-top: 1rem;
+    max-width: var(--measure);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .hobbies {
+    display: grid;
+    gap: 1.75rem 3rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 44rem) {
+    .hobbies {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .hobbies h3 {
+    font-size: var(--text-base);
+  }
+
+  .hobbies p {
+    margin-top: 0.25rem;
+    color: var(--ink-2);
+    max-width: 30rem;
+  }
+
+  .back {
+    margin-top: 3rem;
+    font-weight: 600;
+  }
+</style>

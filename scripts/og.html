@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- Bars sit on a Sep 2019 to Aug 2028 axis, matching the career trace. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Social card</title>
+    <style>
+      @font-face {
+        font-family: 'Familjen';
+        src: url('../node_modules/@fontsource-variable/familjen-grotesk/files/familjen-grotesk-latin-wght-normal.woff2') format('woff2');
+        font-weight: 400 700;
+      }
+      @font-face {
+        font-family: 'Mono';
+        src: url('../node_modules/@fontsource-variable/atkinson-hyperlegible-mono/files/atkinson-hyperlegible-mono-latin-wght-normal.woff2') format('woff2');
+        font-weight: 200 800;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      body { width: 1200px; height: 630px; background: #f3f4f0; color: #1d2024; font-family: 'Familjen', sans-serif; }
+      .card { position: relative; width: 100%; height: 100%; padding: 72px 80px; }
+      h1 { font-size: 132px; font-weight: 650; letter-spacing: -0.045em; line-height: 0.9; }
+      p { margin-top: 26px; font-size: 40px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.15; color: #1d2024; }
+      .trace { position: absolute; left: 80px; right: 80px; bottom: 72px; display: grid; gap: 14px; }
+      .row { display: grid; grid-template-columns: 300px 1fr 120px; align-items: center; gap: 24px; font-size: 22px; color: #4b5159; }
+      .track { position: relative; height: 16px; }
+      .bar { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+      .ms { font-family: 'Mono', monospace; font-size: 20px; text-align: right; }
+      .mark { position: absolute; top: 72px; right: 80px; width: 40px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="5" y="7.5" width="22" height="4" rx="1" fill="#1d2024"></rect>
+        <rect x="9" y="14" width="9" height="4" rx="1" fill="#0083b5"></rect>
+        <rect x="16" y="20.5" width="11" height="4" rx="1" fill="#c2006a"></rect>
+      </svg>
+      <h1>Gerald Ikem</h1>
+      <p>Backend engineer. Payments now,<br />machine learning next.</p>
+      <div class="trace">
+        <div class="row"><span>Payaza, backend</span><span class="track"><span class="bar" style="left:68.5%;width:10.2%;background:#0083b5"></span></span><span class="ms">2025–</span></div>
+        <div class="row"><span>UIUC, MCS</span><span class="track"><span class="bar" style="left:76.9%;width:19.4%;background:repeating-linear-gradient(135deg,#c2006a 0 3px,transparent 3px 7px);box-shadow:inset 0 0 0 1.5px #c2006a"></span></span><span class="ms">2026–28</span></div>
+        <div class="row"><span>York, BSc</span><span class="track"><span class="bar" style="left:11.1%;width:51.9%;background:#c2006a"></span></span><span class="ms">2020–25</span></div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,356 @@
+@import '@fontsource-variable/familjen-grotesk/wght.css';
+@import '@fontsource-variable/familjen-grotesk/wght-italic.css';
+@import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css';
+
+/*
+ * Palette: process inks on paper. Cyan, magenta and yellow are the inks
+ * comics are printed with; here they colour trace spans, never decoration.
+ */
+:root {
+  color-scheme: light;
+  --paper: #f3f4f0;
+  --paper-raised: #fafaf7;
+  --ink: #1d2024;
+  --ink-2: #4b5159;
+  --ink-3: #626972;
+  --rule: #d9dbd4;
+  --rule-strong: #b6bab2;
+  --cyan: #0083b5;
+  --magenta: #c2006a;
+  --yellow: #ffd60a;
+  --link: #005f86;
+  --span-setup: var(--cyan);
+  --span-server: var(--magenta);
+  --span-transfer: #3b4048;
+  --span-asset: #6aa8c4;
+  --span-render: #8a8f96;
+  --selection: #ffe666;
+
+  --font-display: 'Familjen Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: var(--font-display);
+  --font-mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Bringhurst's classic scale, in rem: 14 · 16 · 18 · 21 · 28 · 36 · 56 · 96 */
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-md: 1.3125rem;
+  --text-lg: 1.75rem;
+  --text-xl: clamp(1.75rem, 1.2rem + 1.8vw, 2.25rem);
+  --text-2xl: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem);
+  --text-hero: clamp(3.5rem, 1rem + 12.5vw, 10rem);
+
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --measure: 38rem;
+  --page: 76rem;
+  --radius: 4px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #15181c;
+  --paper-raised: #1c2025;
+  --ink: #eceef0;
+  --ink-2: #b0b6bd;
+  --ink-3: #8f979f;
+  --rule: #2c3137;
+  --rule-strong: #444b53;
+  --cyan: #3cbcea;
+  --magenta: #ff5ca8;
+  --yellow: #ffe14d;
+  --link: #7fd2f2;
+  --span-transfer: #d4d8dc;
+  --span-asset: #5e9bb6;
+  --span-render: #7d848c;
+  --selection: #6b5a00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #15181c;
+    --paper-raised: #1c2025;
+    --ink: #eceef0;
+    --ink-2: #b0b6bd;
+    --ink-3: #8f979f;
+    --rule: #2c3137;
+    --rule-strong: #444b53;
+    --cyan: #3cbcea;
+    --magenta: #ff5ca8;
+    --yellow: #ffe14d;
+    --link: #7fd2f2;
+    --span-transfer: #d4d8dc;
+    --span-asset: #5e9bb6;
+    --span-render: #7d848c;
+    --selection: #6b5a00;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 2rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--selection);
+  color: inherit;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: var(--text-md);
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--magenta);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -4rem;
+  z-index: 10;
+  padding: 0.5rem 0.875rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.wrap {
+  width: min(100% - 2 * var(--gutter), var(--page));
+  margin-inline: auto;
+}
+
+/*
+ * A page section: the heading sits in a narrow rail on wide screens and
+ * stays in view while you read the section.
+ */
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  padding-block: clamp(3.5rem, 8vw, 7rem);
+  border-top: 1px solid var(--rule);
+}
+
+.section__head {
+  align-self: start;
+}
+
+.section__head p {
+  margin-top: 0.75rem;
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  max-width: 22rem;
+}
+
+.section__body {
+  min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  .section {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    column-gap: clamp(2.5rem, 5vw, 5rem);
+  }
+
+  .section__head {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+.prose {
+  max-width: var(--measure);
+}
+
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.lede {
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--ink);
+  max-width: 36rem;
+}
+
+.muted {
+  color: var(--ink-2);
+}
+
+.small {
+  font-size: var(--text-sm);
+}
+
+/* Buttons: one solid, one quiet. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.button--quiet {
+  background: transparent;
+  color: var(--ink);
+}
+
+.button--quiet:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.button svg {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
+/* The bordered panel every trace sits in. */
+.panel {
+  border: 1px solid var(--rule-strong);
+  border-radius: 6px;
+  background: var(--paper-raised);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

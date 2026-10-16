@@ -1,0 +1,199 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '~/layouts/Base.astro';
+import PageTrace from '~/components/PageTrace.astro';
+import CareerTrace from '~/components/CareerTrace.astro';
+import Roles from '~/components/Roles.astro';
+import Projects from '~/components/Projects.astro';
+import Shelf from '~/components/Shelf.astro';
+import Contact from '~/components/Contact.astro';
+import { site } from '~/data/site';
+import { countBy, type Book } from '~/lib/shelf';
+
+const comics: Book[] = (await getCollection('comics')).map((entry) => ({ ...entry.data, id: entry.id }));
+const counts = countBy(comics);
+const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size === 'omnibus').length;
+---
+
+<Base home>
+  <section class="hero wrap" aria-labelledby="name">
+    <h1 class="hero__name" id="name">Gerald Ikem</h1>
+    <div class="hero__grid">
+      <div class="hero__intro">
+        <p class="hero__tagline">Backend engineer. Payments now, machine learning next.</p>
+        <p class="lede">
+          I build the Java and Spring Boot services behind checkout, foreign-exchange rates and merchant onboarding at
+          Payaza. I’m also studying for a Master’s in Computer Science at the University of Illinois, and pointing my
+          side projects at machine learning.
+        </p>
+        <div class="hero__actions">
+          <a class="button" href={`mailto:${site.email}`}>Email me</a>
+          <a class="button button--quiet" href={site.resume} download>Download résumé</a>
+        </div>
+        <p class="hero__status">
+          {site.location}, near Toronto. Open to backend roles, hybrid in the GTA or remote.
+        </p>
+      </div>
+      <PageTrace />
+    </div>
+  </section>
+
+  <section class="section wrap" id="work" aria-labelledby="work-title">
+    <div class="section__head">
+      <h2 id="work-title">Work</h2>
+      <p>Three roles and two degrees since 2019, often more than one at a time. Pick a row to jump to the details.</p>
+    </div>
+    <div class="section__body">
+      <CareerTrace />
+      <Roles />
+    </div>
+  </section>
+
+  <section class="section wrap" id="projects" aria-labelledby="projects-title">
+    <div class="section__head">
+      <h2 id="projects-title">Projects</h2>
+      <p>What I build on my own time. The first three get the long version.</p>
+    </div>
+    <div class="section__body">
+      <Projects />
+    </div>
+  </section>
+
+  <section class="section wrap" id="next" aria-labelledby="next-title">
+    <div class="section__head">
+      <h2 id="next-title">What’s next</h2>
+    </div>
+    <div class="section__body prose">
+      <p class="lede">
+        Payments taught me what reliable software takes: a request that may arrive twice, money in currencies with
+        different rules, and an audit trail nobody gets to skip.
+      </p>
+      <p>
+        I want to bring that discipline to machine learning systems, where much of the hard work is data plumbing,
+        evaluation and serving rather than the model itself. That’s why I’m doing the Master’s at Illinois, starting
+        with Applied Machine Learning, and why Hummle is mostly measurement so far: speed, word accuracy and voice
+        identity, checked by code rather than guessed by ear.
+      </p>
+      <p>
+        Right now I’m looking for a backend or platform role on a team that runs serious systems, at a bank, a payments
+        company or a large enterprise, ideally one where I can grow toward ML infrastructure.
+      </p>
+    </div>
+  </section>
+
+  <section class="section wrap" id="off-the-clock" aria-labelledby="off-title">
+    <div class="section__head">
+      <h2 id="off-title">Off the clock</h2>
+    </div>
+    <div class="section__body">
+      <div class="prose">
+        <p class="lede">
+          I collect comics, mostly DC and Marvel omnibuses, and read each run in order. There are {counts.shelf} books on
+          my shelf ({omnibuses} of them omnibuses), {counts.ordered} on order and {counts.wishlist} on the wishlist.
+        </p>
+        <p>I also play basketball, swim, build LEGO and collect books.</p>
+      </div>
+      <a class="teaser" href="/off-the-clock/">
+        <Shelf teaser />
+        <span class="teaser__link">Browse the shelf and read my notes on each book</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section wrap" id="contact" aria-labelledby="contact-title">
+    <div class="section__head">
+      <h2 id="contact-title">Contact</h2>
+    </div>
+    <div class="section__body">
+      <Contact />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(2rem, 6vw, 4.5rem) clamp(3.5rem, 8vw, 6rem);
+  }
+
+  .hero__name {
+    font-size: var(--text-hero);
+    font-weight: 650;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    margin-left: -0.04em;
+  }
+
+  .hero__grid {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: clamp(1.75rem, 4vw, 3rem);
+  }
+
+  @media (min-width: 64rem) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: clamp(2.5rem, 5vw, 4.5rem);
+      align-items: start;
+    }
+  }
+
+  .hero__tagline {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    max-width: 22ch;
+  }
+
+  .hero__intro .lede {
+    margin-top: 1.25rem;
+    color: var(--ink-2);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    margin-top: 1.75rem;
+  }
+
+  .hero__status {
+    margin-top: 1.25rem;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+    max-width: 30rem;
+  }
+
+  .hero__status::before {
+    content: '';
+    display: inline-block;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: 0.5rem;
+    border-radius: 1px;
+    background: var(--yellow);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 25%, transparent);
+  }
+
+  .teaser {
+    display: block;
+    margin-top: 2.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .teaser__link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--link);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .teaser:hover .teaser__link {
+    text-decoration-thickness: 2px;
+  }
+</style>

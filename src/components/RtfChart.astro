@@ -1,0 +1,142 @@
+---
+/**
+ * Real-time factor ranges from Hummle's engine benchmarks. Lower is faster:
+ * 0.25 means a minute of speech takes fifteen seconds to generate.
+ */
+const rows = [
+  { label: 'GGUF q8_0 on Vulkan', low: 0.21, high: 0.35, tone: 'cyan' },
+  { label: 'PyTorch on ROCm', low: 0.75, high: 1.0, tone: 'magenta' },
+];
+const max = 1.2;
+const ticks = [0, 0.25, 0.5, 0.75, 1.0];
+const pct = (value: number) => `${(value / max) * 100}%`;
+---
+
+<figure class="rtf panel">
+  <figcaption>
+    <span class="rtf__title">Generation speed across five models on one GPU</span>
+    <span class="rtf__sub">Real-time factor: seconds of compute per second of speech. Lower is faster.</span>
+  </figcaption>
+  <div class="rtf__grid">
+    <div class="rtf__axis" aria-hidden="true">
+      {ticks.map((tick) => <span style={`--at:${pct(tick)}`}>{tick === 1 ? '1.0' : tick}</span>)}
+    </div>
+    {
+      rows.map((row) => (
+        <div class="rtf__row" data-tone={row.tone}>
+          <span class="rtf__label">{row.label}</span>
+          <span class="rtf__track">
+            <span class="rtf__bar" style={`--left:${pct(row.low)};--width:${pct(row.high - row.low)}`} />
+          </span>
+          <span class="rtf__value">
+            {row.low.toFixed(2)}–{row.high.toFixed(2)}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+</figure>
+
+<style>
+  .rtf {
+    --label-w: 10.5rem;
+    --value-w: 6.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.125rem 1.125rem;
+    font-size: var(--text-sm);
+  }
+
+  figcaption {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .rtf__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-base);
+  }
+
+  .rtf__sub {
+    color: var(--ink-2);
+    font-size: var(--text-xs);
+  }
+
+  .rtf__grid {
+    position: relative;
+    display: grid;
+    gap: 0.5rem;
+    padding-top: 2rem;
+    margin-top: 0.5rem;
+  }
+
+  .rtf__axis {
+    position: absolute;
+    inset: 0 calc(var(--value-w) + 0.75rem) 0 calc(var(--label-w) + 0.75rem);
+  }
+
+  .rtf__axis span {
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0;
+    left: var(--at);
+    padding-left: 0.25rem;
+    border-left: 1px dashed var(--rule);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .rtf__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--label-w) minmax(0, 1fr) var(--value-w);
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .rtf__track {
+    position: relative;
+    height: 0.875rem;
+  }
+
+  .rtf__bar {
+    position: absolute;
+    inset-block: 0;
+    left: var(--left);
+    width: var(--width);
+    border-radius: 2px;
+    background: var(--cyan);
+  }
+
+  [data-tone='magenta'] .rtf__bar {
+    background: var(--magenta);
+  }
+
+  .rtf__value {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-2);
+    text-align: right;
+  }
+
+  @media (max-width: 40rem) {
+    .rtf {
+      --label-w: 0rem;
+    }
+
+    .rtf__row {
+      grid-template-columns: minmax(0, 1fr) var(--value-w);
+      row-gap: 0.25rem;
+    }
+
+    .rtf__label {
+      grid-column: 1 / -1;
+    }
+
+    .rtf__axis {
+      left: 0;
+      top: 0;
+    }
+  }
+</style>

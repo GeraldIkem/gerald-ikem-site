@@ -1,0 +1,84 @@
+---
+import '~/styles/global.css';
+import '~/styles/print.css';
+import displayFont from '@fontsource-variable/familjen-grotesk/files/familjen-grotesk-latin-wght-normal.woff2?url';
+import Header from '~/components/Header.astro';
+import Footer from '~/components/Footer.astro';
+import { site } from '~/data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Hide the name in the header on the page that already leads with it. */
+  home?: boolean;
+  noindex?: boolean;
+}
+
+const { title, description = site.description, home = false, noindex = false } = Astro.props;
+const pageTitle = title ? `${title} | ${site.name}` : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: site.role,
+  url: new URL('/', Astro.site).href,
+  email: `mailto:${site.email}`,
+  address: { '@type': 'PostalAddress', addressLocality: 'Woodbridge', addressRegion: 'ON', addressCountry: 'CA' },
+  worksFor: { '@type': 'Organization', name: 'Payaza' },
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'York University' },
+  ],
+  sameAs: [site.links.github, site.links.linkedin],
+};
+---
+
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f3f4f0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15181c" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={displayFont} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Gerald Ikem, backend engineer. Payments now, machine learning next." />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(person)} />
+
+    <script is:inline>
+      // Apply a saved theme before first paint so the page never flashes the wrong one.
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header home={home} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
