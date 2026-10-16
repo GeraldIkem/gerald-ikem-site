@@ -14,7 +14,7 @@ const comics = defineCollection({
     pages: z.number().int().positive().nullable(),
     year: z.number().int().nullable(),
     note: z.string(),
-    coverUrl: z.string().url().nullable().optional(),
+    coverUrl: z.url().nullable().optional(),
     cover: z.string().startsWith('/covers/').optional(),
     coverColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
     coverRatio: z.number().min(0.4).max(1.2).optional(),

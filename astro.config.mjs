@@ -12,4 +12,8 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   devToolbar: { enabled: false },
+  vite: {
+    // three.js lands in its own chunk that only the LEGO viewer loads, on demand.
+    build: { chunkSizeWarningLimit: 700 },
+  },
 });

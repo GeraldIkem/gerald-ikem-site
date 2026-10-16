@@ -1,0 +1,253 @@
+---
+import { modelled } from '~/data/lego';
+const first = modelled[0];
+---
+
+<lego-viewer class="viewer">
+  <div class="viewer__picker" role="group" aria-label="Choose a set to build">
+    {
+      modelled.map((set, index) => (
+        <button
+          type="button"
+          class="viewer__pick"
+          aria-pressed={index === 0 ? 'true' : 'false'}
+          data-url={set.model.url}
+          data-name={set.name}
+          data-number={set.number}
+          data-author={set.model.author}
+          data-source={set.model.source}
+          data-license={set.model.license}
+          data-built={String(set.built)}
+        >
+          {set.name}
+          {!set.built && <span class="viewer__flag">In the box</span>}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="viewer__stage" data-stage>
+    <p class="viewer__status" data-status>
+      The {first?.name} builds itself here, brick by brick, in the order of its real instructions.
+    </p>
+  </div>
+
+  <div class="viewer__bar">
+    <p class="viewer__progress" data-progress>Ready to build</p>
+    <button type="button" class="viewer__replay" data-replay disabled>Build it again</button>
+  </div>
+  <p class="viewer__credit" data-credit>
+    3D model of set {first?.number} by {first?.model.author}, {first?.model.source}, {first?.model.license}.
+  </p>
+</lego-viewer>
+
+<script>
+  import type { LegoBuild } from '~/scripts/legoBuild';
+
+  class LegoViewer extends HTMLElement {
+    #build: LegoBuild | null = null;
+    #loading: Promise<LegoBuild | null> | null = null;
+    #current: HTMLButtonElement | null = null;
+
+    connectedCallback() {
+      const picks = [...this.querySelectorAll<HTMLButtonElement>('[data-url]')];
+      for (const pick of picks) pick.addEventListener('click', () => this.#show(pick));
+      this.querySelector('[data-replay]')?.addEventListener('click', () => this.#build?.build());
+
+      // Load three.js and the first model only when the viewer comes near the screen.
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries.some((entry) => entry.isIntersecting);
+          this.#build?.setVisible(visible);
+          if (visible && !this.#current && picks[0]) this.#show(picks[0]);
+        },
+        { rootMargin: '200px 0px' },
+      );
+      observer.observe(this);
+    }
+
+    async #engine(): Promise<LegoBuild | null> {
+      if (this.#build) return this.#build;
+      this.#loading ??= (async () => {
+        const stage = this.querySelector<HTMLElement>('[data-stage]');
+        if (!stage) return null;
+        try {
+          const { LegoBuild } = await import('~/scripts/legoBuild');
+          this.#build = new LegoBuild(stage, {
+            reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+            interactive: matchMedia('(pointer: fine)').matches,
+          });
+          return this.#build;
+        } catch {
+          this.#status('This browser could not start 3D graphics, so the model can’t be shown here.');
+          return null;
+        }
+      })();
+      return this.#loading;
+    }
+
+    async #show(pick: HTMLButtonElement) {
+      this.#current = pick;
+      for (const other of this.querySelectorAll('[data-url]')) other.setAttribute('aria-pressed', String(other === pick));
+      const { url = '', name = '', number = '', author = '', source = '', license = '' } = pick.dataset;
+      this.#credit(`3D model of set ${number} by ${author}, ${source}, ${license}.`);
+      this.#status(`Loading the ${name}…`);
+      this.#progress('Loading parts');
+      const replay = this.querySelector<HTMLButtonElement>('[data-replay]');
+      if (replay) replay.disabled = true;
+
+      const build = await this.#engine();
+      if (!build || this.#current !== pick) return;
+      try {
+        await build.show(url, {
+          onProgress: (step, steps) => this.#progress(`Step ${step} of ${steps}`),
+          onDone: () => {
+            if (replay) replay.disabled = false;
+          },
+        });
+        this.#status('');
+      } catch {
+        this.#status(`The ${name} model didn’t load. Try again in a moment.`);
+      }
+    }
+
+    #status(text: string) {
+      const status = this.querySelector<HTMLElement>('[data-status]');
+      if (!status) return;
+      status.textContent = text;
+      status.hidden = !text;
+    }
+
+    #progress(text: string) {
+      const progress = this.querySelector('[data-progress]');
+      if (progress) progress.textContent = text;
+    }
+
+    #credit(text: string) {
+      const credit = this.querySelector('[data-credit]');
+      if (credit) credit.textContent = text;
+    }
+  }
+
+  customElements.define('lego-viewer', LegoViewer);
+</script>
+
+<style>
+  .viewer {
+    display: block;
+    margin-bottom: 2.75rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    background: var(--paper-raised);
+    overflow: hidden;
+  }
+
+  .viewer__picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 1rem 1.125rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .viewer__pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.25rem;
+    padding: 0.3rem 0.85rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    background: none;
+    color: var(--ink-2);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .viewer__pick[aria-pressed='true'] {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .viewer__flag {
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--process-yellow);
+    color: #1d2024;
+    font-size: 0.7rem;
+  }
+
+  /* The build happens on a yellow baseplate of dots, like the book stage. */
+  .viewer__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: clamp(20rem, 52vw, 32rem);
+    background:
+      radial-gradient(circle, color-mix(in srgb, var(--process-magenta) 30%, transparent) 0 30%, transparent 33%) 0 0 / 16px
+        16px,
+      color-mix(in srgb, var(--process-yellow) 80%, var(--paper));
+    cursor: grab;
+  }
+
+  .viewer__stage:active {
+    cursor: grabbing;
+  }
+
+  .viewer__stage :global(canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .viewer__status {
+    position: relative;
+    z-index: 1;
+    max-width: 26rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    background: rgb(255 255 255 / 0.85);
+    color: #1d2024;
+    text-align: center;
+    font-size: var(--text-sm);
+  }
+
+  .viewer__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 0.75rem 1.125rem 0.25rem;
+  }
+
+  .viewer__progress {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-2);
+  }
+
+  .viewer__replay {
+    padding: 0.35rem 0.9rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: none;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .viewer__replay:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .viewer__credit {
+    padding: 0.25rem 1.125rem 0.9rem;
+    color: var(--ink-3);
+    font-size: 0.78rem;
+  }
+</style>

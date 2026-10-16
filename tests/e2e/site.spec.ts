@@ -120,6 +120,20 @@ test.describe('off the clock', () => {
   });
 });
 
+test('builds a real LEGO set in 3D when the viewer comes into view', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/off-the-clock/');
+  const viewer = page.locator('lego-viewer');
+  await viewer.scrollIntoViewIfNeeded();
+  await expect(viewer.locator('canvas')).toBeVisible({ timeout: 15_000 });
+  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of \d+$/, { timeout: 20_000 });
+
+  await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
+  await expect(viewer.locator('[data-credit]')).toContainText('10265');
+  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 20_000 });
+  expect(errors).toEqual([]);
+});
+
 test('unknown addresses get the 404 page', async ({ page }) => {
   const response = await page.goto('/no-such-page');
   expect(response?.status()).toBe(404);
