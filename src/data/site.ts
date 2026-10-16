@@ -10,6 +10,8 @@ export const site = {
   links: {
     github: 'https://github.com/GeraldIkem',
     linkedin: 'https://www.linkedin.com/in/gerald-ikem-158926233/',
+    /** Gerald's shelf: the tracker for the whole collection, pre-orders and reading orders included. */
+    shelf: 'https://shelf.geraldikem.com',
   },
   /** Shown in the footer; bump when the content changes. */
   updated: '2026-10',
