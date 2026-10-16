@@ -11,6 +11,13 @@ export interface Book {
   pages: number | null;
   year: number | null;
   note: string;
+  coverUrl?: string | null;
+  /** Local WebP of the front cover, written by scripts/covers.mjs. */
+  cover?: string;
+  /** Main colour along the cover's left edge, used for the spine. */
+  coverColor?: string;
+  /** Cover width divided by height. */
+  coverRatio?: number;
 }
 
 /** Spine heights in rem, roughly in proportion to the real formats. */
@@ -53,9 +60,25 @@ export interface SpineStyle {
   height: number;
   width: number;
   color: string;
+  /** Text colour that reads on `color`. */
+  text: string;
 }
 
-export function spineStyle(book: Pick<Book, 'title' | 'publisher' | 'size' | 'pages'>): SpineStyle {
+/** Black or white, whichever reads better on a hex colour (WCAG relative luminance). */
+export function readableOn(hexColor: string): string {
+  const match = /^#?([0-9a-f]{6})$/i.exec(hexColor);
+  if (!match?.[1]) return '#ffffff';
+  const channels = [0, 2, 4].map((i) => {
+    const value = parseInt(match[1]!.slice(i, i + 2), 16) / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
+  return luminance > 0.36 ? '#15181c' : '#ffffff';
+}
+
+export function spineStyle(
+  book: Pick<Book, 'title' | 'publisher' | 'size' | 'pages'> & { coverColor?: string | undefined },
+): SpineStyle {
   const seed = hash(book.title);
   const [from, to] = HUES[book.publisher] ?? OTHER_HUES;
   const hue = (from + (seed % (to - from + 1))) % 360;
@@ -66,10 +89,21 @@ export function spineStyle(book: Pick<Book, 'title' | 'publisher' | 'size' | 'pa
   const fromPages = book.pages && book.pages >= 120 ? (book.pages / 1000) * 3.4 : null;
   const width = Math.min(Math.max(fromPages ?? THICKNESS[book.size], 0.95), 4.3);
 
+  // A real cover's edge colour wins over the publisher family colour.
+  if (book.coverColor) {
+    return {
+      height: HEIGHT[book.size],
+      width: Math.round(width * 100) / 100,
+      color: book.coverColor,
+      text: readableOn(book.coverColor),
+    };
+  }
+
   return {
     height: HEIGHT[book.size],
     width: Math.round(width * 100) / 100,
     color: `oklch(${lightness.toFixed(2)} ${chroma.toFixed(2)} ${hue})`,
+    text: '#ffffff',
   };
 }
 

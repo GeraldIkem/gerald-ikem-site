@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import comics from '../../src/data/comics.json';
-import { countBy, describe as describeBook, hash, publisherMark, shelfOrder, spineLabel, spineStyle, type Book } from '~/lib/shelf';
+import { countBy, describe as describeBook, hash, publisherMark, readableOn, shelfOrder, spineLabel, spineStyle, type Book } from '~/lib/shelf';
 
 const book = (overrides: Partial<Book>): Book => ({
   id: '1',
@@ -93,5 +93,23 @@ describe('publisherMark', () => {
     expect(publisherMark('Marvel Comics')).toBe('Marvel');
     expect(publisherMark('Image Comics')).toBe('Image');
     expect(publisherMark('Abrams')).toBe('Abrams');
+  });
+});
+
+describe('cover colours', () => {
+  it('uses the cover edge colour for the spine when there is one', () => {
+    const style = spineStyle(book({ coverColor: '#f8f8f8' }));
+    expect(style.color).toBe('#f8f8f8');
+    expect(style.text).toBe('#15181c');
+  });
+
+  it('picks text that reads on dark and light spines', () => {
+    expect(readableOn('#080808')).toBe('#ffffff');
+    expect(readableOn('#f8e8c8')).toBe('#15181c');
+    expect(readableOn('#c8102e')).toBe('#ffffff');
+  });
+
+  it('has a local cover for every book in the collection', () => {
+    expect((comics as Book[]).every((b) => b.cover?.startsWith('/covers/'))).toBe(true);
   });
 });

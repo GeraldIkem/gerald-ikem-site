@@ -47,7 +47,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
         {books.map((book) => {
           const style = spineStyle(book);
           return (
-            <span class="spine" data-status={book.status} style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color}`}>
+            <span class="spine" data-status={book.status} style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color};--tc:${style.text}`}>
               <Spine book={book} />
             </span>
           );
@@ -94,7 +94,9 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
               data-note={book.note}
               data-h={style.height}
               data-w={style.width}
-              style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color}`}
+              data-cover={book.cover ?? ''}
+              data-ratio={book.coverRatio ?? 0.67}
+              style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color};--tc:${style.text}`}
               aria-label={`${book.title}. ${STATUS_LABEL[book.status]}.`}
             >
               <Spine book={book} />
@@ -229,19 +231,58 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       const stage = this.querySelector<HTMLElement>('[data-stage]');
       if (!stage) return;
       const data = spine.dataset;
-      const height = Number(data['h']);
+      // Shown a little larger than on the shelf, so the cover reads.
+      const height = Number(data['h']) * 1.22;
       const thickness = Math.max(Number(data['w']) * 1.1, 1);
       const book = document.createElement('div');
       book.className = 'book3d';
       book.dataset['status'] = data['status'] ?? 'shelf';
       book.style.setProperty('--c', spine.style.getPropertyValue('--c'));
+      book.style.setProperty('--tc', spine.style.getPropertyValue('--tc'));
       book.style.setProperty('--bh', `${height}rem`);
-      book.style.setProperty('--bw', `${height * 0.67}rem`);
+      book.style.setProperty('--bw', `${height * Number(data['ratio'] || 0.67)}rem`);
       book.style.setProperty('--bt', `${thickness}rem`);
 
       const inner = document.createElement('div');
       inner.className = 'book3d__inner';
 
+      const front = data['cover'] ? this.#realCover(data) : this.#printedCover(data);
+      if (data['status'] !== 'shelf') front.append(part('span', 'cover__sticker', data['state']));
+
+      const spineFace = document.createElement('div');
+      spineFace.className = 'book3d__spine';
+      const body = spine.querySelector('.spine__body');
+      if (body) spineFace.append(body.cloneNode(true));
+
+      const back = part('div', 'book3d__back', [part('span', 'book3d__exlibris', 'From the shelf of Gerald Ikem')]);
+      inner.append(front, spineFace, part('div', 'book3d__pages'), part('div', 'book3d__top'), back);
+      book.append(inner);
+      stage.replaceChildren(book);
+
+      // Turn from spine-on to cover-on: the book coming off the shelf.
+      if (motionOk()) {
+        this.#setAngle(book, 88, false);
+        requestAnimationFrame(() => requestAnimationFrame(() => this.#setAngle(book, RESTING_ANGLE, true)));
+      } else {
+        this.#setAngle(book, RESTING_ANGLE, false);
+      }
+    }
+
+    /** The publisher's front cover, wrapped onto the board with a little gloss. */
+    #realCover(data: DOMStringMap): HTMLElement {
+      const front = document.createElement('div');
+      front.className = 'book3d__front cover cover--real';
+      const img = document.createElement('img');
+      img.src = data['cover'] ?? '';
+      img.alt = '';
+      img.decoding = 'async';
+      img.draggable = false;
+      front.append(img, part('span', 'cover__gloss'));
+      return front;
+    }
+
+    /** A stand-in cover for any book without artwork. */
+    #printedCover(data: DOMStringMap): HTMLElement {
       const front = document.createElement('div');
       front.className = 'book3d__front cover';
       const label = data['label'] ?? '';
@@ -254,24 +295,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       );
       if (data['volume']) front.append(part('span', 'cover__vol', data['volume']));
       front.append(part('span', 'cover__title', label), part('span', 'cover__foot', 'From the shelf of Gerald Ikem'));
-      if (data['status'] !== 'shelf') front.append(part('span', 'cover__sticker', data['state']));
-
-      const spineFace = document.createElement('div');
-      spineFace.className = 'book3d__spine';
-      const body = spine.querySelector('.spine__body');
-      if (body) spineFace.append(body.cloneNode(true));
-
-      inner.append(front, spineFace, part('div', 'book3d__pages'), part('div', 'book3d__top'), part('div', 'book3d__back'));
-      book.append(inner);
-      stage.replaceChildren(book);
-
-      // Turn from spine-on to cover-on: the book coming off the shelf.
-      if (motionOk()) {
-        this.#setAngle(book, 88, false);
-        requestAnimationFrame(() => requestAnimationFrame(() => this.#setAngle(book, RESTING_ANGLE, true)));
-      } else {
-        this.#setAngle(book, RESTING_ANGLE, false);
-      }
+      return front;
     }
 
     #setAngle(book: HTMLElement, angle: number, animate: boolean) {
@@ -408,7 +432,8 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     background:
       linear-gradient(90deg, rgb(255 255 255 / 0.14), transparent 24%, transparent 76%, rgb(0 0 0 / 0.22)),
       var(--c);
-    color: #fff;
+    color: var(--tc, #fff);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
     transition: transform 260ms var(--ease-out);
   }
 
@@ -431,7 +456,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     font-size: 0.85rem;
     font-weight: 700;
     line-height: 1;
-    color: rgb(255 226 160);
+    color: inherit;
   }
 
   :global(.spine__title) {
@@ -538,7 +563,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 
   @media (min-width: 48rem) {
     .shelf__detail {
-      grid-template-columns: 17rem minmax(0, 1fr);
+      grid-template-columns: 19rem minmax(0, 1fr);
     }
   }
 
@@ -546,7 +571,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     position: relative;
     display: grid;
     place-items: center;
-    min-height: 19rem;
+    min-height: 22rem;
     border-radius: 8px;
     background:
       radial-gradient(circle, color-mix(in srgb, var(--magenta) 45%, transparent) 0 32%, transparent 35%) 0 0 / 13px 13px,
@@ -645,8 +670,44 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 
   :global(.book3d__back) {
     inset: 0;
-    background: color-mix(in oklch, var(--c) 75%, black);
+    display: grid;
+    place-items: end center;
+    padding-bottom: 1rem;
+    background: color-mix(in oklch, var(--c) 82%, black);
+    color: var(--tc, #fff);
     transform: rotateY(180deg) translateZ(calc(var(--bt) / 2));
+  }
+
+  :global(.book3d__exlibris) {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid currentColor;
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    font-weight: 600;
+    opacity: 0.8;
+  }
+
+  :global(.cover--real) {
+    padding: 0;
+    background: var(--c);
+  }
+
+  :global(.cover--real img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+  }
+
+  /* Light catching the board, and the crease where the cover meets the spine. */
+  :global(.cover__gloss) {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 0.35) 0, rgb(255 255 255 / 0.18) 3%, transparent 8%),
+      linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.16) 48%, transparent 60%);
+    pointer-events: none;
   }
 
   :global(.book3d__spine) {
