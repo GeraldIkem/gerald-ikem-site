@@ -12,14 +12,18 @@ export interface Book {
   year: number | null;
   note: string;
   coverUrl?: string | null | undefined;
+  /** Back cover in CLZ Core, when the export carries one. */
+  backUrl?: string | null | undefined;
   /** Local WebP of the front cover, written by scripts/covers.mjs. */
   cover?: string | undefined;
   /** Main colour along the cover's left edge, used for the spine. */
   coverColor?: string | undefined;
   /** Cover width divided by height. */
   coverRatio?: number | undefined;
-  /** Real spine and back images, where I have them. */
+  /** Real spine and back images, where I have them. Written by scripts/spines.mjs. */
   spineImage?: string | undefined;
+  /** Width of the real spine divided by its height: how thick the book really is. */
+  spineRatio?: number | undefined;
   backImage?: string | undefined;
 }
 
@@ -80,7 +84,10 @@ export function readableOn(hexColor: string): string {
 }
 
 export function spineStyle(
-  book: Pick<Book, 'title' | 'publisher' | 'size' | 'pages'> & { coverColor?: string | undefined },
+  book: Pick<Book, 'title' | 'publisher' | 'size' | 'pages'> & {
+    coverColor?: string | undefined;
+    spineRatio?: number | undefined;
+  },
 ): SpineStyle {
   const seed = hash(book.title);
   const [from, to] = HUES[book.publisher] ?? OTHER_HUES;
@@ -88,9 +95,13 @@ export function spineStyle(
   const lightness = 0.34 + ((seed >>> 8) % 15) / 100;
   const chroma = 0.07 + ((seed >>> 16) % 8) / 100;
 
-  // Real page counts look odd for short floppies, so only trust them for thick books.
+  // A photo of the real spine gives the true thickness. Otherwise estimate it, and
+  // only trust page counts for thick books, since they look odd for short floppies.
+  const fromPhoto = book.spineRatio ? HEIGHT[book.size] * book.spineRatio : null;
   const fromPages = book.pages && book.pages >= 120 ? (book.pages / 1000) * 3.4 : null;
-  const width = Math.min(Math.max(fromPages ?? THICKNESS[book.size], 0.95), 4.3);
+  const width = fromPhoto
+    ? Math.min(Math.max(fromPhoto, 0.5), 5)
+    : Math.min(Math.max(fromPages ?? THICKNESS[book.size], 0.95), 4.3);
 
   // A real cover's edge colour wins over the publisher family colour.
   if (book.coverColor) {

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import comics from '../../src/data/comics.json';
 import { countBy, describe as describeBook, hash, publisherMark, readableOn, shelfOrder, spineLabel, spineStyle, type Book } from '~/lib/shelf';
@@ -25,6 +26,13 @@ describe('spineStyle', () => {
     expect(spineStyle(book({ pages: 1000 })).width).toBe(3.4);
     expect(spineStyle(book({ pages: 32, size: 'trade' })).width).toBe(1.05);
     expect(spineStyle(book({ pages: 5000 })).width).toBe(4.3);
+  });
+
+  it('takes the true thickness from a photo of the real spine', () => {
+    // An omnibus spine 0.2 times as wide as it is tall, on a 14rem omnibus.
+    expect(spineStyle(book({ spineRatio: 0.2 })).width).toBe(2.8);
+    expect(spineStyle(book({ spineRatio: 0.2, pages: 1000 })).width).toBe(2.8);
+    expect(spineStyle(book({ spineRatio: 0.1, size: 'trade' })).width).toBe(1.05);
   });
 
   it('colours DC and Marvel from different families', () => {
@@ -111,5 +119,13 @@ describe('cover colours', () => {
 
   it('has a local cover for every book in the collection', () => {
     expect((comics as Book[]).every((b) => b.cover?.startsWith('/covers/'))).toBe(true);
+  });
+
+  it('points every real spine and back at a file that exists', () => {
+    const missing = (comics as Book[])
+      .flatMap((b) => [b.cover, b.spineImage, b.backImage])
+      .filter((image): image is string => !!image && !existsSync(new URL(`../../public${image}`, import.meta.url)));
+    expect(missing).toEqual([]);
+    expect((comics as Book[]).filter((b) => b.spineImage && !b.spineRatio)).toEqual([]);
   });
 });

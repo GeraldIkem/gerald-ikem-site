@@ -18,8 +18,11 @@ const comics = defineCollection({
     cover: z.string().startsWith('/covers/').optional(),
     coverColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
     coverRatio: z.number().min(0.4).max(1.2).optional(),
-    spineImage: z.string().startsWith('/covers/').optional(),
-    backImage: z.string().startsWith('/covers/').optional(),
+    // Real spine and back images from scripts/spines.mjs (or CLZ Core backs via scripts/covers.mjs).
+    backUrl: z.url().nullable().optional(),
+    spineImage: z.string().startsWith('/spines/').optional(),
+    spineRatio: z.number().min(0.03).max(0.6).optional(),
+    backImage: z.string().startsWith('/backs/').optional(),
   }),
 });
 
