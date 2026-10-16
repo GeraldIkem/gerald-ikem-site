@@ -102,7 +102,7 @@
     "coverRatio": 0.677,
     "backImage": "/backs/791804.webp",
     "spineImage": "/spines/791804.webp",
-    "spineRatio": 0.06
+    "spineRatio": 0.067
   },
   {
     "id": "595563",
@@ -119,7 +119,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.692,
     "spineImage": "/spines/595563.webp",
-    "spineRatio": 0.15,
+    "spineRatio": 0.155,
     "backImage": "/backs/595563.webp"
   },
   {
@@ -137,7 +137,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.65,
     "spineImage": "/spines/1162745.webp",
-    "spineRatio": 0.061,
+    "spineRatio": 0.06,
     "backImage": "/backs/1162745.webp"
   },
   {
@@ -156,7 +156,7 @@
     "coverRatio": 0.672,
     "backImage": "/backs/549725.webp",
     "spineImage": "/spines/549725.webp",
-    "spineRatio": 0.232
+    "spineRatio": 0.183
   },
   {
     "id": "1195681",
@@ -173,7 +173,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.648,
     "spineImage": "/spines/1195681.webp",
-    "spineRatio": 0.074,
+    "spineRatio": 0.079,
     "backImage": "/backs/1195681.webp"
   },
   {
@@ -191,7 +191,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.668,
     "spineImage": "/spines/728937.webp",
-    "spineRatio": 0.056,
+    "spineRatio": 0.058,
     "backImage": "/backs/728937.webp"
   },
   {
@@ -209,7 +209,7 @@
     "coverColor": "#182828",
     "coverRatio": 0.647,
     "spineImage": "/spines/1081038.webp",
-    "spineRatio": 0.181,
+    "spineRatio": 0.175,
     "backImage": "/backs/1081038.webp"
   },
   {
@@ -228,7 +228,7 @@
     "coverRatio": 0.646,
     "backImage": "/backs/1184534.webp",
     "spineImage": "/spines/1184534.webp",
-    "spineRatio": 0.038
+    "spineRatio": 0.05
   },
   {
     "id": "470667",
@@ -245,7 +245,7 @@
     "coverColor": "#282828",
     "coverRatio": 0.662,
     "spineImage": "/spines/470667.webp",
-    "spineRatio": 0.065,
+    "spineRatio": 0.064,
     "backImage": "/backs/470667.webp"
   },
   {
@@ -264,7 +264,7 @@
     "coverRatio": 0.652,
     "backImage": "/backs/861150.webp",
     "spineImage": "/spines/861150.webp",
-    "spineRatio": 0.066
+    "spineRatio": 0.073
   },
   {
     "id": "466699",
@@ -281,7 +281,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.725,
     "spineImage": "/spines/466699.webp",
-    "spineRatio": 0.158
+    "spineRatio": 0.162
   },
   {
     "id": "772235",
@@ -299,7 +299,7 @@
     "coverRatio": 0.671,
     "backImage": "/backs/772235.webp",
     "spineImage": "/spines/772235.webp",
-    "spineRatio": 0.189
+    "spineRatio": 0.192
   },
   {
     "id": "685970",
@@ -334,7 +334,7 @@
     "coverColor": "#281808",
     "coverRatio": 0.65,
     "spineImage": "/spines/1067621.webp",
-    "spineRatio": 0.054,
+    "spineRatio": 0.048,
     "backImage": "/backs/1067621.webp"
   },
   {
@@ -353,7 +353,7 @@
     "coverRatio": 0.65,
     "backImage": "/backs/1143870.webp",
     "spineImage": "/spines/1143870.webp",
-    "spineRatio": 0.073
+    "spineRatio": 0.083
   },
   {
     "id": "692148",
@@ -370,7 +370,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.648,
     "spineImage": "/spines/692148.webp",
-    "spineRatio": 0.078,
+    "spineRatio": 0.054,
     "backImage": "/backs/692148.webp"
   },
   {
@@ -388,7 +388,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.697,
     "spineImage": "/spines/706357.webp",
-    "spineRatio": 0.242,
+    "spineRatio": 0.232,
     "backImage": "/backs/706357.webp"
   },
   {
@@ -407,7 +407,7 @@
     "coverRatio": 0.693,
     "backImage": "/backs/985271.webp",
     "spineImage": "/spines/985271.webp",
-    "spineRatio": 0.086
+    "spineRatio": 0.101
   },
   {
     "id": "381368",
@@ -425,7 +425,7 @@
     "coverRatio": 0.673,
     "backImage": "/backs/381368.webp",
     "spineImage": "/spines/381368.webp",
-    "spineRatio": 0.235
+    "spineRatio": 0.206
   },
   {
     "id": "400438",
@@ -443,7 +443,7 @@
     "coverRatio": 0.661,
     "backImage": "/backs/400438.webp",
     "spineImage": "/spines/400438.webp",
-    "spineRatio": 0.207
+    "spineRatio": 0.188
   },
   {
     "id": "427280",
@@ -461,7 +461,7 @@
     "coverRatio": 0.634,
     "backImage": "/backs/427280.webp",
     "spineImage": "/spines/427280.webp",
-    "spineRatio": 0.225
+    "spineRatio": 0.205
   },
   {
     "id": "685972",
@@ -532,7 +532,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.676,
     "spineImage": "/spines/634655.webp",
-    "spineRatio": 0.261,
+    "spineRatio": 0.237,
     "backImage": "/backs/634655.webp"
   },
   {
@@ -551,7 +551,7 @@
     "coverRatio": 0.649,
     "backImage": "/backs/863414.webp",
     "spineImage": "/spines/863414.webp",
-    "spineRatio": 0.061
+    "spineRatio": 0.064
   },
   {
     "id": "1094572",
@@ -568,7 +568,7 @@
     "coverColor": "#f8d808",
     "coverRatio": 0.668,
     "spineImage": "/spines/1094572.webp",
-    "spineRatio": 0.083,
+    "spineRatio": 0.089,
     "backImage": "/backs/1094572.webp"
   },
   {
@@ -587,7 +587,7 @@
     "coverRatio": 0.65,
     "backImage": "/backs/861164.webp",
     "spineImage": "/spines/861164.webp",
-    "spineRatio": 0.175
+    "spineRatio": 0.17
   },
   {
     "id": "1067636",
@@ -605,7 +605,7 @@
     "coverRatio": 0.646,
     "backImage": "/backs/1067636.webp",
     "spineImage": "/spines/1067636.webp",
-    "spineRatio": 0.199
+    "spineRatio": 0.2
   },
   {
     "id": "861168",
@@ -641,7 +641,7 @@
     "coverRatio": 0.674,
     "backImage": "/backs/1170454.webp",
     "spineImage": "/spines/1170454.webp",
-    "spineRatio": 0.202
+    "spineRatio": 0.245
   },
   {
     "id": "800436",
@@ -677,7 +677,7 @@
     "coverRatio": 0.668,
     "backImage": "/backs/891648.webp",
     "spineImage": "/spines/891648.webp",
-    "spineRatio": 0.147
+    "spineRatio": 0.162
   },
   {
     "id": "477616",
@@ -694,7 +694,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.658,
     "spineImage": "/spines/477616.webp",
-    "spineRatio": 0.068,
+    "spineRatio": 0.064,
     "backImage": "/backs/477616.webp"
   },
   {
@@ -712,7 +712,7 @@
     "coverColor": "#081808",
     "coverRatio": 0.667,
     "spineImage": "/spines/700430.webp",
-    "spineRatio": 0.145,
+    "spineRatio": 0.147,
     "backImage": "/backs/700430.webp"
   },
   {
@@ -731,7 +731,7 @@
     "coverRatio": 0.677,
     "backImage": "/backs/770779.webp",
     "spineImage": "/spines/770779.webp",
-    "spineRatio": 0.13
+    "spineRatio": 0.121
   },
   {
     "id": "783486",
@@ -749,7 +749,7 @@
     "coverRatio": 0.668,
     "backImage": "/backs/783486.webp",
     "spineImage": "/spines/783486.webp",
-    "spineRatio": 0.145
+    "spineRatio": 0.144
   },
   {
     "id": "634520",
@@ -766,7 +766,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.667,
     "spineImage": "/spines/634520.webp",
-    "spineRatio": 0.092,
+    "spineRatio": 0.087,
     "backImage": "/backs/634520.webp"
   },
   {
@@ -783,7 +783,9 @@
     "cover": "/covers/1148976.webp",
     "coverColor": "#b8b8b8",
     "coverRatio": 0.72,
-    "backImage": "/backs/1148976.webp"
+    "backImage": "/backs/1148976.webp",
+    "spineImage": "/spines/1148976.webp",
+    "spineRatio": 0.031
   },
   {
     "id": "582586",
@@ -819,7 +821,7 @@
     "coverRatio": 0.679,
     "backImage": "/backs/891650.webp",
     "spineImage": "/spines/891650.webp",
-    "spineRatio": 0.109
+    "spineRatio": 0.114
   },
   {
     "id": "891652",
@@ -837,7 +839,7 @@
     "coverRatio": 0.695,
     "backImage": "/backs/891652.webp",
     "spineImage": "/spines/891652.webp",
-    "spineRatio": 0.162
+    "spineRatio": 0.178
   },
   {
     "id": "1121691",
@@ -873,7 +875,7 @@
     "coverRatio": 0.662,
     "backImage": "/backs/932038.webp",
     "spineImage": "/spines/932038.webp",
-    "spineRatio": 0.232
+    "spineRatio": 0.235
   },
   {
     "id": "790998",
@@ -891,7 +893,7 @@
     "coverRatio": 0.666,
     "backImage": "/backs/790998.webp",
     "spineImage": "/spines/790998.webp",
-    "spineRatio": 0.187
+    "spineRatio": 0.193
   },
   {
     "id": "764502",
@@ -927,7 +929,7 @@
     "coverRatio": 0.664,
     "backImage": "/backs/833426.webp",
     "spineImage": "/spines/833426.webp",
-    "spineRatio": 0.165
+    "spineRatio": 0.164
   },
   {
     "id": "1091823",
@@ -944,7 +946,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.676,
     "spineImage": "/spines/1091823.webp",
-    "spineRatio": 0.149,
+    "spineRatio": 0.148,
     "backImage": "/backs/1091823.webp"
   },
   {
@@ -961,7 +963,9 @@
     "cover": "/covers/932048.webp",
     "coverColor": "#080808",
     "coverRatio": 0.651,
-    "backImage": "/backs/932048.webp"
+    "backImage": "/backs/932048.webp",
+    "spineImage": "/spines/932048.webp",
+    "spineRatio": 0.033
   },
   {
     "id": "1162844",
@@ -1201,7 +1205,7 @@
     "coverRatio": 0.665,
     "backImage": "/backs/615732.webp",
     "spineImage": "/spines/615732.webp",
-    "spineRatio": 0.228
+    "spineRatio": 0.19
   },
   {
     "id": "777644",
