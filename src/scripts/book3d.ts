@@ -137,8 +137,10 @@ function spineLabelTexture(spec: BookSpec): CanvasTexture {
 }
 
 /**
- * Crop a texture to a face's proportions, the way CSS object-fit: cover does, so a
- * photo whose crop is a little off is trimmed rather than stretched.
+ * Fit a photo to a face that is a little narrower than it by trimming its sides,
+ * so it isn't squeezed. A face that is wider (a very thin book still gets a spine
+ * thick enough to hold its boards) stretches the photo instead, since cropping the
+ * top and bottom would cut off the title and the publisher's mark.
  */
 function fit(texture: Texture, aspect: number): Texture {
   const { width, height } = texture.image as { width: number; height: number };
@@ -147,9 +149,6 @@ function fit(texture: Texture, aspect: number): Texture {
   if (image > aspect) {
     texture.repeat.set(aspect / image, 1);
     texture.offset.set((1 - aspect / image) / 2, 0);
-  } else {
-    texture.repeat.set(1, image / aspect);
-    texture.offset.set(0, (1 - image / aspect) / 2);
   }
   return texture;
 }
