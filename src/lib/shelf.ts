@@ -105,3 +105,39 @@ export function shelfOrder(a: Book, b: Book): number {
   };
   return rank(a) - rank(b) || a.title.localeCompare(b.title, 'en', { numeric: true, sensitivity: 'base' });
 }
+
+export interface SpineLabel {
+  /** The title as it would be printed on the spine. */
+  label: string;
+  /** Volume number for multi-volume runs. */
+  volume: number | null;
+}
+
+const WORD_NUMBERS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4 };
+
+/** Strip the edition words a spine prints elsewhere, and pull out the volume. */
+export function spineLabel(title: string): SpineLabel {
+  let volume: number | null = null;
+  const numbered = /\bVol(?:ume)?\.?\s*(\d+)\b/i.exec(title);
+  const worded = /\bBook\s+(One|Two|Three|Four)\b/i.exec(title);
+  if (numbered?.[1]) volume = Number(numbered[1]);
+  else if (worded?.[1]) volume = WORD_NUMBERS[worded[1].toLowerCase()] ?? null;
+
+  const label = title
+    .replace(/\s*\bVol(?:ume)?\.?\s*\d+\b/gi, '')
+    .replace(/\s*[—-]\s*Book\s+(One|Two|Three|Four)\b/gi, '')
+    .replace(/\s*[—-]\s*(The\s+)?(Deluxe|Absolute)\s+Edition\b/gi, '')
+    .replace(/:\s*The\s+Absolute\s+Edition\b/gi, '')
+    .replace(/\s+Omnibus\b/gi, '')
+    .replace(/\s+-\s+Deluxe Edition\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return { label: label || title, volume };
+}
+
+/** The short publisher name printed at the foot of a spine. */
+export function publisherMark(publisher: string): string {
+  if (publisher === 'DC Comics') return 'DC';
+  if (publisher === 'Marvel Comics') return 'Marvel';
+  return publisher.replace(/\s+Comics$/, '');
+}

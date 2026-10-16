@@ -1,6 +1,17 @@
 ---
 import { getCollection } from 'astro:content';
-import { STATUS_LABEL, countBy, describe, shelfOrder, spineStyle, type Book, type Status } from '~/lib/shelf';
+import Spine from './Spine.astro';
+import {
+  STATUS_LABEL,
+  countBy,
+  describe,
+  publisherMark,
+  shelfOrder,
+  spineLabel,
+  spineStyle,
+  type Book,
+  type Status,
+} from '~/lib/shelf';
 
 interface Props {
   /** A single, non-interactive row for the home page. */
@@ -11,7 +22,20 @@ const { teaser = false } = Astro.props;
 const entries = await getCollection('comics');
 const all: Book[] = entries.map((entry) => ({ ...entry.data, id: entry.id })).sort(shelfOrder);
 const counts = countBy(all);
-const books = teaser ? all.filter((book) => book.status === 'shelf') : all;
+const owned = all.filter((book) => book.status === 'shelf');
+// The home page shows one shelf, so mix publishers there for a truer picture.
+const mixed = (() => {
+  const dc = owned.filter((book) => book.publisher === 'DC Comics');
+  const others = owned.filter((book) => book.publisher !== 'DC Comics');
+  const out: Book[] = [];
+  while (dc.length || others.length) {
+    const fromDc = dc.splice(0, 2);
+    const fromOthers = others.splice(0, 1);
+    out.push(...fromDc, ...fromOthers);
+  }
+  return out;
+})();
+const books = teaser ? mixed : all;
 const defaultShown: Status[] = ['shelf', 'ordered'];
 const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
 ---
@@ -24,9 +48,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
           const style = spineStyle(book);
           return (
             <span class="spine" data-status={book.status} style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color}`}>
-              <span class="spine__body">
-                <span class="spine__title">{book.title}</span>
-              </span>
+              <Spine book={book} />
             </span>
           );
         })}
@@ -36,7 +58,13 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     <comic-shelf class="shelf">
       <div class="shelf__filters" role="group" aria-label="Show books">
         {filters.map((status) => (
-          <button type="button" class="shelf__filter" data-filter={status} data-status={status} aria-pressed={defaultShown.includes(status) ? 'true' : 'false'}>
+          <button
+            type="button"
+            class="shelf__filter"
+            data-filter={status}
+            data-status={status}
+            aria-pressed={defaultShown.includes(status) ? 'true' : 'false'}
+          >
             {STATUS_LABEL[status]} <span class="shelf__count">{counts[status]}</span>
           </button>
         ))}
@@ -45,6 +73,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       <div class="shelf__books" role="listbox" aria-label="Comics" aria-orientation="horizontal">
         {books.map((book, index) => {
           const style = spineStyle(book);
+          const { label, volume } = spineLabel(book.title);
           return (
             <button
               type="button"
@@ -56,30 +85,45 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
               data-id={book.id}
               data-status={book.status}
               data-title={book.title}
+              data-label={label}
+              data-volume={volume ?? ''}
+              data-publisher={publisherMark(book.publisher)}
+              data-format={book.format}
               data-meta={describe(book)}
               data-state={STATUS_LABEL[book.status]}
               data-note={book.note}
+              data-h={style.height}
+              data-w={style.width}
               style={`--h:${style.height}rem;--w:${style.width}rem;--c:${style.color}`}
               aria-label={`${book.title}. ${STATUS_LABEL[book.status]}.`}
             >
-              <span class="spine__body">
-                <span class="spine__title">{book.title}</span>
-              </span>
+              <Spine book={book} />
             </button>
           );
         })}
       </div>
 
-      <div class="shelf__detail" aria-live="polite" data-detail>
-        <p class="shelf__hint">Pick a book to pull it off the shelf and read my note on it.</p>
+      <div class="shelf__detail">
+        <div class="shelf__stage" data-stage aria-hidden="true"></div>
+        <div class="shelf__text">
+          <div aria-live="polite" data-text>
+            <p class="shelf__hint">Pick a book to pull it off the shelf and read my note on it.</p>
+          </div>
+          <button type="button" class="shelf__random" data-random>Pull one at random</button>
+          <p class="shelf__tip">Drag the book to turn it.</p>
+        </div>
       </div>
     </comic-shelf>
   )
 }
 
 <script>
+  const motionOk = () => matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  const RESTING_ANGLE = 24;
+
   class ComicShelf extends HTMLElement {
     #spines: HTMLButtonElement[] = [];
+    #angle = RESTING_ANGLE;
 
     connectedCallback() {
       this.#spines = [...this.querySelectorAll<HTMLButtonElement>('.spine')];
@@ -90,18 +134,33 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
         spine.addEventListener('click', () => this.#select(spine));
       }
       this.querySelector('.shelf__books')?.addEventListener('keydown', (event) => this.#onKey(event as KeyboardEvent));
+      this.querySelector('[data-random]')?.addEventListener('click', () => this.#random(true));
+      this.#enableDrag();
       this.#applyFilters();
+      // Start with a book already off the shelf, so the stage is never empty.
+      this.#random(false);
     }
 
     #visible(): HTMLButtonElement[] {
       return this.#spines.filter((spine) => !spine.hidden);
     }
 
+    #random(focus: boolean) {
+      const owned = this.#visible().filter((spine) => spine.dataset['status'] === 'shelf');
+      const pool = owned.length ? owned : this.#visible();
+      const current = this.#spines.find((spine) => spine.getAttribute('aria-selected') === 'true');
+      const choices = pool.filter((spine) => spine !== current);
+      const pick = choices[Math.floor(Math.random() * choices.length)];
+      if (!pick) return;
+      this.#select(pick, { toggle: false });
+      if (focus) pick.focus({ preventScroll: true });
+    }
+
     #toggle(filter: HTMLButtonElement) {
       const pressed = filter.getAttribute('aria-pressed') === 'true';
-      const others = [...this.querySelectorAll('[data-filter][aria-pressed="true"]')].length;
+      const on = this.querySelectorAll('[data-filter][aria-pressed="true"]').length;
       // Keep at least one filter on, so the shelf is never empty by accident.
-      if (pressed && others === 1) return;
+      if (pressed && on === 1) return;
       filter.setAttribute('aria-pressed', String(!pressed));
       this.#applyFilters();
     }
@@ -116,8 +175,6 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
         for (const spine of this.#spines) spine.tabIndex = -1;
         if (visible[0]) visible[0].tabIndex = 0;
       }
-      const selected = this.#spines.find((spine) => spine.getAttribute('aria-selected') === 'true');
-      if (selected?.hidden) this.#clear();
     }
 
     #onKey(event: KeyboardEvent) {
@@ -138,42 +195,125 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       target.focus();
     }
 
-    #select(spine: HTMLButtonElement) {
-      const already = spine.getAttribute('aria-selected') === 'true';
-      for (const other of this.#spines) other.setAttribute('aria-selected', 'false');
-      if (already) {
-        this.#clear();
-        return;
+    #select(spine: HTMLButtonElement, { toggle = true } = {}) {
+      if (toggle && spine.getAttribute('aria-selected') === 'true') return;
+      for (const other of this.#spines) {
+        other.setAttribute('aria-selected', 'false');
+        other.tabIndex = -1;
       }
       spine.setAttribute('aria-selected', 'true');
-      for (const other of this.#spines) other.tabIndex = -1;
       spine.tabIndex = 0;
+      this.#describe(spine);
+      this.#stage(spine);
+    }
 
-      const detail = this.querySelector<HTMLElement>('[data-detail]');
-      if (!detail) return;
-      detail.replaceChildren();
+    #describe(spine: HTMLButtonElement) {
+      const text = this.querySelector<HTMLElement>('[data-text]');
+      if (!text) return;
       const title = document.createElement('h3');
       title.textContent = spine.dataset['title'] ?? '';
       const meta = document.createElement('p');
       meta.className = 'shelf__meta';
       meta.textContent = `${spine.dataset['state']}. ${spine.dataset['meta']}.`;
-      detail.append(title, meta);
+      text.replaceChildren(title, meta);
       if (spine.dataset['note']) {
         const note = document.createElement('p');
         note.className = 'shelf__note';
         note.textContent = spine.dataset['note'];
-        detail.append(note);
+        text.append(note);
       }
     }
 
-    #clear() {
-      const detail = this.querySelector<HTMLElement>('[data-detail]');
-      if (!detail) return;
-      const hint = document.createElement('p');
-      hint.className = 'shelf__hint';
-      hint.textContent = 'Pick a book to pull it off the shelf and read my note on it.';
-      detail.replaceChildren(hint);
+    /** Build a 3D copy of the book: front cover, spine, page edges and back. */
+    #stage(spine: HTMLButtonElement) {
+      const stage = this.querySelector<HTMLElement>('[data-stage]');
+      if (!stage) return;
+      const data = spine.dataset;
+      const height = Number(data['h']);
+      const thickness = Math.max(Number(data['w']) * 1.1, 1);
+      const book = document.createElement('div');
+      book.className = 'book3d';
+      book.dataset['status'] = data['status'] ?? 'shelf';
+      book.style.setProperty('--c', spine.style.getPropertyValue('--c'));
+      book.style.setProperty('--bh', `${height}rem`);
+      book.style.setProperty('--bw', `${height * 0.67}rem`);
+      book.style.setProperty('--bt', `${thickness}rem`);
+
+      const inner = document.createElement('div');
+      inner.className = 'book3d__inner';
+
+      const front = document.createElement('div');
+      front.className = 'book3d__front cover';
+      const label = data['label'] ?? '';
+      const size = label.length <= 14 ? 1.7 : label.length <= 24 ? 1.35 : label.length <= 36 ? 1.12 : 0.95;
+      front.style.setProperty('--fs', `${size}rem`);
+      front.append(
+        part('span', 'cover__dots'),
+        part('span', 'cover__band'),
+        part('span', 'cover__top', [part('span', 'cover__pub', data['publisher']), part('span', 'cover__format', data['format'])]),
+      );
+      if (data['volume']) front.append(part('span', 'cover__vol', data['volume']));
+      front.append(part('span', 'cover__title', label), part('span', 'cover__foot', 'From the shelf of Gerald Ikem'));
+      if (data['status'] !== 'shelf') front.append(part('span', 'cover__sticker', data['state']));
+
+      const spineFace = document.createElement('div');
+      spineFace.className = 'book3d__spine';
+      const body = spine.querySelector('.spine__body');
+      if (body) spineFace.append(body.cloneNode(true));
+
+      inner.append(front, spineFace, part('div', 'book3d__pages'), part('div', 'book3d__top'), part('div', 'book3d__back'));
+      book.append(inner);
+      stage.replaceChildren(book);
+
+      // Turn from spine-on to cover-on: the book coming off the shelf.
+      if (motionOk()) {
+        this.#setAngle(book, 88, false);
+        requestAnimationFrame(() => requestAnimationFrame(() => this.#setAngle(book, RESTING_ANGLE, true)));
+      } else {
+        this.#setAngle(book, RESTING_ANGLE, false);
+      }
     }
+
+    #setAngle(book: HTMLElement, angle: number, animate: boolean) {
+      this.#angle = angle;
+      book.classList.toggle('is-turning', animate);
+      book.style.setProperty('--ry', `${angle}deg`);
+    }
+
+    #enableDrag() {
+      const stage = this.querySelector<HTMLElement>('[data-stage]');
+      if (!stage) return;
+      let startX = 0;
+      let startAngle = 0;
+      let dragging = false;
+      stage.addEventListener('pointerdown', (event) => {
+        const book = stage.querySelector<HTMLElement>('.book3d');
+        if (!book) return;
+        dragging = true;
+        startX = event.clientX;
+        startAngle = this.#angle;
+        stage.setPointerCapture(event.pointerId);
+        book.classList.remove('is-turning');
+      });
+      stage.addEventListener('pointermove', (event) => {
+        const book = stage.querySelector<HTMLElement>('.book3d');
+        if (!dragging || !book) return;
+        this.#setAngle(book, startAngle + (event.clientX - startX) * 0.6, false);
+      });
+      const stop = () => {
+        dragging = false;
+      };
+      stage.addEventListener('pointerup', stop);
+      stage.addEventListener('pointercancel', stop);
+    }
+  }
+
+  function part(tag: string, className: string, content?: string | Node[]): HTMLElement {
+    const el = document.createElement(tag);
+    el.className = className;
+    if (typeof content === 'string') el.textContent = content;
+    else if (content) el.append(...content);
+    return el;
   }
 
   customElements.define('comic-shelf', ComicShelf);
@@ -233,8 +373,8 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     background: repeating-linear-gradient(
       to bottom,
       transparent 0 var(--row),
-      var(--board) var(--row) calc(var(--row) + 5px),
-      transparent calc(var(--row) + 5px) calc(var(--row) + var(--gap))
+      var(--board) var(--row) calc(var(--row) + 6px),
+      transparent calc(var(--row) + 6px) calc(var(--row) + var(--gap))
     );
   }
 
@@ -254,36 +394,80 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     display: none;
   }
 
-  .spine__body {
+  :global(.spine__body) {
+    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 0.35rem;
     width: var(--w);
     height: var(--h);
-    padding: 0.5rem 0;
+    padding: 0.45rem 0 0;
     overflow: hidden;
     border-radius: 2px 2px 0 0;
     background:
-      linear-gradient(90deg, rgb(255 255 255 / 0.1), transparent 22%, transparent 78%, rgb(0 0 0 / 0.18)),
+      linear-gradient(90deg, rgb(255 255 255 / 0.14), transparent 24%, transparent 76%, rgb(0 0 0 / 0.22)),
       var(--c);
+    color: #fff;
     transition: transform 260ms var(--ease-out);
   }
 
-  .spine__title {
-    max-height: 100%;
+  /* Foil bands near the head of the spine, like a bound omnibus. */
+  :global(.spine__body)::before {
+    content: '';
+    position: absolute;
+    top: 0.3rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgb(255 214 130 / 0.7);
+    box-shadow: 0 5px 0 rgb(255 214 130 / 0.45);
+  }
+
+  :global(.spine__vol) {
+    flex: none;
+    margin-top: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+    color: rgb(255 226 160);
+  }
+
+  :global(.spine__title) {
+    flex: 1;
+    min-height: 0;
+    margin-top: 0.35rem;
     overflow: hidden;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: var(--font-display);
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: 0.74rem;
+    font-weight: 650;
     letter-spacing: 0.01em;
     line-height: 1;
   }
 
-  .spine[data-status='ordered'] .spine__body {
+  :global(.spine__foot) {
+    flex: none;
+    width: 100%;
+    padding: 0.45rem 0;
+    background: rgb(0 0 0 / 0.28);
+    border-top: 2px solid rgb(255 214 130 / 0.55);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .spine[data-status='ordered'] :global(.spine__body) {
     background:
       repeating-linear-gradient(135deg, var(--c) 0 3px, transparent 3px 7px),
       color-mix(in oklch, var(--c) 30%, var(--paper));
@@ -291,20 +475,28 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
   }
 
   /* A paper sticker keeps the title readable over the stripes. */
-  .spine[data-status='ordered'] .spine__title {
+  .spine[data-status='ordered'] :global(.spine__title) {
+    flex: 0 1 auto;
     padding: 0.3rem 0.1rem;
     border-radius: 1px;
     background: var(--paper-raised);
   }
 
-  .spine[data-status='wishlist'] .spine__body {
+  .spine[data-status='wishlist'] :global(.spine__body) {
     background: none;
     outline: 1.5px dashed color-mix(in oklch, var(--c) 70%, var(--ink));
     outline-offset: -1.5px;
     color: var(--ink-2);
   }
 
-  .spine[data-status='read'] .spine__body {
+  .spine[data-status='wishlist'] :global(.spine__body)::before,
+  .spine[data-status='wishlist'] :global(.spine__foot) {
+    background: none;
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  .spine[data-status='read'] :global(.spine__body) {
     opacity: 0.45;
   }
 
@@ -312,50 +504,293 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     cursor: pointer;
   }
 
-  button.spine:hover .spine__body {
-    transform: translateY(-0.3rem);
+  button.spine:hover :global(.spine__body) {
+    transform: translateY(-0.35rem);
   }
 
-  button.spine[aria-selected='true'] .spine__body {
-    transform: translateY(-1rem);
-    box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+  button.spine[aria-selected='true'] :global(.spine__body) {
+    transform: translateY(-1.1rem);
+    box-shadow:
+      0 0 0 2px var(--paper),
+      0 0 0 4px var(--magenta);
   }
 
   button.spine:focus-visible {
     outline: none;
   }
 
-  button.spine:focus-visible .spine__body {
+  button.spine:focus-visible :global(.spine__body) {
     outline: 2px solid var(--magenta);
     outline-offset: 2px;
   }
 
+  /* The book that has come off the shelf, and what I wrote about it. */
   .shelf__detail {
-    min-height: 9rem;
-    margin-top: 1.5rem;
-    padding: 1.125rem 1.25rem;
-    border: 1px solid var(--rule-strong);
-    border-radius: 6px;
+    display: grid;
+    gap: 1.5rem 2.5rem;
+    align-items: center;
+    margin-top: 2rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border-radius: 10px;
     background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+  }
+
+  @media (min-width: 48rem) {
+    .shelf__detail {
+      grid-template-columns: 17rem minmax(0, 1fr);
+    }
+  }
+
+  .shelf__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 19rem;
+    border-radius: 8px;
+    background:
+      radial-gradient(circle, color-mix(in srgb, var(--magenta) 45%, transparent) 0 32%, transparent 35%) 0 0 / 13px 13px,
+      color-mix(in srgb, var(--process-yellow) 85%, var(--paper));
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .shelf__stage:active {
+    cursor: grabbing;
+  }
+
+  .shelf__text {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: start;
+    align-self: start;
   }
 
   .shelf__hint {
     color: var(--ink-2);
   }
 
-  .shelf__detail :global(h3) {
-    font-size: var(--text-md);
+  .shelf__text :global(h3) {
+    font-size: var(--text-lg);
+    letter-spacing: -0.02em;
   }
 
-  .shelf__detail :global(.shelf__meta) {
-    margin-top: 0.25rem;
+  .shelf__text :global(.shelf__meta) {
     color: var(--ink-2);
     font-size: var(--text-sm);
   }
 
-  .shelf__detail :global(.shelf__note) {
-    margin-top: 0.75rem;
+  .shelf__text :global(.shelf__note) {
+    margin-top: 0.5rem;
     max-width: var(--measure);
+  }
+
+  .shelf__random {
+    margin-top: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: none;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .shelf__random:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .shelf__tip {
+    color: var(--ink-3);
+    font-size: var(--text-xs);
+  }
+
+  @media (pointer: coarse) {
+    .shelf__tip {
+      display: none;
+    }
+  }
+
+  /* 3D book. Built by the script above; the faces meet at the edges of a box. */
+  :global(.book3d) {
+    --ry: 24deg;
+    width: var(--bw);
+    height: var(--bh);
+    perspective: 1200px;
+  }
+
+  :global(.book3d__inner) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(-7deg) rotateY(var(--ry));
+  }
+
+  :global(.book3d.is-turning .book3d__inner) {
+    transition: transform 1100ms cubic-bezier(0.2, 0.9, 0.25, 1.05);
+  }
+
+  :global(.book3d__inner > *) {
+    position: absolute;
+    backface-visibility: hidden;
+  }
+
+  :global(.book3d__front) {
+    inset: 0;
+    transform: translateZ(calc(var(--bt) / 2));
+  }
+
+  :global(.book3d__back) {
+    inset: 0;
+    background: color-mix(in oklch, var(--c) 75%, black);
+    transform: rotateY(180deg) translateZ(calc(var(--bt) / 2));
+  }
+
+  :global(.book3d__spine) {
+    top: 0;
+    left: calc(50% - var(--bt) / 2);
+    width: var(--bt);
+    height: 100%;
+    transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2));
+  }
+
+  :global(.book3d__spine .spine__body) {
+    --w: 100%;
+    --h: 100%;
+    border-radius: 0;
+  }
+
+  :global(.book3d__pages) {
+    top: 1.5%;
+    left: calc(50% - var(--bt) / 2);
+    width: var(--bt);
+    height: 97%;
+    background: repeating-linear-gradient(90deg, #f4f0e6 0 1px, #ddd6c4 1px 2px);
+    transform: rotateY(90deg) translateZ(calc(var(--bw) / 2 - 3px));
+  }
+
+  :global(.book3d__top) {
+    left: 0;
+    top: calc(50% - var(--bt) / 2);
+    width: calc(100% - 3px);
+    height: var(--bt);
+    background: repeating-linear-gradient(0deg, #f4f0e6 0 1px, #ddd6c4 1px 2px);
+    transform: rotateX(90deg) translateZ(calc(var(--bh) / 2 - 2px));
+  }
+
+  :global(.book3d[data-status='wishlist']),
+  :global(.book3d[data-status='read']) {
+    opacity: 0.8;
+  }
+
+  /* The cover: an original design per book, printed in the same inks. */
+  :global(.cover) {
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 0.8rem 0.7rem 1rem;
+    overflow: hidden;
+    border-radius: 1px 4px 4px 1px;
+    color: #fff;
+    background: linear-gradient(
+      165deg,
+      color-mix(in oklch, var(--c) 72%, white) 0%,
+      var(--c) 42%,
+      color-mix(in oklch, var(--c) 68%, black) 100%
+    );
+    box-shadow: inset 6px 0 8px -5px rgb(0 0 0 / 0.55);
+  }
+
+  :global(.cover__top) {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  :global(.cover__pub) {
+    padding: 0.15rem 0.35rem;
+    border: 1.5px solid currentColor;
+    border-radius: 2px;
+  }
+
+  :global(.cover__format) {
+    opacity: 0.85;
+  }
+
+  :global(.cover__vol) {
+    position: absolute;
+    top: 2.2rem;
+    right: 0.7rem;
+    font-family: var(--font-display);
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.85);
+  }
+
+  :global(.cover__title) {
+    position: relative;
+    margin-top: auto;
+    font-family: var(--font-display);
+    font-size: var(--fs);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 0.25);
+  }
+
+  :global(.cover__foot) {
+    position: relative;
+    margin-top: 0.6rem;
+    font-size: 0.55rem;
+    opacity: 0.8;
+  }
+
+  :global(.cover__dots) {
+    position: absolute;
+    inset: 18% -30% 20% 25%;
+    background-image: radial-gradient(circle, var(--process-yellow) 0 32%, transparent 35%);
+    background-size: 9px 9px;
+    mask-image: radial-gradient(closest-side, #000 10%, transparent);
+    opacity: 0.6;
+  }
+
+  :global(.cover__band) {
+    position: absolute;
+    top: 52%;
+    left: 0;
+    right: 0;
+    height: 0.45rem;
+    background: linear-gradient(
+      90deg,
+      var(--process-cyan) 0 33%,
+      var(--process-magenta) 33% 66%,
+      var(--process-yellow) 66%
+    );
+  }
+
+  :global(.cover__sticker) {
+    position: absolute;
+    top: 38%;
+    left: -0.3rem;
+    padding: 0.2rem 0.6rem;
+    background: var(--process-yellow);
+    color: #1d2024;
+    font-size: 0.68rem;
+    font-weight: 700;
+    rotate: -7deg;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 0.2);
   }
 
   /* Home page: one shelf, cut off at the edge like the rest of the room. */
@@ -363,7 +798,7 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
     flex-wrap: nowrap;
     overflow: hidden;
     mask-image: linear-gradient(to right, #000 75%, transparent);
-    height: calc(var(--row) + 5px);
+    height: calc(var(--row) + 6px);
   }
 
   @media (max-width: 40rem) {
@@ -372,12 +807,12 @@ const filters: Status[] = ['shelf', 'ordered', 'wishlist', 'read'];
       --gap: 1.25rem;
     }
 
-    .spine__body {
+    .spine > :global(.spine__body) {
       height: calc(var(--h) * 0.72);
       width: calc(var(--w) * 0.8);
     }
 
-    .spine__title {
+    :global(.spine__title) {
       font-size: 0.6rem;
     }
   }

@@ -7,6 +7,7 @@ import Roles from '~/components/Roles.astro';
 import Projects from '~/components/Projects.astro';
 import Shelf from '~/components/Shelf.astro';
 import Contact from '~/components/Contact.astro';
+import Misregister from '~/components/Misregister.astro';
 import { site } from '~/data/site';
 import { countBy, type Book } from '~/lib/shelf';
 
@@ -17,8 +18,9 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
 
 <Base home>
   <section class="hero wrap" aria-labelledby="name">
-    <h1 class="hero__name" id="name">Gerald Ikem</h1>
+    <Misregister text="Gerald Ikem" id="name" class="hero__name" />
     <div class="hero__grid">
+      <span class="dots hero__dots" aria-hidden="true"></span>
       <div class="hero__intro">
         <p class="hero__tagline">Backend engineer. Payments now, machine learning next.</p>
         <p class="lede">
@@ -27,7 +29,7 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
           side projects at machine learning.
         </p>
         <div class="hero__actions">
-          <a class="button" href={`mailto:${site.email}`}>Email me</a>
+          <a class="button button--accent" href={`mailto:${site.email}`}>Email me</a>
           <a class="button button--quiet" href={site.resume} download>Download résumé</a>
         </div>
         <p class="hero__status">
@@ -38,7 +40,7 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
     </div>
   </section>
 
-  <section class="section wrap" id="work" aria-labelledby="work-title">
+  <section class="section wrap" id="work" aria-labelledby="work-title" style="--section-ink: var(--cyan)">
     <div class="section__head">
       <h2 id="work-title">Work</h2>
       <p>Three roles and two degrees since 2019, often more than one at a time. Pick a row to jump to the details.</p>
@@ -49,7 +51,7 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
     </div>
   </section>
 
-  <section class="section wrap" id="projects" aria-labelledby="projects-title">
+  <section class="section wrap" id="projects" aria-labelledby="projects-title" style="--section-ink: var(--magenta)">
     <div class="section__head">
       <h2 id="projects-title">Projects</h2>
       <p>What I build on my own time. The first three get the long version.</p>
@@ -59,12 +61,14 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
     </div>
   </section>
 
-  <section class="section wrap" id="next" aria-labelledby="next-title">
+  <div class="band band--yellow">
+    <span class="dots next__dots" aria-hidden="true"></span>
+    <section class="section wrap" id="next" aria-labelledby="next-title">
     <div class="section__head">
       <h2 id="next-title">What’s next</h2>
     </div>
     <div class="section__body prose">
-      <p class="lede">
+      <p class="next__statement">
         Payments taught me what reliable software takes: a request that may arrive twice, money in currencies with
         different rules, and an audit trail nobody gets to skip.
       </p>
@@ -79,9 +83,10 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
         company or a large enterprise, ideally one where I can grow toward ML infrastructure.
       </p>
     </div>
-  </section>
+    </section>
+  </div>
 
-  <section class="section wrap" id="off-the-clock" aria-labelledby="off-title">
+  <section class="section wrap" id="off-the-clock" aria-labelledby="off-title" style="--section-ink: var(--process-yellow)">
     <div class="section__head">
       <h2 id="off-title">Off the clock</h2>
     </div>
@@ -100,22 +105,27 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
     </div>
   </section>
 
-  <section class="section wrap" id="contact" aria-labelledby="contact-title">
-    <div class="section__head">
-      <h2 id="contact-title">Contact</h2>
-    </div>
-    <div class="section__body">
-      <Contact />
-    </div>
-  </section>
+  <div class="band band--magenta">
+    <span class="dots contact__dots" aria-hidden="true"></span>
+    <section class="section wrap" id="contact" aria-labelledby="contact-title">
+      <div class="section__head">
+        <h2 id="contact-title">Contact</h2>
+      </div>
+      <div class="section__body">
+        <Contact />
+      </div>
+    </section>
+  </div>
 </Base>
 
 <style>
   .hero {
+    position: relative;
+    isolation: isolate;
     padding-block: clamp(2rem, 6vw, 4.5rem) clamp(3.5rem, 8vw, 6rem);
   }
 
-  .hero__name {
+  .hero :global(.hero__name) {
     font-size: var(--text-hero);
     font-weight: 650;
     line-height: 0.92;
@@ -124,9 +134,23 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
   }
 
   .hero__grid {
+    position: relative;
     display: grid;
     gap: 2.5rem;
     margin-top: clamp(1.75rem, 4vw, 3rem);
+  }
+
+  /* A field of magenta dots behind the trace, like a comic panel's shading. */
+  .hero__dots {
+    --dot-size: 13px;
+    right: -5rem;
+    top: -4rem;
+    width: min(38rem, 80%);
+    height: 34rem;
+  }
+
+  .hero :global(page-trace) {
+    position: relative;
   }
 
   @media (min-width: 64rem) {
@@ -174,6 +198,44 @@ const omnibuses = comics.filter((book) => book.status === 'shelf' && book.size =
     border-radius: 1px;
     background: var(--yellow);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 25%, transparent);
+  }
+
+  /* What's next: the yellow band. */
+  .next__statement {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 1.1rem + 2.2vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    max-width: 26ch;
+    text-wrap: balance;
+  }
+
+  .band--yellow .prose {
+    max-width: 44rem;
+  }
+
+  .band--yellow .prose > p:not(.next__statement) {
+    max-width: var(--measure);
+  }
+
+  .next__dots {
+    --dot: var(--process-magenta);
+    --dot-size: 16px;
+    right: -6rem;
+    top: -6rem;
+    width: 34rem;
+    height: 34rem;
+  }
+
+  .contact__dots {
+    --dot: var(--process-yellow);
+    --dot-size: 15px;
+    right: -8rem;
+    bottom: -12rem;
+    width: 36rem;
+    height: 36rem;
+    opacity: 0.55;
   }
 
   .teaser {

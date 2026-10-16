@@ -1,8 +1,8 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Set SITE_URL in the deploy environment once the domain is final.
-const site = process.env.SITE_URL ?? 'https://geraldikem.github.io';
+// SITE_URL overrides this, e.g. for a preview deploy on another address.
+const site = process.env.SITE_URL ?? 'https://geraldikem.com';
 
 export default defineConfig({
   site,

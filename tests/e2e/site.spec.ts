@@ -14,7 +14,8 @@ test.describe('home', () => {
   test('leads with the name, the role and a way to get in touch', async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto('/');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Gerald Ikem');
+    // The cyan and magenta print plates are hidden from assistive tech, so the name reads once.
+    await expect(page.getByRole('heading', { level: 1, name: 'Gerald Ikem', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Email me' })).toHaveAttribute('href', /^mailto:/);
     await expect(page.getByRole('link', { name: 'Download résumé' })).toHaveAttribute('href', /\.pdf$/);
     expect(errors).toEqual([]);
@@ -81,8 +82,18 @@ test.describe('off the clock', () => {
     const title = await spine.getAttribute('data-title');
     await spine.click();
     await expect(spine).toHaveAttribute('aria-selected', 'true');
-    await expect(page.locator('[data-detail] h3')).toHaveText(title ?? '');
+    await expect(page.locator('[data-text] h3')).toHaveText(title ?? '');
+    await expect(page.locator('.book3d .cover__title')).toHaveText((await spine.getAttribute('data-label')) ?? '');
     expect(errors).toEqual([]);
+  });
+
+  test('starts with a book already off the shelf and can pull another', async ({ page }) => {
+    await page.goto('/off-the-clock/');
+    await expect(page.locator('.book3d')).toHaveCount(1);
+    const first = await page.locator('[data-text] h3').textContent();
+    await page.getByRole('button', { name: 'Pull one at random' }).click();
+    await expect(page.locator('[data-text] h3')).not.toHaveText(first ?? '');
+    await expect(page.locator('.spine[aria-selected="true"]')).toHaveCount(1);
   });
 
   test('filters the shelf and never empties it', async ({ page }) => {

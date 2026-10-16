@@ -8,7 +8,7 @@ The site treats my work the way I see a backend system: as requests moving throu
 - **The career timeline** is the same kind of trace: roles and degrees as spans, overlapping where they overlapped.
 - **Try paying twice** is a small model of the duplicate-reference check I added to a checkout service. Press Pay twice and the second request is refused.
 - **How Linkify resolves a short link** walks through the redirect path (cache hit, unknown code, expired link, Redis down). It works without JavaScript: it is a radio group and CSS `:has()`.
-- **The comic shelf** on `/off-the-clock/` is my actual collection, exported from CLZ Comics. Every spine opens my note on that book.
+- **The comic shelf** on `/off-the-clock/` is my actual collection, exported from CLZ Comics. Pick a spine and the book comes off the shelf in 3D, turning from spine to cover, with my note on it. The covers are original designs, not publisher art.
 
 ## Stack
 
@@ -17,7 +17,7 @@ The site treats my work the way I see a backend system: as requests moving throu
 | Astro 7 | Static output, content collections with a Zod schema for the comics, image optimisation to WebP. |
 | TypeScript | Strict mode. The logic behind each interactive part lives in `src/lib/` as plain functions with unit tests. |
 | Web Components | The interactive parts are custom elements (`<page-trace>`, `<pay-demo>`, `<comic-shelf>`), so no framework runtime ships. |
-| CSS | Custom properties for the light and dark themes, a responsive layout down to phone width, and a print stylesheet that turns the home page into a plain résumé. |
+| CSS | Process-ink colour bands, halftone dots and a misregistered print effect on the headings; custom properties for the light and dark themes, a responsive layout down to phone width, and a print stylesheet that turns the home page into a plain résumé. |
 | Python | `scripts/import_comics.py` turns the CLZ XML export into `src/data/comics.json`. |
 | Vitest, Playwright, axe | Unit tests for the logic; browser tests for each page on desktop and phone sizes, including an accessibility audit in both themes. |
 
