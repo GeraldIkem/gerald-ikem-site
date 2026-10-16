@@ -12,9 +12,11 @@ interface Props {
   /** Hide the name in the header on the page that already leads with it. */
   home?: boolean;
   noindex?: boolean;
+  /** Keep the narrower reading width (project pages). */
+  narrow?: boolean;
 }
 
-const { title, description = site.description, home = false, noindex = false } = Astro.props;
+const { title, description = site.description, home = false, noindex = false, narrow = false } = Astro.props;
 const pageTitle = title ? `${title} | ${site.name}` : site.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL('/og.png', Astro.site);
@@ -77,7 +79,7 @@ const person = {
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <Header home={home} />
-    <main id="main">
+    <main id="main" class:list={[{ 'main--narrow': narrow }]}>
       <slot />
     </main>
     <Footer />

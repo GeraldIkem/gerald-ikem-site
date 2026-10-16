@@ -29,11 +29,13 @@ const tally = [
   description="Gerald Ikem’s comic shelf, with his notes on every book, plus basketball, swimming, LEGO and books."
 >
   <section class="intro wrap">
-    <Misregister text="Off the clock" class="intro__title" />
-    <p class="lede">
-      Away from work I read comics, play basketball, swim, build LEGO and collect books. The comics take up the most
-      room, so they get most of this page.
-    </p>
+    <div class="intro__text">
+      <Misregister text="Off the clock" class="intro__title" />
+      <p class="lede">
+        Away from work I read comics, play basketball, swim, build LEGO and collect books. The comics take up the most
+        room, so they get most of this page.
+      </p>
+    </div>
     <nav class="tally" aria-label="On this page">
       {
         tally.map((item) => (
@@ -48,16 +50,13 @@ const tally = [
     </nav>
   </section>
 
-  <section class="section section--wide wrap" id="shelf" aria-labelledby="shelf-title">
+  <section class="section wrap" id="shelf" aria-labelledby="shelf-title">
     <div class="section__head">
       <h2 id="shelf-title">The comic shelf</h2>
       <p>
         {owned.length} books on the shelf: {dc} from DC, {marvel} from Marvel. Each note says who made the book and
-        where it sits in the run, because I read runs in order.
-      </p>
-      <p>
-        The whole collection, pre-orders and reading orders included, lives in{' '}
-        <a href={site.links.shelf}>Gerald’s shelf</a>, a tracker I’m building for it.
+        where it sits in the run, because I read runs in order. The whole collection, pre-orders and reading orders
+        included, lives in <a href={site.links.shelf}>Gerald’s shelf</a>, a tracker I’m building for it.
       </p>
     </div>
     <div class="section__body">
@@ -97,8 +96,10 @@ const tally = [
       </p>
     </div>
     <div class="section__body">
-      <LegoViewer />
-      <LegoBricks />
+      <div class="lego-pair">
+        <LegoViewer />
+        <LegoBricks />
+      </div>
       <p class="fineprint">
         The three sets marked 3D are exact digital models from the LDraw.org Official Model Repository, built from parts
         in the LDraw.org Parts Library (CC BY 2.0 and 4.0), and they build in the order of the real instructions. The
@@ -156,6 +157,35 @@ const tally = [
   .intro .lede {
     margin-top: 1.25rem;
     color: var(--ink-2);
+  }
+
+  /* Wide screens: the tally stands beside the title instead of under it. */
+  @media (min-width: 64rem) {
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      column-gap: 3rem;
+      align-items: center;
+    }
+
+    .intro .tally {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: 0;
+    }
+  }
+
+  /* The LEGO viewer and the list of sets side by side. */
+  @media (min-width: 64rem) {
+    .lego-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .lego-pair :global(.viewer) {
+      margin-bottom: 0;
+    }
   }
 
   .legend {
@@ -262,18 +292,6 @@ const tally = [
     font-size: var(--text-sm);
   }
 
-  /* The shelf takes the full width, so the open book fits beside it. */
-  .section--wide {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .section--wide .section__head {
-    position: static;
-  }
-
-  .section--wide .section__head p {
-    max-width: 40rem;
-  }
 
   .back {
     margin-top: 3rem;

@@ -50,7 +50,7 @@
   --gutter: clamp(1rem, 4vw, 3rem);
   --header-h: 3.75rem;
   --measure: 38rem;
-  --page: 76rem;
+  --page: 84rem;
   --radius: 4px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -289,43 +289,38 @@ code,
   margin-inline: auto;
 }
 
+/* Project pages keep their narrower reading width. */
+.main--narrow {
+  --page: 76rem;
+}
+
 /*
- * A page section: the heading sits in a narrow rail on wide screens and
- * stays in view while you read the section.
+ * A page section: the heading sits above its content, with a short line
+ * beside it, so the content gets the full width.
  */
 .section {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
-  padding-block: clamp(3.5rem, 8vw, 7rem);
+  padding-block: clamp(3rem, 6vw, 5rem);
   border-top: 1px solid var(--rule);
 }
 
 .section__head {
-  align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.5rem;
 }
 
 .section__head p {
-  margin-top: 0.75rem;
   color: var(--ink-2);
   font-size: var(--text-sm);
-  max-width: 22rem;
+  max-width: 48rem;
 }
 
 .section__body {
   min-width: 0;
-}
-
-@media (min-width: 60rem) {
-  .section {
-    grid-template-columns: 13rem minmax(0, 1fr);
-    column-gap: clamp(2.5rem, 5vw, 5rem);
-  }
-
-  .section__head {
-    position: sticky;
-    top: calc(var(--header-h) + 1.5rem);
-  }
 }
 
 .prose {

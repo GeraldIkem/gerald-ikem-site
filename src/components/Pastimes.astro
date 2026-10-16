@@ -1044,6 +1044,13 @@ const { goal, keeper } = PITCH;
     }
   }
 
+  /* Wide screens: all four in one row. */
+  @media (min-width: 80rem) {
+    .pastimes {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
   .pastime {
     position: relative;
     display: grid;

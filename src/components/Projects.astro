@@ -34,7 +34,7 @@ import { projects } from '~/data/projects';
   /* Every project in view at once, no carousel hiding most of them. */
   .pgrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
     padding: 0;
     list-style: none;
@@ -44,8 +44,64 @@ import { projects } from '~/data/projects';
     display: grid;
   }
 
+  /*
+   * The first project is a wide feature, sized so seven cards always fill
+   * whole rows: full width over two or three columns, half over four.
+   */
+  @media (min-width: 40rem) {
+    .pgrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pcard:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .pcard:first-child .pcard__link {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .pcard:first-child .pcard__shot {
+      aspect-ratio: auto;
+      height: 100%;
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+
+    .pcard:first-child .pcard__text {
+      align-content: center;
+      padding: 1.5rem;
+    }
+
+    .pcard:first-child .pcard__name {
+      font-size: var(--text-xl);
+    }
+
+    .pcard:first-child .pcard__one {
+      font-size: var(--text-base);
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .pgrid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .pgrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pcard:first-child {
+      grid-column: span 2;
+    }
+  }
+
   .pcard__link {
     display: grid;
+    /* Spare height goes under the text, so every card's title lines up. */
+    grid-template-rows: auto 1fr;
     height: 100%;
     overflow: hidden;
     border: 1px solid var(--rule-strong);

@@ -360,7 +360,7 @@ test.describe('sports you can play', () => {
       await expect(court.locator('[data-aim]')).toHaveClass(/is-on/);
       // With reduced motion the shot lands at once, with no flight to watch.
       await stage.press('Space');
-      await expect(court.locator('[data-live]')).not.toBeEmpty();
+      await expect(court.locator('[data-live]')).not.toBeEmpty(inPlay);
       const results = await new AxeBuilder({ page })
         .include('#sports')
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
