@@ -963,9 +963,7 @@
     "cover": "/covers/833426.webp",
     "coverColor": "#084888",
     "coverRatio": 0.664,
-    "backImage": "/backs/833426.webp",
-    "spineImage": "/spines/833426.webp",
-    "spineRatio": 0.164
+    "backImage": "/backs/833426.webp"
   },
   {
     "id": "1091823",
@@ -982,7 +980,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.676,
     "spineImage": "/spines/1091823.webp",
-    "spineRatio": 0.148,
+    "spineRatio": 0.149,
     "backImage": "/backs/1091823.webp"
   },
   {
