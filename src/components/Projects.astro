@@ -1,0 +1,225 @@
+---
+import { Image } from 'astro:assets';
+import { features, smaller } from '~/data/projects';
+import RedirectDemo from './RedirectDemo.astro';
+import RtfChart from './RtfChart.astro';
+---
+
+<div class="projects">
+  {
+    features.map((project) => (
+      <article class="feature" id={project.id}>
+        <div class="feature__text">
+          <header>
+            <h3>
+              {project.name}
+              {project.status && <span class="feature__status">{project.status}</span>}
+            </h3>
+            <p class="feature__summary">{project.summary}</p>
+          </header>
+          <ul class="feature__notes">
+            {project.notes.map((note) => (
+              <li>{note}</li>
+            ))}
+          </ul>
+          <ul class="tag-list" aria-label="Built with">
+            {project.stack.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+          <p class="feature__link">
+            <a href={project.url}>{project.linkText}</a>
+          </p>
+        </div>
+        <a class="feature__shot" href={project.url} tabindex="-1" aria-hidden="true">
+          <Image
+            src={project.image}
+            alt=""
+            widths={[480, 800, 1200]}
+            sizes="(min-width: 76rem) 26rem, (min-width: 60rem) 34vw, 100vw"
+            loading="lazy"
+          />
+        </a>
+        {project.id === 'hummle' && (
+          <div class="feature__extra">
+            <RtfChart />
+          </div>
+        )}
+        {project.id === 'linkify' && (
+          <div class="feature__extra">
+            <RedirectDemo />
+          </div>
+        )}
+      </article>
+    ))
+  }
+
+  <h3 class="projects__more">Also built</h3>
+  <ul class="small-list">
+    {
+      smaller.map((project) => (
+        <li class="minor">
+          <div class="minor__head">
+            <h4>
+              <a href={project.url}>{project.name}</a>
+            </h4>
+            <p class="minor__what">{project.what}</p>
+          </div>
+          <p class="minor__detail">{project.detail}</p>
+          <p class="minor__stack">{project.stack}</p>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .projects {
+    display: grid;
+    gap: clamp(3.5rem, 7vw, 5.5rem);
+  }
+
+  .feature {
+    display: grid;
+    gap: 1.5rem;
+    scroll-margin-top: 2rem;
+  }
+
+  @media (min-width: 60rem) {
+    .feature {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      column-gap: 2.5rem;
+      align-items: start;
+    }
+
+    .feature__extra {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .feature h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    font-size: var(--text-lg);
+  }
+
+  .feature__status {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .feature__summary {
+    margin-top: 0.625rem;
+    font-size: var(--text-base);
+  }
+
+  .feature__notes {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1rem 0 1.25rem;
+    padding-left: 1.125rem;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .feature__notes li::marker {
+    color: var(--cyan);
+  }
+
+  .feature__link {
+    margin-top: 0.875rem;
+    font-weight: 600;
+  }
+
+  .feature__shot {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    background: var(--paper-raised);
+    aspect-ratio: 4 / 3;
+  }
+
+  .feature__shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    transition: transform 500ms var(--ease-out);
+  }
+
+  .feature__shot:hover img {
+    transform: scale(1.02);
+  }
+
+  @media (max-width: 59.99rem) {
+    .feature__shot {
+      order: -1;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  .projects__more {
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--rule);
+    margin-bottom: -2rem;
+  }
+
+  .small-list {
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+
+  .minor {
+    display: grid;
+    gap: 0.375rem 2rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .minor:first-child {
+    padding-top: 0;
+  }
+
+  @media (min-width: 52rem) {
+    .minor {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    }
+
+    .minor__stack {
+      grid-column: 2;
+    }
+  }
+
+  .minor h4 {
+    font-size: var(--text-base);
+  }
+
+  .minor h4 a {
+    color: var(--ink);
+  }
+
+  .minor__what {
+    margin-top: 0.25rem;
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .minor__detail {
+    font-size: var(--text-sm);
+  }
+
+  .minor__stack {
+    color: var(--ink-3);
+    font-size: var(--text-xs);
+  }
+</style>

@@ -1,0 +1,288 @@
+---
+/**
+ * Linkify's redirect path, one scenario at a time. Works without JavaScript:
+ * the scenario picker is a radio group and CSS shows the chosen panel.
+ */
+type Kind = 'cache' | 'db' | 'check' | 'response' | 'background' | 'error';
+
+interface Step {
+  label: string;
+  result: string;
+  kind: Kind;
+  /** Share of the row, for drawing only. */
+  width: number;
+}
+
+interface Scenario {
+  id: string;
+  name: string;
+  request: string;
+  steps: Step[];
+  why: string;
+}
+
+const scenarios: Scenario[] = [
+  {
+    id: 'hit',
+    name: 'A popular link',
+    request: 'GET /launch',
+    steps: [
+      { label: 'Redis GET', result: 'hit', kind: 'cache', width: 12 },
+      { label: 'Check expiry', result: 'still live', kind: 'check', width: 6 },
+      { label: 'Respond', result: '302 to the destination', kind: 'response', width: 8 },
+      { label: 'Record the click', result: 'on a background worker', kind: 'background', width: 40 },
+    ],
+    why: 'Most clicks look like this: one Redis read and an expiry check. The click is handed to a bounded background worker, so the visitor never waits for analytics.',
+  },
+  {
+    id: 'miss',
+    name: 'A code that doesn’t exist',
+    request: 'GET /zz9x',
+    steps: [
+      { label: 'Redis GET', result: 'miss', kind: 'cache', width: 12 },
+      { label: 'PostgreSQL lookup', result: 'not found', kind: 'db', width: 34 },
+      { label: 'Cache the miss', result: 'for 60 seconds', kind: 'cache', width: 8 },
+      { label: 'Respond', result: 'not-found page', kind: 'response', width: 8 },
+    ],
+    why: 'Bots scan for codes that don’t exist. Caching the miss for a minute turns a burst of probes into one database query instead of thousands.',
+  },
+  {
+    id: 'expired',
+    name: 'An expired link',
+    request: 'GET /spring-sale',
+    steps: [
+      { label: 'Redis GET', result: 'hit', kind: 'cache', width: 12 },
+      { label: 'Check expiry', result: 'expired', kind: 'error', width: 6 },
+      { label: 'Respond', result: 'a page that explains the link expired', kind: 'response', width: 8 },
+    ],
+    why: 'The cached entry carries the link’s expiry, and it is checked on every hit. A stale cache can never keep an expired link alive.',
+  },
+  {
+    id: 'down',
+    name: 'Redis is down',
+    request: 'GET /launch',
+    steps: [
+      { label: 'Redis GET', result: 'error, counted', kind: 'error', width: 12 },
+      { label: 'PostgreSQL lookup', result: 'found', kind: 'db', width: 34 },
+      { label: 'Respond', result: '302 to the destination', kind: 'response', width: 8 },
+    ],
+    why: 'A cache failure is not a site failure. The resolver falls back to PostgreSQL. The instance reports itself not ready, so the load balancer drains it, but stays live, so it isn’t restarted into a storm.',
+  },
+];
+
+function offsets(steps: Step[]) {
+  let at = 0;
+  return steps.map((step) => {
+    // Background work starts when the response is sent, off the request path.
+    const left = at;
+    if (step.kind !== 'background') at += step.width;
+    return { ...step, left };
+  });
+}
+---
+
+<div class="redirect panel">
+  <fieldset class="redirect__picker">
+    <legend>How Linkify resolves a short link</legend>
+    <div class="redirect__options">
+      {
+        scenarios.map((scenario, index) => (
+          <label>
+            <input type="radio" name="redirect-scenario" value={scenario.id} checked={index === 0} />
+            <span>{scenario.name}</span>
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+
+  {
+    scenarios.map((scenario) => (
+      <section class="redirect__panel" data-panel={scenario.id} aria-label={scenario.name}>
+        <p class="redirect__request">
+          <code>{scenario.request}</code>
+        </p>
+        <ol class="redirect__steps">
+          {offsets(scenario.steps).map((step) => (
+            <li class="redirect__step" data-kind={step.kind}>
+              <span class="redirect__label">
+                {step.label}
+                <span class="redirect__result">{step.result}</span>
+              </span>
+              <span class="redirect__track">
+                <span class="redirect__bar" style={`--left:${step.left}%;--width:${step.width}%`} />
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p class="redirect__why">{scenario.why}</p>
+      </section>
+    ))
+  }
+  <p class="redirect__footnote">Bars show the order of the work, not measured timings.</p>
+</div>
+
+<style>
+  .redirect {
+    margin-top: 1.5rem;
+    padding: 1.125rem 1.125rem 1rem;
+    font-size: var(--text-sm);
+  }
+
+  .redirect__picker {
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  .redirect__picker legend {
+    padding: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--text-base);
+  }
+
+  .redirect__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.75rem;
+  }
+
+  .redirect__options label {
+    position: relative;
+  }
+
+  .redirect__options input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .redirect__options span {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .redirect__options input:checked + span {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .redirect__options input:focus-visible + span {
+    outline: 2px solid var(--magenta);
+    outline-offset: 2px;
+  }
+
+  .redirect__panel {
+    margin-top: 1.125rem;
+  }
+
+  @supports selector(:has(*)) {
+    .redirect__panel {
+      display: none;
+    }
+
+    .redirect:has([value='hit']:checked) [data-panel='hit'],
+    .redirect:has([value='miss']:checked) [data-panel='miss'],
+    .redirect:has([value='expired']:checked) [data-panel='expired'],
+    .redirect:has([value='down']:checked) [data-panel='down'] {
+      display: block;
+    }
+  }
+
+  .redirect__request code {
+    font-weight: 600;
+  }
+
+  .redirect__steps {
+    display: grid;
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .redirect__step {
+    display: grid;
+    grid-template-columns: minmax(9rem, 16rem) minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .redirect__label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.5rem;
+    line-height: 1.3;
+  }
+
+  .redirect__result {
+    color: var(--ink-3);
+  }
+
+  .redirect__track {
+    position: relative;
+    height: 0.75rem;
+  }
+
+  .redirect__bar {
+    position: absolute;
+    inset-block: 0;
+    left: var(--left);
+    width: var(--width);
+    border-radius: 2px;
+    background: var(--ink-2);
+  }
+
+  [data-kind='cache'] .redirect__bar {
+    background: var(--cyan);
+  }
+
+  [data-kind='db'] .redirect__bar {
+    background: var(--span-asset);
+  }
+
+  [data-kind='check'] .redirect__bar {
+    background: var(--span-render);
+  }
+
+  [data-kind='error'] .redirect__bar {
+    background: var(--magenta);
+  }
+
+  [data-kind='error'] .redirect__result {
+    color: var(--magenta);
+  }
+
+  [data-kind='background'] .redirect__bar {
+    background: repeating-linear-gradient(90deg, var(--ink-3) 0 6px, transparent 6px 10px) center / 100% 2px no-repeat;
+  }
+
+  .redirect__why {
+    margin-top: 0.875rem;
+    max-width: 40rem;
+    color: var(--ink-2);
+  }
+
+  .redirect__footnote {
+    margin-top: 0.75rem;
+    color: var(--ink-3);
+    font-size: var(--text-xs);
+  }
+
+  @media (max-width: 40rem) {
+    .redirect__step {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem;
+    }
+  }
+</style>
