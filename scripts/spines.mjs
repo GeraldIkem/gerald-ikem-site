@@ -3,6 +3,9 @@
 //
 //   photos/1143890-spine.jpg   photos/1143890-back.jpg
 //
+// A photo named <id>-front.jpg replaces that book's front cover, for the rare
+// book whose cover in CLZ shows a different edition; covers.mjs then leaves it be.
+//
 // The script finds the book against the background, straightens it (rotation and
 // perspective), crops it, evens out the lighting and matches the colours to the
 // book's front cover (see correct() below), writes public/spines/<id>.webp and
@@ -58,9 +61,10 @@ const folder = path.resolve(args.find((arg) => !arg.startsWith('--')) ?? path.jo
 
 /** Output sizes: backs match the front covers from scripts/covers.mjs. */
 const BACK_WIDTH = 520;
+const FOLDER = { spine: 'spines', back: 'backs', front: 'covers' };
 const SPINE_HEIGHT = 1000;
 const ANALYSIS_SIZE = 900;
-const NAME = /^([a-z0-9][a-z0-9-]*)[-_ ](spine|back)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
+const NAME = /^([a-z0-9][a-z0-9-]*)[-_ ](spine|back|front)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
 
 const SRGB_TO_LINEAR = Float32Array.from({ length: 256 }, (_, i) => {
   const c = i / 255;
@@ -102,7 +106,7 @@ if (!jobs.size) {
 let done = 0;
 const problems = [];
 for (const [key, file] of [...jobs].sort()) {
-  const [, id, kind] = /^([a-z0-9][a-z0-9-]*)-(spine|back)$/.exec(key) ?? [];
+  const [, id, kind] = /^([a-z0-9][a-z0-9-]*)-(spine|back|front)$/.exec(key) ?? [];
   // A book that isn't in comics.json yet can still be cropped with --dry-run,
   // so its picture is ready when the book is added.
   const book = byId.get(id) ?? (dryRun && kind ? { id, title: id } : undefined);
@@ -120,7 +124,8 @@ for (const [key, file] of [...jobs].sort()) {
     const ratio = fix.ratio ?? (kind === 'back' ? book.coverRatio : undefined);
     if (fix.drop) {
       // A photo that still looks wrong after correction: the book falls back to the printed spine.
-      if (!dryRun) await rm(path.join(root, 'public', kind === 'spine' ? 'spines' : 'backs', `${id}.webp`), { force: true });
+      if (kind === 'front') throw new Error('a front cover is not dropped this way: delete its entry in comic-image-sources.json and run covers.mjs --force');
+      if (!dryRun) await rm(path.join(root, 'public', FOLDER[kind], `${id}.webp`), { force: true });
       if (kind === 'spine') {
         delete book.spineImage;
         delete book.spineRatio;
@@ -133,10 +138,15 @@ for (const [key, file] of [...jobs].sort()) {
       continue;
     }
     const result = await processPhoto(path.join(folder, file), kind, fix, key, ratio, book);
-    const outDir = dryRun ? path.join(folder, 'out') : path.join(root, 'public', kind === 'spine' ? 'spines' : 'backs');
+    const outDir = dryRun ? path.join(folder, 'out') : path.join(root, 'public', FOLDER[kind]);
     await mkdir(outDir, { recursive: true });
     await result.image.webp({ quality: 82 }).toFile(path.join(outDir, dryRun ? `${key}.webp` : `${id}.webp`));
-    if (kind === 'spine') {
+    if (kind === 'front') {
+      // A photo of the front replaces the CLZ cover, when CLZ has the wrong edition's.
+      book.cover = `/covers/${id}.webp`;
+      book.coverRatio = Math.round((result.width / result.height) * 1000) / 1000;
+      book.coverColor = await edgeColour(result.image);
+    } else if (kind === 'spine') {
       book.spineImage = `/spines/${id}.webp`;
       book.spineRatio = Math.round((result.width / result.height) * 1000) / 1000;
     } else {
@@ -206,7 +216,8 @@ async function processPhoto(file, kind, fix, key, ratio, book) {
     fix.correct === false
       ? data
       : await correct(data, out.width, out.height, {
-          cover: book.cover,
+          // A front can't be matched to the cover it replaces.
+          cover: kind === 'front' ? null : book.cover,
           scan,
           glare: fix.glare === false ? 0 : typeof fix.glare === 'number' ? fix.glare : 0.15,
           streaks: fix.streaks === true ? 1 : typeof fix.streaks === 'number' ? fix.streaks : 0,
@@ -590,6 +601,19 @@ function refine(base, placed, valid, w, h) {
     }
   }
   return { data, trust, tiles: shifts };
+}
+
+/**
+ * Main colour along a front cover's left edge, which sits next to the spine on a
+ * real book; the same measure scripts/covers.mjs uses for the spine colour.
+ */
+async function edgeColour(image) {
+  const buffer = await image.clone().png().toBuffer();
+  const { width, height } = await sharp(buffer).metadata();
+  const { dominant } = await sharp(buffer)
+    .extract({ left: 0, top: 0, width: Math.max(Math.round(width * 0.12), 1), height })
+    .stats();
+  return `#${[dominant.r, dominant.g, dominant.b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
 /** Median colour of the photo just outside the book's outline. */
