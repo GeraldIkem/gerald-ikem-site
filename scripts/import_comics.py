@@ -47,6 +47,12 @@ def text(node: ET.Element | None, path: str) -> str:
 TITLE_FIXES = {
     "Jeph Loeb & Tim Sale Hulk TP": "Hulk: Gray",
     "JLA: The Tower Of Babel - The Deluxe Edition": "JLA: The Tower of Babel — The Deluxe Edition",
+    "Do A Powerbomb! TP": "Do a Powerbomb!",
+}
+
+# Books whose CLZ name leaves out which volume they are.
+ID_TITLES = {
+    "1115275": "Transformers: Book One — The Deluxe Edition",
 }
 
 
@@ -122,6 +128,7 @@ def convert(xml_path: Path) -> list[dict]:
             continue
         # Books added by hand in CLZ have no database id (it reads 0); name them instead, so no two share one.
         core_id = text(comic, "bpcomicid")
+        title = ID_TITLES.get(core_id, title)
         books.append(
             {
                 "id": core_id if core_id and core_id != "0" else f"x-{slug(title)}",
