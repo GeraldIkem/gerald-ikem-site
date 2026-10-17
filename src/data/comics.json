@@ -29,7 +29,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/c3/c3_539080_0_AbsoluteKingdomCome.jpg",
     "cover": "/covers/539080.webp",
     "coverColor": "#f8f8e8",
-    "coverRatio": 0.654
+    "coverRatio": 0.654,
+    "spineImage": "/spines/539080.webp",
+    "spineRatio": 0.078
   },
   {
     "id": "1161732",
@@ -529,7 +531,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/3a/3a_728944_0_JLATheTowerOfBabelTheDeluxeEdi.jpg",
     "cover": "/covers/728944.webp",
     "coverColor": "#c83828",
-    "coverRatio": 0.653
+    "coverRatio": 0.653,
+    "spineImage": "/spines/728944.webp",
+    "spineRatio": 0.063
   },
   {
     "id": "1062985",
@@ -616,7 +620,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/54/54_192979_0_SupermanKryptonite.jpg",
     "cover": "/covers/192979.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.66
+    "coverRatio": 0.66,
+    "spineImage": "/spines/192979.webp",
+    "spineRatio": 0.045
   },
   {
     "id": "1094572",
@@ -685,7 +691,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/a7/a7_931967_0_DoAPowerbombTP.jpg",
     "cover": "/covers/931967.webp",
     "coverColor": "#686878",
-    "coverRatio": 0.658
+    "coverRatio": 0.658,
+    "spineImage": "/spines/931967.webp",
+    "spineRatio": 0.041
   },
   {
     "id": "1170454",
@@ -718,7 +726,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/2b/2b_1115275_0_TransformersDeluxeEdition1A.jpg",
     "cover": "/covers/1115275.webp",
     "coverColor": "#0898d8",
-    "coverRatio": 0.674
+    "coverRatio": 0.674,
+    "spineImage": "/spines/1115275.webp",
+    "spineRatio": 0.081
   },
   {
     "id": "800436",

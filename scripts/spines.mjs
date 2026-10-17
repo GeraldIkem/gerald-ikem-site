@@ -60,7 +60,7 @@ const folder = path.resolve(args.find((arg) => !arg.startsWith('--')) ?? path.jo
 const BACK_WIDTH = 520;
 const SPINE_HEIGHT = 1000;
 const ANALYSIS_SIZE = 900;
-const NAME = /^([a-z0-9]+)[-_ ](spine|back)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
+const NAME = /^([a-z0-9][a-z0-9-]*)[-_ ](spine|back)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
 
 const SRGB_TO_LINEAR = Float32Array.from({ length: 256 }, (_, i) => {
   const c = i / 255;
@@ -102,7 +102,7 @@ if (!jobs.size) {
 let done = 0;
 const problems = [];
 for (const [key, file] of [...jobs].sort()) {
-  const [, id, kind] = /^([a-z0-9]+)-(spine|back)$/.exec(key) ?? [];
+  const [, id, kind] = /^([a-z0-9][a-z0-9-]*)-(spine|back)$/.exec(key) ?? [];
   // A book that isn't in comics.json yet can still be cropped with --dry-run,
   // so its picture is ready when the book is added.
   const book = byId.get(id) ?? (dryRun && kind ? { id, title: id } : undefined);
