@@ -53,6 +53,7 @@ TITLE_FIXES = {
 # Books whose CLZ name leaves out which volume they are.
 ID_TITLES = {
     "1115275": "Transformers: Book One — The Deluxe Edition",
+    "778746": "Teenage Mutant Ninja Turtles: The IDW Collection Vol. 1",
 }
 
 

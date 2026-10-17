@@ -681,6 +681,21 @@
     "backImage": "/backs/1067636.webp"
   },
   {
+    "id": "778746",
+    "title": "Teenage Mutant Ninja Turtles: The IDW Collection Vol. 1",
+    "publisher": "IDW Publishing",
+    "format": "Trade Paperback",
+    "size": "trade",
+    "status": "shelf",
+    "pages": null,
+    "year": 2022,
+    "note": "",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/2d/2d_778746_0_TeenageMutantNinjaTurtlesTheID.jpg",
+    "cover": "/covers/778746.webp",
+    "coverColor": "#282828",
+    "coverRatio": 0.656
+  },
+  {
     "id": "931967",
     "title": "Do a Powerbomb!",
     "publisher": "Image Comics",
@@ -1054,9 +1069,9 @@
     "cover": "/covers/833426.webp",
     "coverColor": "#084888",
     "coverRatio": 0.664,
-    "backImage": "/backs/833426.webp",
     "spineImage": "/spines/833426.webp",
-    "spineRatio": 0.155
+    "spineRatio": 0.155,
+    "backImage": "/backs/833426.webp"
   },
   {
     "id": "1091823",
@@ -1138,9 +1153,9 @@
     "cover": "/covers/x-green-arrow-year-one.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.647,
-    "backImage": "/backs/x-green-arrow-year-one.webp",
     "spineImage": "/spines/x-green-arrow-year-one.webp",
-    "spineRatio": 0.046
+    "spineRatio": 0.046,
+    "backImage": "/backs/x-green-arrow-year-one.webp"
   },
   {
     "id": "832902",
@@ -1322,9 +1337,9 @@
     "cover": "/covers/1067622.webp",
     "coverColor": "#383838",
     "coverRatio": 0.647,
-    "backImage": "/backs/1067622.webp",
     "spineImage": "/spines/1067622.webp",
-    "spineRatio": 0.272
+    "spineRatio": 0.272,
+    "backImage": "/backs/1067622.webp"
   },
   {
     "id": "904696",
@@ -1527,9 +1542,9 @@
     "cover": "/covers/816377.webp",
     "coverColor": "#282828",
     "coverRatio": 0.666,
-    "backImage": "/backs/816377.webp",
     "spineImage": "/spines/816377.webp",
-    "spineRatio": 0.164
+    "spineRatio": 0.164,
+    "backImage": "/backs/816377.webp"
   },
   {
     "id": "1189328",
@@ -1545,9 +1560,9 @@
     "cover": "/covers/1189328.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/1189328.webp",
     "spineImage": "/spines/1189328.webp",
-    "spineRatio": 0.091
+    "spineRatio": 0.091,
+    "backImage": "/backs/1189328.webp"
   },
   {
     "id": "x-green-arrow-year-one-the-deluxe-edition-2027",
@@ -1578,9 +1593,9 @@
     "cover": "/covers/958547.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.692,
-    "backImage": "/backs/958547.webp",
     "spineImage": "/spines/958547.webp",
-    "spineRatio": 0.217
+    "spineRatio": 0.217,
+    "backImage": "/backs/958547.webp"
   },
   {
     "id": "358525",
@@ -1596,9 +1611,9 @@
     "cover": "/covers/358525.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.64,
-    "backImage": "/backs/358525.webp",
     "spineImage": "/spines/358525.webp",
-    "spineRatio": 0.207
+    "spineRatio": 0.207,
+    "backImage": "/backs/358525.webp"
   },
   {
     "id": "1132914",
@@ -1645,9 +1660,9 @@
     "cover": "/covers/990793.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.651,
-    "backImage": "/backs/990793.webp",
     "spineImage": "/spines/990793.webp",
-    "spineRatio": 0.176
+    "spineRatio": 0.176,
+    "backImage": "/backs/990793.webp"
   },
   {
     "id": "1047078",
@@ -1663,9 +1678,9 @@
     "cover": "/covers/1047078.webp",
     "coverColor": "#382828",
     "coverRatio": 0.65,
-    "backImage": "/backs/1047078.webp",
     "spineImage": "/spines/1047078.webp",
-    "spineRatio": 0.066
+    "spineRatio": 0.066,
+    "backImage": "/backs/1047078.webp"
   },
   {
     "id": "1124015",
@@ -1681,9 +1696,9 @@
     "cover": "/covers/1124015.webp",
     "coverColor": "#484848",
     "coverRatio": 0.651,
-    "backImage": "/backs/1124015.webp",
     "spineImage": "/spines/1124015.webp",
-    "spineRatio": 0.182
+    "spineRatio": 0.182,
+    "backImage": "/backs/1124015.webp"
   },
   {
     "id": "422214",
@@ -1699,9 +1714,9 @@
     "cover": "/covers/422214.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.667,
-    "backImage": "/backs/422214.webp",
     "spineImage": "/spines/422214.webp",
-    "spineRatio": 0.07
+    "spineRatio": 0.07,
+    "backImage": "/backs/422214.webp"
   },
   {
     "id": "634654",
@@ -1732,9 +1747,9 @@
     "cover": "/covers/648707.webp",
     "coverColor": "#080808",
     "coverRatio": 0.668,
-    "backImage": "/backs/648707.webp",
     "spineImage": "/spines/648707.webp",
-    "spineRatio": 0.179
+    "spineRatio": 0.179,
+    "backImage": "/backs/648707.webp"
   },
   {
     "id": "1170502",
@@ -1801,9 +1816,9 @@
     "cover": "/covers/816383.webp",
     "coverColor": "#080808",
     "coverRatio": 0.655,
-    "backImage": "/backs/816383.webp",
     "spineImage": "/spines/816383.webp",
-    "spineRatio": 0.168
+    "spineRatio": 0.168,
+    "backImage": "/backs/816383.webp"
   },
   {
     "id": "861168",
@@ -1868,9 +1883,9 @@
     "cover": "/covers/1216560.webp",
     "coverColor": "#080808",
     "coverRatio": 0.643,
-    "backImage": "/backs/1216560.webp",
     "spineImage": "/spines/1216560.webp",
-    "spineRatio": 0.13
+    "spineRatio": 0.13,
+    "backImage": "/backs/1216560.webp"
   },
   {
     "id": "1067105",
@@ -1904,9 +1919,9 @@
     "cover": "/covers/1202954.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.67,
-    "backImage": "/backs/1202954.webp",
     "spineImage": "/spines/1202954.webp",
-    "spineRatio": 0.151
+    "spineRatio": 0.151,
+    "backImage": "/backs/1202954.webp"
   },
   {
     "id": "713236",
@@ -1922,9 +1937,9 @@
     "cover": "/covers/713236.webp",
     "coverColor": "#181818",
     "coverRatio": 0.691,
-    "backImage": "/backs/713236.webp",
     "spineImage": "/spines/713236.webp",
-    "spineRatio": 0.216
+    "spineRatio": 0.216,
+    "backImage": "/backs/713236.webp"
   },
   {
     "id": "629060",
@@ -1955,9 +1970,9 @@
     "cover": "/covers/860093.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.665,
-    "backImage": "/backs/860093.webp",
     "spineImage": "/spines/860093.webp",
-    "spineRatio": 0.168
+    "spineRatio": 0.168,
+    "backImage": "/backs/860093.webp"
   },
   {
     "id": "1012710",
@@ -2007,9 +2022,9 @@
     "cover": "/covers/1035965.webp",
     "coverColor": "#080808",
     "coverRatio": 0.67,
-    "backImage": "/backs/1035965.webp",
     "spineImage": "/spines/1035965.webp",
-    "spineRatio": 0.162
+    "spineRatio": 0.162,
+    "backImage": "/backs/1035965.webp"
   },
   {
     "id": "648796",
