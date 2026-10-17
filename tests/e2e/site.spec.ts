@@ -171,7 +171,10 @@ test.describe('off the clock', () => {
 });
 
 test('the off-the-clock tally jumps to each part of the page', async ({ page }) => {
-  // The jump lands on the LEGO viewer; with less motion its model appears at once instead of building.
+  // This is about the links, not the 3D: keep the LEGO model and the 3D book from loading, since parsing
+  // them without a GPU ties up the page for longer than a jump should take.
+  await page.route('**/lego/*.mpd.gz', (route) => route.abort());
+  await page.route(/\/_astro\/(book3d|legoBuild)\.[^/]*\.js$/, (route) => route.abort());
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/off-the-clock/');
   const tally = page.getByRole('navigation', { name: 'On this page' });
