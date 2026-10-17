@@ -12,7 +12,9 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/9c/9c_1143890_0_AbsoluteDCTheNewFrontierHC.jpg",
     "cover": "/covers/1143890.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.714
+    "coverRatio": 0.714,
+    "spineImage": "/spines/1143890.webp",
+    "spineRatio": 0.122
   },
   {
     "id": "539080",
@@ -44,7 +46,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.65,
     "spineImage": "/spines/1161732.webp",
-    "spineRatio": 0.045,
+    "spineRatio": 0.044,
     "backImage": "/backs/1161732.webp"
   },
   {
@@ -62,7 +64,7 @@
     "coverColor": "#f8e8c8",
     "coverRatio": 0.655,
     "spineImage": "/spines/935895.webp",
-    "spineRatio": 0.094,
+    "spineRatio": 0.09,
     "backImage": "/backs/935895.webp"
   },
   {
@@ -80,7 +82,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.634,
     "spineImage": "/spines/1137100.webp",
-    "spineRatio": 0.051,
+    "spineRatio": 0.046,
     "backImage": "/backs/1137100.webp"
   },
   {
@@ -98,7 +100,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.653,
     "spineImage": "/spines/1137092.webp",
-    "spineRatio": 0.05,
+    "spineRatio": 0.049,
     "backImage": "/backs/1137092.webp"
   },
   {
@@ -544,7 +546,7 @@
     "coverColor": "#281838",
     "coverRatio": 0.651,
     "spineImage": "/spines/1062985.webp",
-    "spineRatio": 0.057,
+    "spineRatio": 0.05,
     "backImage": "/backs/1062985.webp"
   },
   {
@@ -805,7 +807,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.661,
     "spineImage": "/spines/629057.webp",
-    "spineRatio": 0.158,
+    "spineRatio": 0.152,
     "backImage": "/backs/629057.webp"
   },
   {
@@ -913,7 +915,7 @@
     "coverColor": "#080808",
     "coverRatio": 0.645,
     "spineImage": "/spines/582586.webp",
-    "spineRatio": 0.041,
+    "spineRatio": 0.038,
     "backImage": "/backs/582586.webp"
   },
   {
@@ -949,7 +951,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.695,
     "spineImage": "/spines/891652.webp",
-    "spineRatio": 0.178,
+    "spineRatio": 0.168,
     "backImage": "/backs/891652.webp"
   },
   {
@@ -1038,7 +1040,9 @@
     "cover": "/covers/833426.webp",
     "coverColor": "#084888",
     "coverRatio": 0.664,
-    "backImage": "/backs/833426.webp"
+    "backImage": "/backs/833426.webp",
+    "spineImage": "/spines/833426.webp",
+    "spineRatio": 0.155
   },
   {
     "id": "1091823",
@@ -1055,7 +1059,7 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.676,
     "spineImage": "/spines/1091823.webp",
-    "spineRatio": 0.149,
+    "spineRatio": 0.137,
     "backImage": "/backs/1091823.webp"
   },
   {
