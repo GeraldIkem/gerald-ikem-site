@@ -15,6 +15,21 @@
     "coverRatio": 0.714
   },
   {
+    "id": "539080",
+    "title": "Absolute Kingdom Come",
+    "publisher": "DC Comics",
+    "format": "Absolute Edition",
+    "size": "absolute",
+    "status": "shelf",
+    "pages": 344,
+    "year": 2018,
+    "note": "I have Absolute Kingdom Come.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/c3/c3_539080_0_AbsoluteKingdomCome.jpg",
+    "cover": "/covers/539080.webp",
+    "coverColor": "#f8f8e8",
+    "coverRatio": 0.654
+  },
+  {
     "id": "1161732",
     "title": "Absolute Martian Manhunter: Martian Vision",
     "publisher": "DC Comics",
@@ -28,9 +43,9 @@
     "cover": "/covers/1161732.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/1161732.webp",
     "spineImage": "/spines/1161732.webp",
-    "spineRatio": 0.045
+    "spineRatio": 0.045,
+    "backImage": "/backs/1161732.webp"
   },
   {
     "id": "935895",
@@ -46,9 +61,9 @@
     "cover": "/covers/935895.webp",
     "coverColor": "#f8e8c8",
     "coverRatio": 0.655,
-    "backImage": "/backs/935895.webp",
     "spineImage": "/spines/935895.webp",
-    "spineRatio": 0.094
+    "spineRatio": 0.094,
+    "backImage": "/backs/935895.webp"
   },
   {
     "id": "1137100",
@@ -64,9 +79,9 @@
     "cover": "/covers/1137100.webp",
     "coverColor": "#080808",
     "coverRatio": 0.634,
-    "backImage": "/backs/1137100.webp",
     "spineImage": "/spines/1137100.webp",
-    "spineRatio": 0.051
+    "spineRatio": 0.051,
+    "backImage": "/backs/1137100.webp"
   },
   {
     "id": "1137092",
@@ -82,9 +97,9 @@
     "cover": "/covers/1137092.webp",
     "coverColor": "#080808",
     "coverRatio": 0.653,
-    "backImage": "/backs/1137092.webp",
     "spineImage": "/spines/1137092.webp",
-    "spineRatio": 0.05
+    "spineRatio": 0.05,
+    "backImage": "/backs/1137092.webp"
   },
   {
     "id": "791804",
@@ -100,9 +115,9 @@
     "cover": "/covers/791804.webp",
     "coverColor": "#080808",
     "coverRatio": 0.677,
-    "backImage": "/backs/791804.webp",
     "spineImage": "/spines/791804.webp",
-    "spineRatio": 0.067
+    "spineRatio": 0.067,
+    "backImage": "/backs/791804.webp"
   },
   {
     "id": "595563",
@@ -154,9 +169,27 @@
     "cover": "/covers/549725.webp",
     "coverColor": "#080818",
     "coverRatio": 0.672,
-    "backImage": "/backs/549725.webp",
     "spineImage": "/spines/549725.webp",
-    "spineRatio": 0.183
+    "spineRatio": 0.183,
+    "backImage": "/backs/549725.webp"
+  },
+  {
+    "id": "615732",
+    "title": "Batman by Scott Snyder & Greg Capullo Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Hardcover",
+    "size": "omnibus",
+    "status": "shelf",
+    "pages": 900,
+    "year": 2019,
+    "note": "I own Vol. 1 of Scott Snyder and Greg Capullo’s Batman run. My reading order: Vol. 1 → Vol. 2. This volume starts the New 52 run.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/13/13_615732_0_BatmanBySnyderCapulloOmnibusHC.jpg",
+    "cover": "/covers/615732.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.665,
+    "spineImage": "/spines/615732.webp",
+    "spineRatio": 0.19,
+    "backImage": "/backs/615732.webp"
   },
   {
     "id": "1195681",
@@ -226,9 +259,9 @@
     "cover": "/covers/1184534.webp",
     "coverColor": "#080808",
     "coverRatio": 0.646,
-    "backImage": "/backs/1184534.webp",
     "spineImage": "/spines/1184534.webp",
-    "spineRatio": 0.05
+    "spineRatio": 0.05,
+    "backImage": "/backs/1184534.webp"
   },
   {
     "id": "470667",
@@ -262,9 +295,9 @@
     "cover": "/covers/861150.webp",
     "coverColor": "#080808",
     "coverRatio": 0.652,
-    "backImage": "/backs/861150.webp",
     "spineImage": "/spines/861150.webp",
-    "spineRatio": 0.073
+    "spineRatio": 0.073,
+    "backImage": "/backs/861150.webp"
   },
   {
     "id": "466699",
@@ -297,9 +330,9 @@
     "cover": "/covers/772235.webp",
     "coverColor": "#080808",
     "coverRatio": 0.671,
-    "backImage": "/backs/772235.webp",
     "spineImage": "/spines/772235.webp",
-    "spineRatio": 0.192
+    "spineRatio": 0.192,
+    "backImage": "/backs/772235.webp"
   },
   {
     "id": "685970",
@@ -315,9 +348,9 @@
     "cover": "/covers/685970.webp",
     "coverColor": "#080808",
     "coverRatio": 0.671,
-    "backImage": "/backs/685970.webp",
     "spineImage": "/spines/685970.webp",
-    "spineRatio": 0.209
+    "spineRatio": 0.209,
+    "backImage": "/backs/685970.webp"
   },
   {
     "id": "1067621",
@@ -351,9 +384,9 @@
     "cover": "/covers/1143870.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/1143870.webp",
     "spineImage": "/spines/1143870.webp",
-    "spineRatio": 0.083
+    "spineRatio": 0.083,
+    "backImage": "/backs/1143870.webp"
   },
   {
     "id": "692148",
@@ -405,9 +438,9 @@
     "cover": "/covers/985271.webp",
     "coverColor": "#080808",
     "coverRatio": 0.693,
-    "backImage": "/backs/985271.webp",
     "spineImage": "/spines/985271.webp",
-    "spineRatio": 0.101
+    "spineRatio": 0.101,
+    "backImage": "/backs/985271.webp"
   },
   {
     "id": "381368",
@@ -423,9 +456,9 @@
     "cover": "/covers/381368.webp",
     "coverColor": "#b8d8d8",
     "coverRatio": 0.673,
-    "backImage": "/backs/381368.webp",
     "spineImage": "/spines/381368.webp",
-    "spineRatio": 0.206
+    "spineRatio": 0.206,
+    "backImage": "/backs/381368.webp"
   },
   {
     "id": "400438",
@@ -441,9 +474,9 @@
     "cover": "/covers/400438.webp",
     "coverColor": "#082818",
     "coverRatio": 0.661,
-    "backImage": "/backs/400438.webp",
     "spineImage": "/spines/400438.webp",
-    "spineRatio": 0.188
+    "spineRatio": 0.188,
+    "backImage": "/backs/400438.webp"
   },
   {
     "id": "427280",
@@ -459,9 +492,9 @@
     "cover": "/covers/427280.webp",
     "coverColor": "#080808",
     "coverRatio": 0.634,
-    "backImage": "/backs/427280.webp",
     "spineImage": "/spines/427280.webp",
-    "spineRatio": 0.205
+    "spineRatio": 0.205,
+    "backImage": "/backs/427280.webp"
   },
   {
     "id": "685972",
@@ -477,9 +510,24 @@
     "cover": "/covers/685972.webp",
     "coverColor": "#080808",
     "coverRatio": 0.665,
-    "backImage": "/backs/685972.webp",
     "spineImage": "/spines/685972.webp",
-    "spineRatio": 0.24
+    "spineRatio": 0.24,
+    "backImage": "/backs/685972.webp"
+  },
+  {
+    "id": "728944",
+    "title": "JLA: The Tower of Babel — The Deluxe Edition",
+    "publisher": "DC Comics",
+    "format": "Hardcover",
+    "size": "deluxe",
+    "status": "shelf",
+    "pages": 264,
+    "year": 2021,
+    "note": "",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/3a/3a_728944_0_JLATheTowerOfBabelTheDeluxeEdi.jpg",
+    "cover": "/covers/728944.webp",
+    "coverColor": "#c83828",
+    "coverRatio": 0.653
   },
   {
     "id": "1062985",
@@ -495,9 +543,9 @@
     "cover": "/covers/1062985.webp",
     "coverColor": "#281838",
     "coverRatio": 0.651,
-    "backImage": "/backs/1062985.webp",
     "spineImage": "/spines/1062985.webp",
-    "spineRatio": 0.057
+    "spineRatio": 0.057,
+    "backImage": "/backs/1062985.webp"
   },
   {
     "id": "737375",
@@ -513,9 +561,9 @@
     "cover": "/covers/737375.webp",
     "coverColor": "#080808",
     "coverRatio": 0.657,
-    "backImage": "/backs/737375.webp",
     "spineImage": "/spines/737375.webp",
-    "spineRatio": 0.198
+    "spineRatio": 0.198,
+    "backImage": "/backs/737375.webp"
   },
   {
     "id": "634655",
@@ -549,9 +597,24 @@
     "cover": "/covers/863414.webp",
     "coverColor": "#f8f8d8",
     "coverRatio": 0.649,
-    "backImage": "/backs/863414.webp",
     "spineImage": "/spines/863414.webp",
-    "spineRatio": 0.064
+    "spineRatio": 0.064,
+    "backImage": "/backs/863414.webp"
+  },
+  {
+    "id": "192979",
+    "title": "Superman: Kryptonite — The Deluxe Edition",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "shelf",
+    "pages": 160,
+    "year": 2024,
+    "note": "I’m considering this because Darwyn Cooke and Tim Sale are the draw for me. It is an early Superman story about his first encounter with kryptonite, and it would sit well with The New Frontier and For All Seasons on my shelf. Collects Superman Confidential #1–5 and #11. 2024 deluxe edition.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/54/54_192979_0_SupermanKryptonite.jpg",
+    "cover": "/covers/192979.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.66
   },
   {
     "id": "1094572",
@@ -585,9 +648,9 @@
     "cover": "/covers/861164.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/861164.webp",
     "spineImage": "/spines/861164.webp",
-    "spineRatio": 0.17
+    "spineRatio": 0.17,
+    "backImage": "/backs/861164.webp"
   },
   {
     "id": "1067636",
@@ -603,27 +666,24 @@
     "cover": "/covers/1067636.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.646,
-    "backImage": "/backs/1067636.webp",
     "spineImage": "/spines/1067636.webp",
-    "spineRatio": 0.2
+    "spineRatio": 0.2,
+    "backImage": "/backs/1067636.webp"
   },
   {
-    "id": "861168",
-    "title": "Wonder Woman by George Pérez Omnibus Vol. 1",
-    "publisher": "DC Comics",
-    "format": "Omnibus",
-    "size": "omnibus",
+    "id": "931967",
+    "title": "Do A Powerbomb! TP",
+    "publisher": "Image Comics",
+    "format": "Trade Paperback",
+    "size": "trade",
     "status": "shelf",
     "pages": null,
-    "year": 2022,
-    "note": "My copy collects Wonder Woman (1987) #1–24 and Annual #1. Begins George Pérez’s post-Crisis reinvention of Diana.",
-    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/bb/bb_861168_0_.jpg",
-    "cover": "/covers/861168.webp",
-    "coverColor": "#68c8c8",
-    "coverRatio": 0.685,
-    "backImage": "/backs/861168.webp",
-    "spineImage": "/spines/861168.webp",
-    "spineRatio": 0.137
+    "year": 2023,
+    "note": "I want to pick up Do a Powerbomb! by Daniel Warren Johnson.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/a7/a7_931967_0_DoAPowerbombTP.jpg",
+    "cover": "/covers/931967.webp",
+    "coverColor": "#686878",
+    "coverRatio": 0.658
   },
   {
     "id": "1170454",
@@ -639,9 +699,24 @@
     "cover": "/covers/1170454.webp",
     "coverColor": "#086888",
     "coverRatio": 0.674,
-    "backImage": "/backs/1170454.webp",
     "spineImage": "/spines/1170454.webp",
-    "spineRatio": 0.245
+    "spineRatio": 0.245,
+    "backImage": "/backs/1170454.webp"
+  },
+  {
+    "id": "1115275",
+    "title": "Transformers Deluxe Edition",
+    "publisher": "Image Comics",
+    "format": "Hardcover",
+    "size": "deluxe",
+    "status": "shelf",
+    "pages": null,
+    "year": 2025,
+    "note": "",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/2b/2b_1115275_0_TransformersDeluxeEdition1A.jpg",
+    "cover": "/covers/1115275.webp",
+    "coverColor": "#0898d8",
+    "coverRatio": 0.674
   },
   {
     "id": "800436",
@@ -657,9 +732,9 @@
     "cover": "/covers/800436.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.669,
-    "backImage": "/backs/800436.webp",
     "spineImage": "/spines/800436.webp",
-    "spineRatio": 0.187
+    "spineRatio": 0.187,
+    "backImage": "/backs/800436.webp"
   },
   {
     "id": "891648",
@@ -675,9 +750,9 @@
     "cover": "/covers/891648.webp",
     "coverColor": "#281818",
     "coverRatio": 0.668,
-    "backImage": "/backs/891648.webp",
     "spineImage": "/spines/891648.webp",
-    "spineRatio": 0.162
+    "spineRatio": 0.162,
+    "backImage": "/backs/891648.webp"
   },
   {
     "id": "477616",
@@ -729,9 +804,9 @@
     "cover": "/covers/770779.webp",
     "coverColor": "#080808",
     "coverRatio": 0.677,
-    "backImage": "/backs/770779.webp",
     "spineImage": "/spines/770779.webp",
-    "spineRatio": 0.121
+    "spineRatio": 0.121,
+    "backImage": "/backs/770779.webp"
   },
   {
     "id": "783486",
@@ -747,9 +822,9 @@
     "cover": "/covers/783486.webp",
     "coverColor": "#b8c8c8",
     "coverRatio": 0.668,
-    "backImage": "/backs/783486.webp",
     "spineImage": "/spines/783486.webp",
-    "spineRatio": 0.144
+    "spineRatio": 0.144,
+    "backImage": "/backs/783486.webp"
   },
   {
     "id": "634520",
@@ -783,9 +858,9 @@
     "cover": "/covers/1148976.webp",
     "coverColor": "#b8b8b8",
     "coverRatio": 0.72,
-    "backImage": "/backs/1148976.webp",
     "spineImage": "/spines/1148976.webp",
-    "spineRatio": 0.031
+    "spineRatio": 0.031,
+    "backImage": "/backs/1148976.webp"
   },
   {
     "id": "582586",
@@ -801,9 +876,9 @@
     "cover": "/covers/582586.webp",
     "coverColor": "#080808",
     "coverRatio": 0.645,
-    "backImage": "/backs/582586.webp",
     "spineImage": "/spines/582586.webp",
-    "spineRatio": 0.041
+    "spineRatio": 0.041,
+    "backImage": "/backs/582586.webp"
   },
   {
     "id": "891650",
@@ -819,9 +894,9 @@
     "cover": "/covers/891650.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.679,
-    "backImage": "/backs/891650.webp",
     "spineImage": "/spines/891650.webp",
-    "spineRatio": 0.114
+    "spineRatio": 0.114,
+    "backImage": "/backs/891650.webp"
   },
   {
     "id": "891652",
@@ -837,9 +912,9 @@
     "cover": "/covers/891652.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.695,
-    "backImage": "/backs/891652.webp",
     "spineImage": "/spines/891652.webp",
-    "spineRatio": 0.178
+    "spineRatio": 0.178,
+    "backImage": "/backs/891652.webp"
   },
   {
     "id": "1121691",
@@ -873,9 +948,9 @@
     "cover": "/covers/932038.webp",
     "coverColor": "#283828",
     "coverRatio": 0.662,
-    "backImage": "/backs/932038.webp",
     "spineImage": "/spines/932038.webp",
-    "spineRatio": 0.235
+    "spineRatio": 0.235,
+    "backImage": "/backs/932038.webp"
   },
   {
     "id": "790998",
@@ -891,9 +966,9 @@
     "cover": "/covers/790998.webp",
     "coverColor": "#b8b8b8",
     "coverRatio": 0.666,
-    "backImage": "/backs/790998.webp",
     "spineImage": "/spines/790998.webp",
-    "spineRatio": 0.193
+    "spineRatio": 0.193,
+    "backImage": "/backs/790998.webp"
   },
   {
     "id": "764502",
@@ -909,9 +984,9 @@
     "cover": "/covers/764502.webp",
     "coverColor": "#e82828",
     "coverRatio": 0.65,
-    "backImage": "/backs/764502.webp",
     "spineImage": "/spines/764502.webp",
-    "spineRatio": 0.159
+    "spineRatio": 0.159,
+    "backImage": "/backs/764502.webp"
   },
   {
     "id": "833426",
@@ -961,9 +1036,9 @@
     "cover": "/covers/932048.webp",
     "coverColor": "#080808",
     "coverRatio": 0.651,
-    "backImage": "/backs/932048.webp",
     "spineImage": "/spines/932048.webp",
-    "spineRatio": 0.033
+    "spineRatio": 0.033,
+    "backImage": "/backs/932048.webp"
   },
   {
     "id": "1162844",
@@ -981,7 +1056,7 @@
     "coverRatio": 0.65
   },
   {
-    "id": "0",
+    "id": "x-batman-legends-of-the-dark-knight-omnibus-vol-1",
     "title": "Batman: Legends of the Dark Knight Omnibus Vol. 1",
     "publisher": "DC Comics",
     "format": "Omnibus",
@@ -991,9 +1066,24 @@
     "year": 2027,
     "note": "I have this on order. Batman’s early-career stories; currently scheduled for June 1, 2027.",
     "coverUrl": "https://clzcomics.r.sizr.io/cloud/covers/lg/ad/ad_51125787_0_BatmanLegendsoftheDarkKnightOm.jpg",
-    "cover": "/covers/0.webp",
+    "cover": "/covers/x-batman-legends-of-the-dark-knight-omnibus-vol-1.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65
+  },
+  {
+    "id": "x-green-arrow-year-one",
+    "title": "Green Arrow: Year One",
+    "publisher": "",
+    "format": "Collected edition",
+    "size": "trade",
+    "status": "read",
+    "pages": null,
+    "year": null,
+    "note": "I have read Green Arrow: Year One, but I do not currently have a copy. I am considering the deluxe edition coming in 2027.",
+    "coverUrl": "https://clzcomics.r.sizr.io/cloud/covers/lg/ce/ce_51143754_0_GreenArrowYearOne.jpg",
+    "cover": "/covers/x-green-arrow-year-one.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.647
   },
   {
     "id": "832902",
@@ -1009,9 +1099,9 @@
     "cover": "/covers/832902.webp",
     "coverColor": "#f8e8b8",
     "coverRatio": 0.784,
-    "backImage": "/backs/832902.webp",
     "spineImage": "/spines/832902.webp",
-    "spineRatio": 0.024
+    "spineRatio": 0.024,
+    "backImage": "/backs/832902.webp"
   },
   {
     "id": "737376",
@@ -1043,9 +1133,9 @@
     "cover": "/covers/1074026.webp",
     "coverColor": "#080808",
     "coverRatio": 0.648,
-    "backImage": "/backs/1074026.webp",
     "spineImage": "/spines/1074026.webp",
-    "spineRatio": 0.094
+    "spineRatio": 0.094,
+    "backImage": "/backs/1074026.webp"
   },
   {
     "id": "1190506",
@@ -1062,6 +1152,21 @@
     "coverColor": "#183858",
     "coverRatio": 0.649,
     "backImage": "/backs/1190506.webp"
+  },
+  {
+    "id": "1017824",
+    "title": "Hulk: World War Hulk Omnibus",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "read",
+    "pages": null,
+    "year": 2024,
+    "note": "I do not want this omnibus. I only want World War Hulk #1–5, which is on my wishlist as the main-story paperback.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f1/f1_1017824_0_HulkWorldWarHulkOmnibusB.jpg",
+    "cover": "/covers/1017824.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.68
   },
   {
     "id": "959415",
@@ -1093,9 +1198,9 @@
     "cover": "/covers/652480.webp",
     "coverColor": "#080808",
     "coverRatio": 0.649,
-    "backImage": "/backs/652480.webp",
     "spineImage": "/spines/652480.webp",
-    "spineRatio": 0.037
+    "spineRatio": 0.037,
+    "backImage": "/backs/652480.webp"
   },
   {
     "id": "444953",
@@ -1111,9 +1216,24 @@
     "cover": "/covers/444953.webp",
     "coverColor": "#080808",
     "coverRatio": 0.748,
-    "backImage": "/backs/444953.webp",
     "spineImage": "/spines/444953.webp",
-    "spineRatio": 0.133
+    "spineRatio": 0.133,
+    "backImage": "/backs/444953.webp"
+  },
+  {
+    "id": "1067622",
+    "title": "Aquaman by Peter David Omnibus",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1584,
+    "year": 2024,
+    "note": "I’m considering this for Peter David’s more intense, long-haired Aquaman and the Atlantean side of his world. It is different material from my Geoff Johns omnibus. It is a very large book, so I would want the run itself to justify the space. Includes Aquaman (1994) #0–49, Annuals #1–4, Aquaman: Time & Tide #1–4, Tempest #1–4 and related material.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/64/64_1067622_0_.jpg",
+    "cover": "/covers/1067622.webp",
+    "coverColor": "#383838",
+    "coverRatio": 0.647
   },
   {
     "id": "904696",
@@ -1129,9 +1249,9 @@
     "cover": "/covers/904696.webp",
     "coverColor": "#080808",
     "coverRatio": 0.677,
-    "backImage": "/backs/904696.webp",
     "spineImage": "/spines/904696.webp",
-    "spineRatio": 0.233
+    "spineRatio": 0.233,
+    "backImage": "/backs/904696.webp"
   },
   {
     "id": "525077",
@@ -1147,9 +1267,9 @@
     "cover": "/covers/525077.webp",
     "coverColor": "#080808",
     "coverRatio": 0.682,
-    "backImage": "/backs/525077.webp",
     "spineImage": "/spines/525077.webp",
-    "spineRatio": 0.136
+    "spineRatio": 0.136,
+    "backImage": "/backs/525077.webp"
   },
   {
     "id": "595565",
@@ -1165,9 +1285,9 @@
     "cover": "/covers/595565.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.668,
-    "backImage": "/backs/595565.webp",
     "spineImage": "/spines/595565.webp",
-    "spineRatio": 0.137
+    "spineRatio": 0.137,
+    "backImage": "/backs/595565.webp"
   },
   {
     "id": "661339",
@@ -1183,27 +1303,9 @@
     "cover": "/covers/661339.webp",
     "coverColor": "#f8c838",
     "coverRatio": 0.667,
-    "backImage": "/backs/661339.webp",
     "spineImage": "/spines/661339.webp",
-    "spineRatio": 0.118
-  },
-  {
-    "id": "615732",
-    "title": "Batman by Scott Snyder & Greg Capullo Omnibus Vol. 1",
-    "publisher": "DC Comics",
-    "format": "Hardcover",
-    "size": "omnibus",
-    "status": "wishlist",
-    "pages": 900,
-    "year": 2019,
-    "note": "I want the Snyder and Capullo Batman run. My reading order: Vol. 1 → Vol. 2. This volume starts the New 52 run.",
-    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/13/13_615732_0_BatmanBySnyderCapulloOmnibusHC.jpg",
-    "cover": "/covers/615732.webp",
-    "coverColor": "#080808",
-    "coverRatio": 0.665,
-    "backImage": "/backs/615732.webp",
-    "spineImage": "/spines/615732.webp",
-    "spineRatio": 0.19
+    "spineRatio": 0.118,
+    "backImage": "/backs/661339.webp"
   },
   {
     "id": "777644",
@@ -1219,9 +1321,24 @@
     "cover": "/covers/777644.webp",
     "coverColor": "#181818",
     "coverRatio": 0.648,
-    "backImage": "/backs/777644.webp",
     "spineImage": "/spines/777644.webp",
-    "spineRatio": 0.189
+    "spineRatio": 0.189,
+    "backImage": "/backs/777644.webp"
+  },
+  {
+    "id": "x-batman-superman-world-s-finest-the-deluxe-edition-vol-2",
+    "title": "Batman/Superman: World's Finest — The Deluxe Edition Vol. 2",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "wishlist",
+    "pages": 368,
+    "year": 2027,
+    "note": "I’m considering this to continue Mark Waid and Dan Mora’s World’s Finest after the first deluxe volume I own. I want it for the character chemistry and Dan Mora’s art. Collects Batman/Superman: World’s Finest #12–24. Announced for 9 March 2027; I have not ordered it.",
+    "coverUrl": "https://clzcomics.r.sizr.io/cloud/covers/lg/6a/6a_51144213_0_BatmanSupermanWorldsFinestTheD.webp",
+    "cover": "/covers/x-batman-superman-world-s-finest-the-deluxe-edition-vol-2.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.667
   },
   {
     "id": "847836",
@@ -1237,9 +1354,9 @@
     "cover": "/covers/847836.webp",
     "coverColor": "#080808",
     "coverRatio": 0.65,
-    "backImage": "/backs/847836.webp",
     "spineImage": "/spines/847836.webp",
-    "spineRatio": 0.092
+    "spineRatio": 0.092,
+    "backImage": "/backs/847836.webp"
   },
   {
     "id": "847839",
@@ -1255,9 +1372,9 @@
     "cover": "/covers/847839.webp",
     "coverColor": "#584848",
     "coverRatio": 0.65,
-    "backImage": "/backs/847839.webp",
     "spineImage": "/spines/847839.webp",
-    "spineRatio": 0.222
+    "spineRatio": 0.222,
+    "backImage": "/backs/847839.webp"
   },
   {
     "id": "652482",
@@ -1276,10 +1393,10 @@
   },
   {
     "id": "1026827",
-    "title": "Batman: The Black Mirror",
+    "title": "Batman: The Black Mirror — The Deluxe Edition",
     "publisher": "DC Comics",
     "format": "Hardcover",
-    "size": "hardcover",
+    "size": "deluxe",
     "status": "wishlist",
     "pages": 32,
     "year": 2024,
@@ -1306,6 +1423,96 @@
     "backImage": "/backs/806058.webp"
   },
   {
+    "id": "816377",
+    "title": "Gotham Central Omnibus",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 968,
+    "year": 2022,
+    "note": "I’m considering this for the Gotham police stories by Ed Brubaker and Greg Rucka, with Michael Lark as the main artist early on. It is about ordinary detectives working in Batman’s city, which gives me another side of Gotham. Collects Gotham Central #1–40: the complete series.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/06/06_816377_0_GothamCentralOmnibusHCB.jpg",
+    "cover": "/covers/816377.webp",
+    "coverColor": "#282828",
+    "coverRatio": 0.666
+  },
+  {
+    "id": "1189328",
+    "title": "Green Arrow by Jeff Lemire and Andrea Sorrentino — The Deluxe Edition",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "wishlist",
+    "pages": 480,
+    "year": 2026,
+    "note": "I’m considering this for Lemire’s focused Green Arrow run and Sorrentino’s art. The Outsiders War is the main draw. I can start here without collecting the earlier New 52 books. Collects Green Arrow (2011) #17–34, #23.1 and Futures End #1, plus the short story from Secret Origins #4. This is different material from Year One and The Longbow Hunters.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/07/07_1189328_0_GreenArrowbyJeffLemireDeluxeEd.jpg",
+    "cover": "/covers/1189328.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.65
+  },
+  {
+    "id": "x-green-arrow-year-one-the-deluxe-edition-2027",
+    "title": "Green Arrow: Year One — The Deluxe Edition (2027)",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "wishlist",
+    "pages": 168,
+    "year": 2027,
+    "note": "I’m considering the 2027 deluxe edition by Andy Diggle and Jock. I have already read the story, but I don’t own it now and I have not ordered this edition. Collects Green Arrow: Year One #1–6. Announced for 23 March 2027.",
+    "coverUrl": "https://clzcomics.r.sizr.io/cloud/covers/lg/3b/3b_51144095_0_GreenArrowYearOneTheDeluxeEdit.jpg",
+    "cover": "/covers/x-green-arrow-year-one-the-deluxe-edition-2027.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.656
+  },
+  {
+    "id": "958547",
+    "title": "Green Lantern Corps by Peter J. Tomasi and Patrick Gleason Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": null,
+    "year": 2023,
+    "note": "I’m considering this for Guy Gardner, Kyle Rayner and the wider Corps, with Dave Gibbons, Peter Tomasi and Patrick Gleason. It runs alongside the Johns Green Lantern books I own. There is overlap around Recharge and Sinestro Corps War, so this is for the additional Corps stories rather than a replacement for my Johns set. Vol. 1 is the start, not the whole run.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/a4/a4_958547_0_.jpg",
+    "cover": "/covers/958547.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.692
+  },
+  {
+    "id": "358525",
+    "title": "JSA by Geoff Johns Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1224,
+    "year": 2014,
+    "note": "I’m considering this to try more of DC’s legacy heroes: the older Justice Society alongside a new generation. Geoff Johns and David Goyer are the main writers. This is the start of a longer run, not the full JSA story. Includes JSA #1–25 and related specials, JSA All Stars #1–8, JLA/JSA: Virtue and Vice and the 1999 Justice Society Returns material.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/c9/c9_358525_0_.jpg",
+    "cover": "/covers/358525.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.64
+  },
+  {
+    "id": "1132914",
+    "title": "Nightwing by Tom Taylor and Bruno Redondo Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 32,
+    "year": 2025,
+    "note": "I’m considering this as a Nightwing starting point. Tom Taylor and Bruno Redondo focus on Dick Grayson helping Blüdhaven, with Barbara Gordon and his wider family around him. I want it for that optimistic character focus and the art. This is the beginning of the run, starting with Nightwing #78. It is not the whole Taylor run in one volume.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/ac/ac_1132914_0_NightwingByTomTaylorAndBrunoRe.jpg",
+    "cover": "/covers/1132914.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.651
+  },
+  {
     "id": "107196",
     "title": "Secret Origins of the World's Greatest Super-Heroes",
     "publisher": "DC Comics",
@@ -1322,6 +1529,96 @@
     "backImage": "/backs/107196.webp"
   },
   {
+    "id": "990793",
+    "title": "Super Sons Omnibus — Super Duper Edition",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1056,
+    "year": 2023,
+    "note": "I’m considering this for Jon Kent and Damian Wayne together. I already have Tomasi and Gleason’s Superman, so this is a natural next step for the family side of those books. This Super Duper edition gathers Super Sons, Adventures of the Super Sons and Challenge of the Super Sons with related material. Some Superman crossover chapters overlap my Superman omnibus.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/4f/4f_990793_0_.jpg",
+    "cover": "/covers/990793.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.651
+  },
+  {
+    "id": "1047078",
+    "title": "Supergirl: Woman of Tomorrow — The Deluxe Edition",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "wishlist",
+    "pages": 264,
+    "year": 2024,
+    "note": "I’m considering this as my Supergirl starting point. Tom King and Bilquis Evely tell a space journey about grief, revenge and compassion, with the art being a big part of the appeal. I can read it on its own. Collects Supergirl: Woman of Tomorrow #1–8, plus deluxe extras.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/8f/8f_1047078_0_SupergirlWomanofTomorrowDeluxe.jpg",
+    "cover": "/covers/1047078.webp",
+    "coverColor": "#382828",
+    "coverRatio": 0.65
+  },
+  {
+    "id": "1124015",
+    "title": "Superman by Phillip Kennedy Johnson Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1032,
+    "year": 2025,
+    "note": "I’m considering this mainly for the Warworld story: Superman trying to free people under Mongul’s rule. This is the start of Phillip Kennedy Johnson’s run. I only need this edition or the Warworld Saga paperback, not both. The publisher lists Action Comics #1029–1049, Superman #29–32, Infinite Frontier #0, Superman and the Authority #1–4, Superman: Son of Kal-El #16–18, Action Comics 2022 Annual #1, Batman/Superman: Authority Special #1 and Superman: Warworld Apocalypse #1.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/43/43_1124015_0_SupermanByPhillipKennedyJohnso.jpg",
+    "cover": "/covers/1124015.webp",
+    "coverColor": "#484848",
+    "coverRatio": 0.651
+  },
+  {
+    "id": "422214",
+    "title": "Superman: Secret Identity — The Deluxe Edition",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "wishlist",
+    "pages": 224,
+    "year": 2016,
+    "note": "I’m considering this for a quieter Superman story about growing up, family and what having those powers would actually mean. Kurt Busiek writes it and Stuart Immonen draws it. It stands on its own, so I don’t need any other books first. Collects Superman: Secret Identity #1–4.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/0a/0a_422214_0_SupermanSecretIdentityHC.jpg",
+    "cover": "/covers/422214.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.667
+  },
+  {
+    "id": "634654",
+    "title": "Superman: Secret Origin — The Deluxe Edition",
+    "publisher": "DC Comics",
+    "format": "Deluxe edition",
+    "size": "deluxe",
+    "status": "wishlist",
+    "pages": 224,
+    "year": 2019,
+    "note": "I’m considering Geoff Johns and Gary Frank’s take on Superman’s origin. This gives me Smallville, the Legion and his early days in Metropolis in one book. It is a different version of the origin from Birthright, which I already own. Collects Superman: Secret Origin #1–6.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/58/58_634654_0_SupermanSecretOriginHCB.jpg",
+    "cover": "/covers/634654.webp",
+    "coverColor": "#081818",
+    "coverRatio": 0.639
+  },
+  {
+    "id": "648707",
+    "title": "The Flash by Geoff Johns Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": null,
+    "year": 2019,
+    "note": "I’m considering this after my Waid Flash books. Geoff Johns builds out Wally West’s world and the Rogues, with Scott Kolins as a major artist. This is the start of the Johns run, not a repeat of the Waid material. Collects The Flash #164–191, Our Worlds at War #1, Iron Heights #1, Secret Files & Origins #3 and DC First: Flash/Superman #1.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/ba/ba_648707_0_TheFlashOmnibusByGeoffJohnsHC1.jpg",
+    "cover": "/covers/648707.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.668
+  },
+  {
     "id": "1170502",
     "title": "The Flash by Mark Waid Omnibus Vol. 3",
     "publisher": "DC Comics",
@@ -1335,9 +1632,24 @@
     "cover": "/covers/1170502.webp",
     "coverColor": "#688898",
     "coverRatio": 0.65,
-    "backImage": "/backs/1170502.webp",
     "spineImage": "/spines/1170502.webp",
-    "spineRatio": 0.196
+    "spineRatio": 0.196,
+    "backImage": "/backs/1170502.webp"
+  },
+  {
+    "id": "x-the-green-lantern-by-grant-morrison-and-liam-sharp-omnibus",
+    "title": "The Green Lantern by Grant Morrison and Liam Sharp Omnibus",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": null,
+    "year": 2027,
+    "note": "I want this for Morrison’s unusual space-detective take on Hal Jordan and Liam Sharp’s art. It is a separate run from the Geoff Johns Green Lantern set I own. Collects The Green Lantern #1–12, Season Two #1–12, Green Lantern: Blackstars #1–3 and Annual #1. Announced for 11 May 2027. I have not ordered it.",
+    "coverUrl": "https://clzcomics.r.sizr.io/cloud/covers/lg/19/19_51144064_0_TheGreenLanternbyGrantMorrison.jpg",
+    "cover": "/covers/x-the-green-lantern-by-grant-morrison-and-liam-sharp-omnibus.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.652
   },
   {
     "id": "643956",
@@ -1353,24 +1665,87 @@
     "cover": "/covers/643956.webp",
     "coverColor": "#584838",
     "coverRatio": 0.649,
-    "backImage": "/backs/643956.webp",
     "spineImage": "/spines/643956.webp",
-    "spineRatio": 0.242
+    "spineRatio": 0.242,
+    "backImage": "/backs/643956.webp"
   },
   {
-    "id": "1017824",
-    "title": "Hulk: World War Hulk Omnibus",
-    "publisher": "Marvel Comics",
+    "id": "816383",
+    "title": "The Question by Dennis O'Neil and Denys Cowan Omnibus Vol. 1",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 952,
+    "year": 2022,
+    "note": "I’m considering this for a darker detective story about Vic Sage, corruption and the way he thinks about justice. Dennis O’Neil and Denys Cowan are the main creative team. Collects The Question #1–27 and The Question, Green Arrow and Detective Comics Annuals #1. This is the first part of the run; it continues in Vol. 2.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/19/19_816383_0_.jpg",
+    "cover": "/covers/816383.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.655
+  },
+  {
+    "id": "861168",
+    "title": "Wonder Woman by George Pérez Omnibus Vol. 1",
+    "publisher": "DC Comics",
     "format": "Omnibus",
     "size": "omnibus",
     "status": "wishlist",
     "pages": null,
-    "year": 2024,
-    "note": "I want this to read after Planet Hulk, which I am reading now.",
-    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f1/f1_1017824_0_HulkWorldWarHulkOmnibusB.jpg",
-    "cover": "/covers/1017824.webp",
+    "year": 2022,
+    "note": "My order was cancelled, so I do not have this yet. I still want a copy.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/bb/bb_861168_0_.jpg",
+    "cover": "/covers/861168.webp",
+    "coverColor": "#68c8c8",
+    "coverRatio": 0.685,
+    "spineImage": "/spines/861168.webp",
+    "spineRatio": 0.137,
+    "backImage": "/backs/861168.webp"
+  },
+  {
+    "id": "1124152",
+    "title": "Wonder Woman by Greg Rucka Omnibus",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 32,
+    "year": 2025,
+    "note": "I’m considering this for Diana as an ambassador as well as a fighter, with mythology and politics around her. It includes The Hiketeia. This is Rucka’s original run, separate from his Rebirth omnibus. Collects Wonder Woman #195–226, The Flash #219, Wonder Woman: The Hiketeia and Blackest Night: Wonder Woman #1–3.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/bc/bc_1124152_0_WonderWomanByGregRuckaOmnibusH.jpg",
+    "cover": "/covers/1124152.webp",
+    "coverColor": "#e8d8b8",
+    "coverRatio": 0.65
+  },
+  {
+    "id": "921601",
+    "title": "Wonder Woman Historia: The Amazons",
+    "publisher": "DC Comics",
+    "format": "Hardcover",
+    "size": "hardcover",
+    "status": "wishlist",
+    "pages": null,
+    "year": 2023,
+    "note": "I’m considering this for the Amazons’ origin and the artwork by Phil Jimenez, Gene Ha and Nicola Scott. Kelly Sue DeConnick writes it. The focus is Hippolyta and the Amazons rather than Diana’s usual superhero adventures. Collects Wonder Woman Historia: The Amazons #1–3 in one oversized hardcover.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/32/32_921601_0_.jpg",
+    "cover": "/covers/921601.webp",
+    "coverColor": "#d8d8d8",
+    "coverRatio": 0.764
+  },
+  {
+    "id": "1216560",
+    "title": "Wonder Woman: Rebirth by Greg Rucka Omnibus",
+    "publisher": "DC Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 720,
+    "year": 2026,
+    "note": "I’m considering this for Wonder Woman: Year One and Rucka’s Rebirth story, with Nicola Scott and Liam Sharp on art. It is a good modern starting point and different material from his earlier Wonder Woman omnibus. Collects Wonder Woman (2016) #1–25, Rebirth #1 and Rucka stories from the 2017 Holiday Special, 75th Anniversary Special, Annual #1 and #750.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/29/29_1216560_0_WonderWomanRebirthbyGregRuckaO.jpg",
+    "cover": "/covers/1216560.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.68
+    "coverRatio": 0.643
   },
   {
     "id": "1067105",
@@ -1386,9 +1761,84 @@
     "cover": "/covers/1067105.webp",
     "coverColor": "#281818",
     "coverRatio": 0.668,
-    "backImage": "/backs/1067105.webp",
     "spineImage": "/spines/1067105.webp",
-    "spineRatio": 0.144
+    "spineRatio": 0.144,
+    "backImage": "/backs/1067105.webp"
+  },
+  {
+    "id": "1202954",
+    "title": "Spider-Man by Chip Zdarsky Omnibus",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 936,
+    "year": 2026,
+    "note": "I’m considering this for Chip Zdarsky’s take on Peter, especially Life Story and Spider-Man: Spider’s Shadow. Those are included here, so I don’t need separate copies of them as well. Includes Peter Parker: The Spectacular Spider-Man #1–6 and #297–310, Annual #1, Life Story #1–6 and Annual #1, Spider’s Shadow #1–5 and the 2017 Free Comic Book Day Spider-Man story.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/39/39_1202954_2_SpiderManByChipZdarskyOmnibusH.jpg",
+    "cover": "/covers/1202954.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.67
+  },
+  {
+    "id": "713236",
+    "title": "Spider-Man by Roger Stern Omnibus",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1296,
+    "year": 2021,
+    "note": "I’m considering this for classic Peter Parker, the Hobgoblin mystery and Roger Stern’s character work, with John Romita Jr. on the Amazing Spider-Man stories. Collects Spectacular Spider-Man #43–61 and #85, Amazing Spider-Man #206 and #224–252, Annual #16–17 and selected related material. Different material from my Ultimate Spider-Man books.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/2d/2d_713236_0_SpiderManByRogerSternOmnibusHC.jpg",
+    "cover": "/covers/713236.webp",
+    "coverColor": "#181818",
+    "coverRatio": 0.691
+  },
+  {
+    "id": "629060",
+    "title": "The Incredible Hulk by Peter David Omnibus Vol. 1",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1008,
+    "year": 2020,
+    "note": "I’m considering this as the start of Peter David’s long Hulk run: the grey Hulk and Joe Fixit era, with Todd McFarlane and Jeff Purves among the artists. It gives me a different side of Hulk from Immortal Hulk and Planet Hulk. Collects Incredible Hulk #328 and #331–368, Web of Spider-Man #44, Fantastic Four #320 and Hulk material from Marvel Comics Presents #26 and #45.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/58/58_629060_0_.jpg",
+    "cover": "/covers/629060.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.668
+  },
+  {
+    "id": "860093",
+    "title": "The Incredible Hulk by Peter David Omnibus Vol. 2",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": null,
+    "year": 2023,
+    "note": "I’m considering this as the next part of Peter David’s Hulk run, with Dale Keown as a major artist. This covers the move into the merged Hulk/Pantheon period. I would read Vol. 1 first. Collects Incredible Hulk #369–400, Annuals #16–18, X-Factor #76 and the Hulk story from Marvel Holiday Special #2.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/24/24_860093_0_.jpg",
+    "cover": "/covers/860093.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.665
+  },
+  {
+    "id": "1012710",
+    "title": "Thor by Walter Simonson Omnibus",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": 1192,
+    "year": 2024,
+    "note": "I’m considering this for Simonson’s mythic Thor stories, Beta Ray Bill and the Surtur saga. This is separate from my Jason Aaron Thor omnibus, and I want it for the run itself. Collects Thor #337–355, #357–369 and #371–382, plus Balder the Brave #1–4. This edition uses the modern recolouring.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/89/89_1012710_2_ThorbyWalterSimonsonOmnibus1HC.jpg",
+    "cover": "/covers/1012710.webp",
+    "coverColor": "#f8f8f8",
+    "coverRatio": 0.697
   },
   {
     "id": "959381",
@@ -1404,9 +1854,24 @@
     "cover": "/covers/959381.webp",
     "coverColor": "#080808",
     "coverRatio": 0.679,
-    "backImage": "/backs/959381.webp",
     "spineImage": "/spines/959381.webp",
-    "spineRatio": 0.171
+    "spineRatio": 0.171,
+    "backImage": "/backs/959381.webp"
+  },
+  {
+    "id": "1035965",
+    "title": "Ultimate Spider-Man Omnibus Vol. 4",
+    "publisher": "Marvel Comics",
+    "format": "Omnibus",
+    "size": "omnibus",
+    "status": "wishlist",
+    "pages": null,
+    "year": 2024,
+    "note": "I’m considering this to continue Bendis’s Ultimate Spider-Man after Vol. 3. I own Vols. 1–2 already and Vol. 3 is on my wishlist. Collects Ultimate Spider-Man (2000) #112–133 and Annual #3, Ultimatum: Spider-Man Requiem #1–2 and Ultimate Spider-Man (2009) #1–15. Art includes Stuart Immonen and David Lafuente. This is the original Ultimate Peter Parker run, not the newer Hickman series.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/d0/d0_1035965_0_UltimateSpiderManOmnibus4HCA.jpg",
+    "cover": "/covers/1035965.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.67
   },
   {
     "id": "648796",
@@ -1422,9 +1887,9 @@
     "cover": "/covers/648796.webp",
     "coverColor": "#f8f8f8",
     "coverRatio": 0.668,
-    "backImage": "/backs/648796.webp",
     "spineImage": "/spines/648796.webp",
-    "spineRatio": 0.148
+    "spineRatio": 0.148,
+    "backImage": "/backs/648796.webp"
   },
   {
     "id": "1052882",
@@ -1456,9 +1921,9 @@
     "cover": "/covers/671692.webp",
     "coverColor": "#181818",
     "coverRatio": 0.654,
-    "backImage": "/backs/671692.webp",
     "spineImage": "/spines/671692.webp",
-    "spineRatio": 0.186
+    "spineRatio": 0.186,
+    "backImage": "/backs/671692.webp"
   },
   {
     "id": "820223",
@@ -1507,5 +1972,20 @@
     "coverRatio": 0.697,
     "spineImage": "/spines/815436.webp",
     "spineRatio": 0.211
+  },
+  {
+    "id": "621282",
+    "title": "World War Hulk — Main Story",
+    "publisher": "Marvel Comics",
+    "format": "Trade Paperback",
+    "size": "trade",
+    "status": "wishlist",
+    "pages": 224,
+    "year": 2019,
+    "note": "I only want the main World War Hulk story, issues #1–5. I do not want the omnibus or the tie-ins.",
+    "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f4/f4_621282_0_WorldWarHulkTPTPC.jpg",
+    "cover": "/covers/621282.webp",
+    "coverColor": "#080808",
+    "coverRatio": 0.624
   }
 ]
