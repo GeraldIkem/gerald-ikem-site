@@ -46,16 +46,34 @@ def text(node: ET.Element | None, path: str) -> str:
 # Series names CLZ stores in catalogue shorthand.
 TITLE_FIXES = {
     "Jeph Loeb & Tim Sale Hulk TP": "Hulk: Gray",
+    "JLA: The Tower Of Babel - The Deluxe Edition": "JLA: The Tower of Babel — The Deluxe Edition",
 }
+
+
+# Series I own but leave off the site.
+EXCLUDE = ("Something Is Killing the Children",)
+
+# A title that lists issue numbers ("JLA #18-21, 32-33...") describes the contents, not the book.
+CONTENTS = re.compile(r"#\d")
 
 
 def title_of(comic: ET.Element) -> str:
     title = text(comic, "mainsection/title")
     series = text(comic, "mainsection/series/displayname")
-    # Multi-volume runs sometimes carry the bare run name as the title.
-    if not title or ("Vol." in series and "Vol." not in title and series.startswith(title)):
-        title = series
+    # CLZ sometimes stores a shortened name ("Superman", "Volume 1") or the contents as the
+    # title; the series name is then the book's real title.
+    if (
+        not title
+        or CONTENTS.search(title)
+        or re.fullmatch(r"Volume \d+", title)
+        or (series != title and series.lower().startswith(title.lower()))
+    ):
+        title = series or title
     return TITLE_FIXES.get(title, title)
+
+
+def slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
 def size_of(title: str, fmt: str) -> str:
@@ -99,9 +117,14 @@ def convert(xml_path: Path) -> list[dict]:
         publisher = text(comic, "publisher/displayname")
         pages = text(comic, "mainsection/pagecount")
         title = title_of(comic)
+        series = text(comic, "mainsection/series/displayname")
+        if any(title.startswith(name) or series.startswith(name) for name in EXCLUDE):
+            continue
+        # Books added by hand in CLZ have no database id (it reads 0); name them instead, so no two share one.
+        core_id = text(comic, "bpcomicid")
         books.append(
             {
-                "id": text(comic, "bpcomicid") or text(comic, "id"),
+                "id": core_id if core_id and core_id != "0" else f"x-{slug(title)}",
                 "title": title,
                 "publisher": publisher,
                 "format": fmt,
