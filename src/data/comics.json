@@ -533,7 +533,8 @@
     "coverColor": "#c83828",
     "coverRatio": 0.653,
     "spineImage": "/spines/728944.webp",
-    "spineRatio": 0.063
+    "spineRatio": 0.063,
+    "backImage": "/backs/728944.webp"
   },
   {
     "id": "1062985",
@@ -622,7 +623,8 @@
     "coverColor": "#f8f8f8",
     "coverRatio": 0.66,
     "spineImage": "/spines/192979.webp",
-    "spineRatio": 0.045
+    "spineRatio": 0.045,
+    "backImage": "/backs/192979.webp"
   },
   {
     "id": "1094572",
@@ -693,7 +695,8 @@
     "coverColor": "#686878",
     "coverRatio": 0.658,
     "spineImage": "/spines/931967.webp",
-    "spineRatio": 0.041
+    "spineRatio": 0.041,
+    "backImage": "/backs/931967.webp"
   },
   {
     "id": "1170454",
@@ -728,7 +731,8 @@
     "coverColor": "#0898d8",
     "coverRatio": 0.674,
     "spineImage": "/spines/1115275.webp",
-    "spineRatio": 0.081
+    "spineRatio": 0.081,
+    "backImage": "/backs/1115275.webp"
   },
   {
     "id": "800436",
@@ -1133,7 +1137,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/cloud/covers/lg/ce/ce_51143754_0_GreenArrowYearOne.jpg",
     "cover": "/covers/x-green-arrow-year-one.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.647
+    "coverRatio": 0.647,
+    "backImage": "/backs/x-green-arrow-year-one.webp",
+    "spineImage": "/spines/x-green-arrow-year-one.webp",
+    "spineRatio": 0.046
   },
   {
     "id": "832902",
@@ -1314,7 +1321,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/64/64_1067622_0_.jpg",
     "cover": "/covers/1067622.webp",
     "coverColor": "#383838",
-    "coverRatio": 0.647
+    "coverRatio": 0.647,
+    "backImage": "/backs/1067622.webp",
+    "spineImage": "/spines/1067622.webp",
+    "spineRatio": 0.272
   },
   {
     "id": "904696",
@@ -1516,7 +1526,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/06/06_816377_0_GothamCentralOmnibusHCB.jpg",
     "cover": "/covers/816377.webp",
     "coverColor": "#282828",
-    "coverRatio": 0.666
+    "coverRatio": 0.666,
+    "backImage": "/backs/816377.webp",
+    "spineImage": "/spines/816377.webp",
+    "spineRatio": 0.164
   },
   {
     "id": "1189328",
@@ -1531,7 +1544,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/07/07_1189328_0_GreenArrowbyJeffLemireDeluxeEd.jpg",
     "cover": "/covers/1189328.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.65
+    "coverRatio": 0.65,
+    "backImage": "/backs/1189328.webp",
+    "spineImage": "/spines/1189328.webp",
+    "spineRatio": 0.091
   },
   {
     "id": "x-green-arrow-year-one-the-deluxe-edition-2027",
@@ -1561,7 +1577,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/a4/a4_958547_0_.jpg",
     "cover": "/covers/958547.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.692
+    "coverRatio": 0.692,
+    "backImage": "/backs/958547.webp",
+    "spineImage": "/spines/958547.webp",
+    "spineRatio": 0.217
   },
   {
     "id": "358525",
@@ -1576,7 +1595,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/c9/c9_358525_0_.jpg",
     "cover": "/covers/358525.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.64
+    "coverRatio": 0.64,
+    "backImage": "/backs/358525.webp",
+    "spineImage": "/spines/358525.webp",
+    "spineRatio": 0.207
   },
   {
     "id": "1132914",
@@ -1622,7 +1644,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/4f/4f_990793_0_.jpg",
     "cover": "/covers/990793.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.651
+    "coverRatio": 0.651,
+    "backImage": "/backs/990793.webp",
+    "spineImage": "/spines/990793.webp",
+    "spineRatio": 0.176
   },
   {
     "id": "1047078",
@@ -1637,7 +1662,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/8f/8f_1047078_0_SupergirlWomanofTomorrowDeluxe.jpg",
     "cover": "/covers/1047078.webp",
     "coverColor": "#382828",
-    "coverRatio": 0.65
+    "coverRatio": 0.65,
+    "backImage": "/backs/1047078.webp",
+    "spineImage": "/spines/1047078.webp",
+    "spineRatio": 0.066
   },
   {
     "id": "1124015",
@@ -1652,7 +1680,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/43/43_1124015_0_SupermanByPhillipKennedyJohnso.jpg",
     "cover": "/covers/1124015.webp",
     "coverColor": "#484848",
-    "coverRatio": 0.651
+    "coverRatio": 0.651,
+    "backImage": "/backs/1124015.webp",
+    "spineImage": "/spines/1124015.webp",
+    "spineRatio": 0.182
   },
   {
     "id": "422214",
@@ -1667,7 +1698,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/0a/0a_422214_0_SupermanSecretIdentityHC.jpg",
     "cover": "/covers/422214.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.667
+    "coverRatio": 0.667,
+    "backImage": "/backs/422214.webp",
+    "spineImage": "/spines/422214.webp",
+    "spineRatio": 0.07
   },
   {
     "id": "634654",
@@ -1697,7 +1731,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/ba/ba_648707_0_TheFlashOmnibusByGeoffJohnsHC1.jpg",
     "cover": "/covers/648707.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.668
+    "coverRatio": 0.668,
+    "backImage": "/backs/648707.webp",
+    "spineImage": "/spines/648707.webp",
+    "spineRatio": 0.179
   },
   {
     "id": "1170502",
@@ -1763,7 +1800,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/19/19_816383_0_.jpg",
     "cover": "/covers/816383.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.655
+    "coverRatio": 0.655,
+    "backImage": "/backs/816383.webp",
+    "spineImage": "/spines/816383.webp",
+    "spineRatio": 0.168
   },
   {
     "id": "861168",
@@ -1811,7 +1851,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/32/32_921601_0_.jpg",
     "cover": "/covers/921601.webp",
     "coverColor": "#d8d8d8",
-    "coverRatio": 0.764
+    "coverRatio": 0.764,
+    "backImage": "/backs/921601.webp"
   },
   {
     "id": "1216560",
@@ -1826,7 +1867,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/29/29_1216560_0_WonderWomanRebirthbyGregRuckaO.jpg",
     "cover": "/covers/1216560.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.643
+    "coverRatio": 0.643,
+    "backImage": "/backs/1216560.webp",
+    "spineImage": "/spines/1216560.webp",
+    "spineRatio": 0.13
   },
   {
     "id": "1067105",
@@ -1859,7 +1903,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/39/39_1202954_2_SpiderManByChipZdarskyOmnibusH.jpg",
     "cover": "/covers/1202954.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.67
+    "coverRatio": 0.67,
+    "backImage": "/backs/1202954.webp",
+    "spineImage": "/spines/1202954.webp",
+    "spineRatio": 0.151
   },
   {
     "id": "713236",
@@ -1874,7 +1921,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/2d/2d_713236_0_SpiderManByRogerSternOmnibusHC.jpg",
     "cover": "/covers/713236.webp",
     "coverColor": "#181818",
-    "coverRatio": 0.691
+    "coverRatio": 0.691,
+    "backImage": "/backs/713236.webp",
+    "spineImage": "/spines/713236.webp",
+    "spineRatio": 0.216
   },
   {
     "id": "629060",
@@ -1904,7 +1954,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/24/24_860093_0_.jpg",
     "cover": "/covers/860093.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.665
+    "coverRatio": 0.665,
+    "backImage": "/backs/860093.webp",
+    "spineImage": "/spines/860093.webp",
+    "spineRatio": 0.168
   },
   {
     "id": "1012710",
@@ -1919,7 +1972,8 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/89/89_1012710_2_ThorbyWalterSimonsonOmnibus1HC.jpg",
     "cover": "/covers/1012710.webp",
     "coverColor": "#f8f8f8",
-    "coverRatio": 0.697
+    "coverRatio": 0.697,
+    "backImage": "/backs/1012710.webp"
   },
   {
     "id": "959381",
@@ -1952,7 +2006,10 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/d0/d0_1035965_0_UltimateSpiderManOmnibus4HCA.jpg",
     "cover": "/covers/1035965.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.67
+    "coverRatio": 0.67,
+    "backImage": "/backs/1035965.webp",
+    "spineImage": "/spines/1035965.webp",
+    "spineRatio": 0.162
   },
   {
     "id": "648796",
@@ -2067,6 +2124,7 @@
     "coverUrl": "https://clzcomics.r.sizr.io/core/covers/lg/f4/f4_621282_0_WorldWarHulkTPTPC.jpg",
     "cover": "/covers/621282.webp",
     "coverColor": "#080808",
-    "coverRatio": 0.624
+    "coverRatio": 0.624,
+    "backImage": "/backs/621282.webp"
   }
 ]

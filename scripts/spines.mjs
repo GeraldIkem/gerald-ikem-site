@@ -238,7 +238,8 @@ async function flatten(file, fix, ratio, key, notes) {
     if (fix.trim) corners = trim(corners, fix.trim);
     flat = await warp(input, corners, ratio);
     // Any background still showing along an edge comes off.
-    const leftover = await backgroundAtEdges(flat, await backgroundAround(input, corners));
+    // ("keepEdges": true skips this for a pale book on a pale background.)
+    const leftover = fix.keepEdges ? null : await backgroundAtEdges(flat, await backgroundAround(input, corners));
     if (leftover) {
       corners = trim(corners, leftover);
       flat = await warp(input, corners, ratio);
