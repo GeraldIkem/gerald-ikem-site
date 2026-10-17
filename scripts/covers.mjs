@@ -4,6 +4,9 @@
 // Back covers come along too when the export has them (backUrl: CLZ only exports
 // them after "Update from Core" with back covers switched on); they go to public/backs/.
 //
+// A cover with a "front" entry in src/data/comic-image-sources.json came from a
+// photo (scripts/spines.mjs) because CLZ shows another edition; it is never replaced.
+//
 // Usage: node scripts/covers.mjs [--from <folder of already-downloaded covers>] [--force]
 //
 // Covers are the publishers' artwork, shown here only to picture books I own.
@@ -44,12 +47,15 @@ async function source(book, url = book.coverUrl) {
 }
 
 const books = JSON.parse(await readFile(dataPath, 'utf8'));
+const sources = (await exists(sourcesPath)) ? JSON.parse(await readFile(sourcesPath, 'utf8')) : {};
 await mkdir(outDir, { recursive: true });
 
 let done = 0;
 const failed = [];
 for (const book of books) {
   if (!book.coverUrl) continue;
+  // A front photographed by scripts/spines.mjs replaces a wrong CLZ cover; keep it, even with --force.
+  if (sources[book.id]?.front) continue;
   const file = path.join(outDir, `${book.id}.webp`);
   if (!force && book.cover && (await exists(file))) continue;
   try {
@@ -72,7 +78,6 @@ for (const book of books) {
 }
 
 // Back covers from CLZ Core. A photo or scan already in place (scripts/spines.mjs) wins.
-const sources = (await exists(sourcesPath)) ? JSON.parse(await readFile(sourcesPath, 'utf8')) : {};
 let backs = 0;
 for (const book of books) {
   if (!book.backUrl) continue;
