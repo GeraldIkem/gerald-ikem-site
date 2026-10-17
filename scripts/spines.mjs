@@ -17,7 +17,8 @@
 // Options:
 //   --debug   also write <folder>/debug/<name>.png with the outline it found
 //   --scan    the images are already flat and cropped (scans): skip the detection
-//   --dry-run write the results to <folder>/out/ and leave the site's files alone
+//   --dry-run write the results to <folder>/out/ and leave the site's files alone;
+//             this also crops books that aren't in comics.json yet
 //
 // When the outline comes out wrong, <folder>/fixes.json can override it per image:
 //   { "1143890-spine": { "corners": [[x, y], [x, y], [x, y], [x, y]], "rotate": 90 } }
@@ -36,7 +37,8 @@
 // other's real pixels are used, so a streak in one photo is filled from another
 // ("match" sets how well they must line up, default 0.45). "glare": false leaves
 // bright patches alone and a number (default 0.15) sets how much haze can come
-// off; "streaks": false skips the soft-shine pass. "correct": false skips all
+// off; "streaks": true adds a soft-shine pass (off by default, since it can take
+// a printed soft glow for shine). "correct": false skips all
 // colour and lighting correction, and "drop": true removes that book's spine or
 // back so it falls back to the printed one. "source" and "url" record where an
 // image came from in src/data/comic-image-sources.json.
@@ -58,7 +60,7 @@ const folder = path.resolve(args.find((arg) => !arg.startsWith('--')) ?? path.jo
 const BACK_WIDTH = 520;
 const SPINE_HEIGHT = 1000;
 const ANALYSIS_SIZE = 900;
-const NAME = /^(\d+)[-_ ](spine|back)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
+const NAME = /^([a-z0-9]+)[-_ ](spine|back)\.(jpe?g|png|webp|avif|tiff?|heic|heif)$/i;
 
 const SRGB_TO_LINEAR = Float32Array.from({ length: 256 }, (_, i) => {
   const c = i / 255;
@@ -100,8 +102,10 @@ if (!jobs.size) {
 let done = 0;
 const problems = [];
 for (const [key, file] of [...jobs].sort()) {
-  const [, id, kind] = /^(\d+)-(spine|back)$/.exec(key) ?? [];
-  const book = byId.get(id);
+  const [, id, kind] = /^([a-z0-9]+)-(spine|back)$/.exec(key) ?? [];
+  // A book that isn't in comics.json yet can still be cropped with --dry-run,
+  // so its picture is ready when the book is added.
+  const book = byId.get(id) ?? (dryRun && kind ? { id, title: id } : undefined);
   if (!book || !kind) {
     problems.push(`${file}: no book with id ${id} in comics.json`);
     continue;
@@ -205,7 +209,7 @@ async function processPhoto(file, kind, fix, key, ratio, book) {
           cover: book.cover,
           scan,
           glare: fix.glare === false ? 0 : typeof fix.glare === 'number' ? fix.glare : 0.15,
-          streaks: fix.streaks === false ? 0 : typeof fix.streaks === 'number' ? fix.streaks : 1,
+          streaks: fix.streaks === true ? 1 : typeof fix.streaks === 'number' ? fix.streaks : 0,
           shineMap: flags.has('--debug') ? path.join(folder, 'debug', `${key}-shine.png`) : null,
         });
   return {
