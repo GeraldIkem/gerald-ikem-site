@@ -60,6 +60,17 @@ ID_TITLES = {
 # Series I own but leave off the site.
 EXCLUDE = ("Something Is Killing the Children",)
 
+# More books to leave off, listed in a local file that stays out of the repo: one CLZ id
+# or title prefix per line, # for comments.
+HIDDEN = Path(__file__).resolve().parent / "hidden-comics.txt"
+
+
+def hidden() -> set[str]:
+    if not HIDDEN.exists():
+        return set()
+    lines = (line.split("#", 1)[0].strip() for line in HIDDEN.read_text(encoding="utf-8").splitlines())
+    return {line for line in lines if line}
+
 # A title that lists issue numbers ("JLA #18-21, 32-33...") describes the contents, not the book.
 CONTENTS = re.compile(r"#\d")
 
@@ -117,6 +128,7 @@ def year_of(comic: ET.Element) -> int | None:
 
 def convert(xml_path: Path) -> list[dict]:
     root = ET.parse(xml_path).getroot()
+    skip = hidden()
     books = []
     for comic in root.iter("comic"):
         status_label = text(comic, "collectionstatus")
@@ -129,6 +141,10 @@ def convert(xml_path: Path) -> list[dict]:
             continue
         # Books added by hand in CLZ have no database id (it reads 0); name them instead, so no two share one.
         core_id = text(comic, "bpcomicid")
+        if core_id in skip or any(
+            title.lower().startswith(name.lower()) or series.lower().startswith(name.lower()) for name in skip
+        ):
+            continue
         title = ID_TITLES.get(core_id, title)
         books.append(
             {

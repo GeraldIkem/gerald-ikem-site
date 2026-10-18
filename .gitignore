@@ -15,3 +15,6 @@ __pycache__/
 # Working notes that stay on this PC: the photo guide and where each spine and back image came from.
 /docs/
 /src/data/comic-image-sources.json
+
+# Books left off the site; scripts/import_comics.py reads this list when it is there.
+/scripts/hidden-comics.txt
