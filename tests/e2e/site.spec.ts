@@ -441,6 +441,25 @@ test('shares each project with its own screenshot, and the home page with the si
   await expect(image).toHaveAttribute('content', /\/og\.png$/);
 });
 
+test('styles kept in their own files still reach the markup they were written for', async ({ page }) => {
+  // src/styles/case.css, imported by the project page.
+  await page.goto('/projects/linkify/');
+  await expect(page.locator('.case__band')).toHaveCSS('background-color', 'rgb(75, 47, 230)');
+  await expect(page.locator('.facts > div').first()).toHaveCSS('border-top-width', '3px');
+
+  // The shared card, score and ball styles, imported by each card in src/components/pastimes/.
+  await page.goto('/off-the-clock/');
+  await expect(page.locator('.pastimes')).toHaveCSS('display', 'grid');
+  for (const game of ['court', 'pitch', 'pool', 'books']) {
+    await expect(page.locator(`[data-game="${game}"]`)).toHaveCSS('border-radius', '10px');
+  }
+  for (const game of ['court', 'pitch', 'pool']) {
+    await expect(page.locator(`[data-game="${game}"] .bug`)).toHaveCSS('position', 'absolute');
+  }
+  await expect(page.locator('[data-game="court"] .hit')).toHaveCSS('cursor', 'grab');
+  await expect(page.locator('[data-game="pool"] .pad').first()).toHaveCSS('border-radius', '999px');
+});
+
 test('shows every project on the home page at once', async ({ page }) => {
   await page.goto('/#projects');
   const cards = page.locator('.pcard');
