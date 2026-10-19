@@ -1,0 +1,165 @@
+---
+/**
+ * Swimming: race a length against the clock. Played by src/scripts/pastimes.ts.
+ */
+import { POOL } from '~/lib/pastimes';
+---
+
+<article class="pastime pastime--pool" data-game="pool">
+  <div
+    class="pastime__stage"
+    tabindex="0"
+    role="application"
+    aria-label="Swimming: race a length"
+    aria-describedby="how-pool"
+  >
+    <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
+      <rect class="pool__water" width="320" height="170" />
+      <g class="pool__lanes">
+        <path d="M0 22H320" />
+        <path d="M0 64H320" />
+        <path d="M0 106H320" />
+        <path d="M0 148H320" />
+      </g>
+      <g class="pool__ropes">
+        <path d="M0 43H320" />
+        <path d="M0 85H320" />
+        <path d="M0 127H320" />
+      </g>
+      <path class="pool__wall" d="M6 0v170M314 0v170" />
+      <g class="swimmer" data-swimmer data-stroke="left" transform={`translate(${POOL.start} ${POOL.lane})`}>
+        <path class="pool__wake" data-wake d="M-44-6c6-3 10 3 16 0s10 3 16 0M-38 4c6-3 10 3 16 0s10 3 16 0" />
+        <path class="pool__arm" data-arm="left" d="M-6-5c6-12 18-12 22-2" />
+        <path class="pool__arm" data-arm="right" d="M-6 5c6 12 18 12 22 2" />
+        <circle class="pool__head" r="6" />
+      </g>
+    </svg>
+    <p class="bug">
+      <span>Time <b data-time>0.00</b></span>
+      <span>Best <b data-best>–</b></span>
+    </p>
+    <p class="call" data-call aria-hidden="true">
+      <span class="call__c"></span><span class="call__m"></span><span class="call__k"></span>
+    </p>
+    <div class="pads">
+      <button class="pad" type="button" data-pad="left" tabindex="-1" aria-label="Left arm">Left</button>
+      <button class="pad" type="button" data-pad="right" tabindex="-1" aria-label="Right arm">Right</button>
+    </div>
+  </div>
+  <p class="pastime__how" id="how-pool">
+    Tap Left and Right in turn to swim a length against the clock.
+    <span class="pastime__keys">Keys: the left and right arrows, in turn.</span>
+  </p>
+  <div class="pastime__text">
+    <h3>Swimming</h3>
+    <p>The one sport here with no screen anywhere nearby.</p>
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-live></p>
+</article>
+
+<style>
+  @import './card.css';
+  @import './scoreboard.css';
+
+  /* Pool */
+  .pool__water {
+    fill: var(--water);
+  }
+
+  .pool__lanes {
+    stroke: var(--water-line);
+    stroke-width: 6;
+    opacity: 0.55;
+  }
+
+  .pool__ropes {
+    stroke: #fff;
+    stroke-width: 4;
+    stroke-dasharray: 6 6;
+    stroke-linecap: round;
+  }
+
+  .pool__ropes path:nth-child(2) {
+    stroke: #f2544a;
+  }
+
+  .pool__wall {
+    stroke: rgb(255 255 255 / 0.7);
+    stroke-width: 4;
+  }
+
+  .swimmer {
+    transition: opacity 200ms ease;
+  }
+
+  .swimmer.is-gone {
+    opacity: 0;
+  }
+
+  .pool__head {
+    fill: #f2544a;
+  }
+
+  .pool__arm,
+  .pool__wake {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .pool__wake {
+    stroke-width: 2;
+  }
+
+  /* One arm at a time, the one that just pulled. */
+  .pool__arm {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+  }
+
+  [data-stroke='left'] [data-arm='right'],
+  [data-stroke='right'] [data-arm='left'] {
+    display: none;
+  }
+
+  .pool__arm.is-pulling {
+    animation: pull 340ms var(--ease-out);
+  }
+
+  @keyframes pull {
+    from {
+      transform: scaleX(1.35);
+      opacity: 0.5;
+    }
+  }
+
+  .pads {
+    position: absolute;
+    inset: auto 0.5rem 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .pad {
+    min-width: 4.75rem;
+    min-height: 2.25rem;
+    padding: 0.3rem 1rem;
+    border: 1.5px solid rgb(255 255 255 / 0.9);
+    border-radius: 999px;
+    background: rgb(8 38 58 / 0.5);
+    color: #fff;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    transition: background-color 120ms ease;
+  }
+
+  .pad:hover,
+  .pad.is-hit {
+    background: rgb(8 38 58 / 0.75);
+  }
+</style>
