@@ -54,7 +54,7 @@ jobs:
           retention-days: 7
 
       # The same dist/ the end-to-end tests just served.
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: github.ref == 'refs/heads/main'
         with:
           path: dist
