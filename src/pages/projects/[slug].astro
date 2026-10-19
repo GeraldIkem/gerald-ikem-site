@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Base from '~/layouts/Base.astro';
 import RedirectDemo from '~/components/RedirectDemo.astro';
 import RtfChart from '~/components/RtfChart.astro';
@@ -53,9 +53,19 @@ const barsFor = (rows: string[][], column: number) => {
 const prevUrl = `/projects/${previous.slug}/`;
 const nextUrl = `/projects/${next.slug}/`;
 const speculation = JSON.stringify({ prerender: [{ source: 'list', urls: [prevUrl, nextUrl] }] });
+
+// The social card for this page: the project's screenshot, cropped from the top to 1200 × 630.
+const card = await getImage({ src: project.image, width: 1200, height: 630, fit: 'cover', position: 'top', format: 'jpg' });
 ---
 
-<Base title={project.name} description={`${project.name}: ${project.oneLine}`} narrow>
+<Base
+  title={project.name}
+  description={`${project.name}: ${project.oneLine}`}
+  narrow
+  ogImage={card.src}
+  ogImageAlt={project.imageAlt}
+  ogType="article"
+>
   <script is:inline slot="head">
     // Tell the incoming page which way to slide, before it first paints.
     addEventListener('pagereveal', (event) => {
