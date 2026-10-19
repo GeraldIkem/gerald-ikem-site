@@ -1,16 +1,19 @@
 name: CI
 
 # Only my own pushes run the tests; nobody else's pull requests use this repo's runners.
+# Every branch is tested. A push to main also publishes the site, but only after every
+# check has passed, and it publishes the exact build the tests ran against.
 on:
   push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push replaces a branch's run, but never stops a deploy halfway through.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   check:
@@ -34,6 +37,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          SITE_URL: https://geraldikem.com
 
       - name: Install Chromium for end-to-end tests
         run: npx playwright install --with-deps chromium
@@ -47,3 +52,27 @@ jobs:
           name: playwright-report
           path: test-results/
           retention-days: 7
+
+      # The same dist/ the end-to-end tests just served.
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: dist
+
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
