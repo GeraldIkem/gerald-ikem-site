@@ -1,0 +1,120 @@
+/*
+ * The score bug and the big call over the drawing, for the three sports.
+ * Imported inside each sport's scoped <style>.
+ */
+
+/* The score bug in the corner, the way a broadcast shows it. Dark in both themes. */
+.bug {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  background: rgb(21 24 28 / 0.9);
+  color: #f3f4f0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.bug b {
+  color: #ffd60a;
+  font-weight: 700;
+}
+
+.pastime--pitch .bug,
+.pastime--pool .bug {
+  right: auto;
+  left: 0.5rem;
+}
+
+/* The big call over the drawing, printed slightly out of register like the page headings. */
+.call {
+  --call-ink: var(--ink);
+  position: absolute;
+  inset: 16% 0 auto;
+  display: grid;
+  justify-items: center;
+  font-family: var(--font-display);
+  font-size: 11cqi;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.call > span {
+  grid-area: 1 / 1;
+}
+
+.call__c {
+  color: var(--process-cyan);
+  translate: -0.03em 0.024em;
+}
+
+.call__m {
+  color: var(--process-magenta);
+  translate: 0.03em -0.018em;
+}
+
+/* Positioned, so the ink prints over the two shifted plates. */
+.call__k {
+  position: relative;
+  color: var(--call-ink);
+}
+
+.call--quiet {
+  font-size: 7cqi;
+  font-weight: 650;
+}
+
+.call--quiet .call__c,
+.call--quiet .call__m {
+  display: none;
+}
+
+.pastime--pitch .call,
+.pastime--pool .call {
+  --call-ink: #fff;
+}
+
+.pastime--pitch .call__k,
+.pastime--pool .call__k {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+.call.is-on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .call.is-on {
+    animation: call 1400ms var(--ease-out) both;
+  }
+}
+
+@keyframes call {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  14% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  24%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6%);
+  }
+}

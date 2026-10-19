@@ -1,0 +1,87 @@
+/*
+ * Aiming, the ball and its hit area, and the burst of dots when a shot goes in,
+ * for basketball and football. Imported inside each one's scoped <style>.
+ */
+
+/* Aiming: a dotted line out to where you're pulling, and a ring round the ball for the power. */
+.aim {
+  display: none;
+  pointer-events: none;
+}
+
+.aim.is-on {
+  display: inline;
+}
+
+.aim__line,
+.aim__head {
+  fill: none;
+  stroke: var(--aim, var(--ink));
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.aim__line {
+  stroke-dasharray: 0.1 6;
+}
+
+.aim__track,
+.aim__ring {
+  fill: none;
+  stroke-width: 2.5;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aim__track {
+  stroke: var(--aim, var(--ink));
+  stroke-opacity: 0.25;
+}
+
+.aim__ring {
+  stroke: var(--process-magenta);
+  stroke-linecap: round;
+}
+
+.is-aiming .aim__track,
+.is-aiming .aim__ring {
+  opacity: 1;
+}
+
+.ball {
+  transition: opacity 160ms ease;
+}
+
+.ball.is-gone {
+  opacity: 0;
+}
+
+.hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: grab;
+  touch-action: none;
+}
+
+.is-grabbing,
+.is-grabbing .hit {
+  cursor: grabbing;
+}
+
+.is-busy .hit {
+  cursor: default;
+}
+
+/* The burst's dots are made at run time, so they sit outside the scoped styles. */
+.pastime__art :global(.dot--c) {
+  fill: var(--process-cyan);
+}
+
+.pastime__art :global(.dot--m) {
+  fill: var(--process-magenta);
+}
+
+.pastime__art :global(.dot--y) {
+  fill: var(--process-yellow);
+}

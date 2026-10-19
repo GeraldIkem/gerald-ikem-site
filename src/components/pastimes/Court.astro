@@ -1,0 +1,153 @@
+---
+/**
+ * Basketball: drag from the ball to the hoop. Played by src/scripts/pastimes.ts.
+ */
+import { COURT } from '~/lib/pastimes';
+
+const matchday = '/projects/matchday-ml/';
+const hoopSpot = COURT.spots[0];
+const hoopRest = COURT.floor - COURT.ball;
+---
+
+<article class="pastime pastime--court" data-game="court">
+  <div
+    class="pastime__stage"
+    tabindex="0"
+    role="application"
+    aria-label="Basketball: shoot hoops"
+    aria-describedby="how-court"
+  >
+    <svg class="pastime__art" viewBox="0 0 320 170" aria-hidden="true">
+      <rect class="court__wall" width="320" height="132" />
+      <rect class="court__floor" y="132" width="320" height="38" />
+      <rect class="court__paint" y="132" width="92" height="38" />
+      <path class="court__boards" d="M0 144H320M0 157H320" />
+      <path class="court__three" d={`M${COURT.three} 132v38`} />
+      <path class="court__pole" d="M8 132V44h10" />
+      <path class="court__board" d="M20 28v44" />
+      <ellipse class="court__shadow" data-shadow cx={hoopSpot} cy="132.5" rx="9" ry="2" />
+      <g class="aim" data-aim>
+        <path class="aim__line" data-aim-line d="" />
+        <path class="aim__head" data-aim-head d="" />
+      </g>
+      <g class="ball" data-ball transform={`translate(${hoopSpot} ${hoopRest})`}>
+        <circle class="aim__track" r="14" />
+        <circle class="aim__ring" data-ring r="14" pathLength="100" transform="rotate(-90)" />
+        <g data-spin>
+          <circle class="court__ball" r={COURT.ball} />
+          <path
+            class="court__seams"
+            d="M-9 0h18M0-9v18M-6.5-6.5c4.1 4.1 4.1 9 0 13.1M6.5-6.5c-4.1 4.1-4.1 9 0 13.1"
+          />
+        </g>
+        <circle class="hit" data-hit r="24" />
+      </g>
+      <path class="court__rim" d={`M${COURT.rim.back} ${COURT.rim.y}H${COURT.rim.front}`} />
+      <path class="court__net" data-net d="M24 64l6 17h16l6-17M33 64l3 17M43 64l-3 17" />
+      <g data-burst></g>
+    </svg>
+    <p class="bug">
+      <span>Score <b data-score>0</b></span>
+      <span>Streak <b data-streak>0</b></span>
+    </p>
+    <p class="call" data-call aria-hidden="true">
+      <span class="call__c"></span><span class="call__m"></span><span class="call__k"></span>
+    </p>
+  </div>
+  <p class="pastime__how" id="how-court">
+    Drag from the ball toward the hoop and let go. Past the line is worth three.
+    <span class="pastime__keys">Keys: arrows to aim, Space to shoot.</span>
+  </p>
+  <div class="pastime__text">
+    <h3>Basketball</h3>
+    <p>I play, and I follow the NBA and the WNBA closely enough that both ended up in Matchday ML.</p>
+    <p class="pastime__tags"><span>NBA</span><span>WNBA</span></p>
+    <a class="pastime__link" href={matchday}>See how the forecasts work</a>
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-live></p>
+</article>
+
+<style>
+  @import './card.css';
+  @import './scoreboard.css';
+  @import './ball.css';
+
+  /* Court */
+  .court__wall {
+    fill: var(--wall);
+  }
+
+  .court__floor {
+    fill: var(--court);
+  }
+
+  .court__paint {
+    fill: color-mix(in srgb, #9c3d1c 40%, var(--court));
+  }
+
+  .court__boards {
+    stroke: var(--court-line);
+    stroke-width: 1;
+    opacity: 0.35;
+  }
+
+  .court__three {
+    stroke: var(--court-line);
+    stroke-width: 2;
+    opacity: 0.85;
+  }
+
+  .court__pole {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 4;
+  }
+
+  .court__net {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.3;
+    pointer-events: none;
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+  }
+
+  .court__net.is-swish {
+    animation: swish 520ms var(--ease-out);
+  }
+
+  @keyframes swish {
+    30% {
+      transform: scale(0.86, 1.3);
+    }
+  }
+
+  .court__board {
+    stroke: var(--ink);
+    stroke-width: 5;
+    stroke-linecap: round;
+  }
+
+  .court__rim {
+    stroke: #e5532d;
+    stroke-width: 4;
+    stroke-linecap: round;
+    pointer-events: none;
+  }
+
+  .court__shadow {
+    fill: rgb(0 0 0 / 0.3);
+  }
+
+  .court__ball {
+    fill: #e8742a;
+    stroke: #3b1d0c;
+    stroke-width: 1.5;
+  }
+
+  .court__seams {
+    fill: none;
+    stroke: #3b1d0c;
+    stroke-width: 1.4;
+  }
+</style>
