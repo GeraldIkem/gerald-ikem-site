@@ -388,7 +388,26 @@ test('builds a real LEGO set in 3D when the viewer comes into view', async ({ pa
   await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
   await expect(viewer.locator('[data-credit]')).toContainText('10265');
   await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
+
+  // While it builds, the button skips to the finished model; then it offers to build it again.
+  const button = viewer.locator('[data-replay]');
+  await expect(button).toHaveText('Skip to the end');
+  await button.click();
+  await expect(viewer.locator('[data-progress]')).toHaveText('Step 23 of 23');
+  await expect(button).toHaveText('Build it again');
   expect(errors).toEqual([]);
+});
+
+test('every LEGO set shows its photo, and a 3D brick builds that set', async ({ page }) => {
+  await page.goto('/off-the-clock/');
+  const photos = page.locator('.brick__photo img');
+  await expect(photos).toHaveCount(11);
+  await photos.last().scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => photos.evaluateAll((imgs) => imgs.filter((img) => (img as HTMLImageElement).naturalWidth > 0).length))
+    .toBe(11);
+  await page.getByRole('button', { name: 'Build the Ford Mustang in 3D' }).click();
+  await expect(page.locator('lego-viewer [data-credit]')).toContainText('10265');
 });
 
 test('lists every project and gives each one a page', async ({ page }) => {

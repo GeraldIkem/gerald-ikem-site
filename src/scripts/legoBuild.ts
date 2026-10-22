@@ -34,12 +34,19 @@ interface Unit extends Scheduled {
   lift: Vector3;
 }
 
-const DROP_MS = 520;
+// How long one piece takes to drop into place, and roughly how long a whole build runs.
+const DROP_MS = 360;
+const BUILD_MS = 6_000;
 
-async function fetchModel(url: string): Promise<string> {
+/** Download a packed model; start it early and pass the result to `show` to overlap it with loading three.js. */
+export async function downloadModel(url: string): Promise<ArrayBuffer> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Could not load ${url} (${response.status})`);
-  const bytes = new Uint8Array(await response.arrayBuffer());
+  return response.arrayBuffer();
+}
+
+async function fetchModel(download: Promise<ArrayBuffer>): Promise<string> {
+  const bytes = new Uint8Array(await download);
   // Some servers decode the gzip for us; only inflate when the magic bytes are still there.
   if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
     const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
@@ -51,7 +58,9 @@ async function fetchModel(url: string): Promise<string> {
 function parseModel(text: string): Promise<Group> {
   const loader = new LDrawLoader();
   loader.setConditionalLineMaterial(LDrawConditionalLineMaterial);
-  loader.smoothNormals = true;
+  // Smoothing normals across parts roughly quadrupled the parse time (seconds of a frozen page)
+  // for a difference that's hard to see at this size.
+  loader.smoothNormals = false;
   loader.addDefaultMaterials();
   return new Promise((resolve, reject) => loader.parse(text, resolve, reject));
 }
@@ -98,6 +107,10 @@ export class LegoBuild {
   #frame = 0;
   #callbacks: BuildCallbacks = {};
   #token = 0;
+  /** A build waiting for the viewer to come into view, so nobody misses it. */
+  #pending = false;
+  /** Parsed models, so switching back to a set doesn't parse it again. */
+  readonly #cache = new Map<string, Group>();
 
   constructor(
     private readonly container: HTMLElement,
@@ -140,24 +153,22 @@ export class LegoBuild {
   /** Pause rendering while the viewer is scrolled out of sight. */
   setVisible(visible: boolean) {
     this.#visible = visible;
-    if (visible) this.#loop();
+    if (visible && this.#pending) this.build();
+    else if (visible) this.#loop();
   }
 
-  async show(url: string, callbacks: BuildCallbacks = {}) {
+  async show(url: string, callbacks: BuildCallbacks = {}, download?: Promise<ArrayBuffer>) {
     const token = ++this.#token;
     this.#callbacks = callbacks;
-    const model = await parseModel(await fetchModel(url));
-    if (token !== this.#token) {
-      dispose(model);
-      return;
+    let model = this.#cache.get(url);
+    if (!model) {
+      model = await parseModel(await fetchModel(download ?? downloadModel(url)));
+      // LDraw's y axis points down.
+      model.rotation.x = Math.PI;
+      this.#cache.set(url, model);
     }
-    if (this.#model) {
-      this.#scene.remove(this.#model);
-      dispose(this.#model);
-    }
-
-    // LDraw's y axis points down.
-    model.rotation.x = Math.PI;
+    if (token !== this.#token) return;
+    if (this.#model) this.#scene.remove(this.#model);
     this.#scene.add(model);
     model.updateMatrixWorld(true);
     this.#model = model;
@@ -167,7 +178,7 @@ export class LegoBuild {
     const height = new Box3().setFromObject(model).getSize(new Vector3()).y;
     const schedule = buildSchedule(
       objects.map((object) => (object.userData['buildingStep'] as number | undefined) ?? 0),
-      { dropMs: DROP_MS },
+      { dropMs: DROP_MS, targetMs: BUILD_MS },
     );
     this.#units = objects.map((object, index) => {
       const lift = dropOffset(object, height * 0.75);
@@ -183,26 +194,46 @@ export class LegoBuild {
     this.#controls.autoRotate = false;
     this.#lastStep = -1;
     if (this.#reducedMotion) {
-      for (const unit of this.#units) {
-        unit.object.visible = true;
-        unit.object.position.copy(unit.rest);
-      }
-      this.#callbacks.onProgress?.(this.#totalSteps, this.#totalSteps);
-      this.#finish();
-      this.#loop();
+      this.#pending = false;
+      this.skip();
       return;
     }
     for (const unit of this.#units) unit.object.visible = false;
+    // Loaded ahead of time, before the viewer is on screen: wait so the build is seen from the start.
+    if (!this.#visible) {
+      this.#pending = true;
+      return;
+    }
+    this.#pending = false;
     this.#building = true;
     this.#start = performance.now();
     this.#loop();
+  }
+
+  /** Jump to the finished model. */
+  skip() {
+    if (!this.#model) return;
+    this.#pending = false;
+    for (const unit of this.#units) {
+      unit.object.visible = true;
+      unit.object.position.copy(unit.rest);
+    }
+    this.#lastStep = this.#totalSteps - 1;
+    this.#callbacks.onProgress?.(this.#totalSteps, this.#totalSteps);
+    this.#finish();
+    this.#loop();
+  }
+
+  get building() {
+    return this.#building || this.#pending;
   }
 
   destroy() {
     cancelAnimationFrame(this.#frame);
     this.#resize.disconnect();
     this.#controls.dispose();
-    if (this.#model) dispose(this.#model);
+    for (const model of this.#cache.values()) dispose(model);
+    this.#cache.clear();
     this.#renderer.dispose();
     this.#renderer.domElement.remove();
   }

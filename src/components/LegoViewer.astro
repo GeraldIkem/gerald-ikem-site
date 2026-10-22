@@ -49,11 +49,19 @@ const first = modelled[0];
     #loading: Promise<LegoBuild | null> | null = null;
     #current: HTMLButtonElement | null = null;
     #onScreen = false;
+    readonly #downloads = new Map<string, Promise<ArrayBuffer>>();
 
     connectedCallback() {
       const picks = [...this.querySelectorAll<HTMLButtonElement>('[data-url]')];
       for (const pick of picks) pick.addEventListener('click', () => this.#show(pick));
-      this.querySelector('[data-replay]')?.addEventListener('click', () => this.#build?.build());
+      // One button: skip to the finished model while it builds, build it again once it's done.
+      this.querySelector('[data-replay]')?.addEventListener('click', () => {
+        const build = this.#build;
+        if (!build) return;
+        if (build.building) build.skip();
+        else build.build();
+        this.#replay(build.building ? 'skip' : 'again');
+      });
 
       // Load three.js and the first model only when the viewer comes near the screen.
       const near = new IntersectionObserver(
@@ -62,7 +70,8 @@ const first = modelled[0];
           near.disconnect();
           if (!this.#current && picks[0]) this.#show(picks[0]);
         },
-        { rootMargin: '200px 0px' },
+        // Start well before it scrolls into view; the build itself waits until it's on screen.
+        { rootMargin: '900px 0px' },
       );
       near.observe(this);
 
@@ -106,22 +115,42 @@ const first = modelled[0];
       this.#credit(`3D model of set ${number} by ${author}, ${source}, ${license}.`);
       this.#status(`Loading the ${name}…`);
       this.#progress('Loading parts');
-      const replay = this.querySelector<HTMLButtonElement>('[data-replay]');
-      if (replay) replay.disabled = true;
+      this.#replay('loading');
+      // Fetch the model while three.js loads, rather than after, and only once per set.
+      let download = this.#downloads.get(url);
+      if (!download) {
+        download = fetch(url).then((response) => {
+          if (!response.ok) throw new Error(`Could not load ${url} (${response.status})`);
+          return response.arrayBuffer();
+        });
+        download.catch(() => this.#downloads.delete(url));
+        this.#downloads.set(url, download);
+      }
 
       const build = await this.#engine();
       if (!build || this.#current !== pick) return;
       try {
-        await build.show(url, {
-          onProgress: (step, steps) => this.#progress(`Step ${step} of ${steps}`),
-          onDone: () => {
-            if (replay) replay.disabled = false;
+        await build.show(
+          url,
+          {
+            onProgress: (step, steps) => this.#progress(`Step ${step} of ${steps}`),
+            onDone: () => this.#replay('again'),
           },
-        });
+          download,
+        );
+        if (this.#current !== pick) return;
         this.#status('');
+        this.#replay(build.building ? 'skip' : 'again');
       } catch {
         this.#status(`The ${name} model didn’t load. Try again in a moment.`);
       }
+    }
+
+    #replay(state: 'loading' | 'skip' | 'again') {
+      const replay = this.querySelector<HTMLButtonElement>('[data-replay]');
+      if (!replay) return;
+      replay.disabled = state === 'loading';
+      replay.textContent = state === 'skip' ? 'Skip to the end' : 'Build it again';
     }
 
     #status(text: string) {
