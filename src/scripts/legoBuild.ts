@@ -530,8 +530,9 @@ export class LegoBuild {
       return;
     }
     const now = performance.now();
-    // A long gap (a slow frame, or coming back to the page) doesn't jump the build ahead.
-    if (this.#moving) this.#advance(this.#last ? Math.min(now - this.#last, 100) : 0);
+    // The playhead runs by the clock, so a slow device still finishes on time. Out of sight it stops,
+    // and the clock starts afresh when it's back, so the build doesn't jump ahead.
+    if (this.#moving) this.#advance(this.#last ? now - this.#last : 0);
     this.#last = this.#moving ? now : 0;
     const moved = this.#controls.update();
     this.#renderer.render(this.#scene, this.#camera);
