@@ -390,9 +390,7 @@ test('builds a real LEGO set in 3D when the viewer comes into view', async ({ pa
   await expect(viewer.locator('[data-credit]')).toContainText('10265');
   await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
 
-  // While it builds, the play button pauses it; at the end of the steps it offers to build it again.
-  const play = viewer.getByRole('button', { name: 'Pause' });
-  await expect(play).toBeVisible();
+  // At the end of the steps it offers to build it again.
   await viewer.getByRole('slider', { name: 'Step' }).press('End');
   await expect(viewer.locator('[data-progress]')).toHaveText('Step 23 of 23');
   await expect(viewer.getByRole('button', { name: 'Build it again' })).toBeVisible();
@@ -409,16 +407,13 @@ test('plays a LEGO build like a video: pause, a step back or forward, any step, 
   const progress = viewer.locator('[data-progress]');
   await expect(progress).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
 
-  // Paused, it stays on its step.
-  await viewer.getByRole('button', { name: 'Pause' }).click();
-  await expect(viewer.getByRole('button', { name: 'Play' })).toBeVisible();
-  const paused = await progress.textContent();
-  await page.waitForTimeout(1_000);
-  await expect(progress).toHaveText(paused!);
-
-  // Any step at once from the slider, then one at a time back and forward, with the pieces moving.
+  // Any step at once from the slider, where it stands still; then one at a time back and forward, with the
+  // pieces moving. (The build runs by the clock, so on a slow runner it may have finished already.)
   const steps = viewer.getByRole('slider', { name: 'Step' });
   await steps.fill('12');
+  await expect(progress).toHaveText('Step 12 of 23');
+  await expect(viewer.getByRole('button', { name: 'Play' })).toBeVisible();
+  await page.waitForTimeout(1_000);
   await expect(progress).toHaveText('Step 12 of 23');
   await viewer.getByRole('button', { name: 'Back a step' }).click();
   await expect(progress).toHaveText('Step 11 of 23', { timeout: 15_000 });
@@ -430,6 +425,14 @@ test('plays a LEGO build like a video: pause, a step back or forward, any step, 
   await steps.fill('0');
   await expect(progress).toHaveText('Step 0 of 23');
   await expect(viewer.getByRole('button', { name: 'Back a step' })).toBeDisabled();
+
+  // From the start at 1× the whole build takes about 13 seconds, so it's still going when paused, and then stays put.
+  await viewer.getByRole('button', { name: 'Play' }).click();
+  await viewer.getByRole('button', { name: 'Pause' }).click();
+  await expect(viewer.getByRole('button', { name: 'Play' })).toBeVisible();
+  const paused = await progress.textContent();
+  await page.waitForTimeout(1_000);
+  await expect(progress).toHaveText(paused!);
 
   // 1× is the standard speed; the choice is remembered.
   const speed = viewer.getByRole('group', { name: 'Speed' });
