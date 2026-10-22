@@ -390,12 +390,60 @@ test('builds a real LEGO set in 3D when the viewer comes into view', async ({ pa
   await expect(viewer.locator('[data-credit]')).toContainText('10265');
   await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
 
-  // While it builds, the button skips to the finished model; then it offers to build it again.
-  const button = viewer.locator('[data-replay]');
-  await expect(button).toHaveText('Skip to the end');
-  await button.click();
+  // While it builds, the play button pauses it; at the end of the steps it offers to build it again.
+  const play = viewer.getByRole('button', { name: 'Pause' });
+  await expect(play).toBeVisible();
+  await viewer.getByRole('slider', { name: 'Step' }).press('End');
   await expect(viewer.locator('[data-progress]')).toHaveText('Step 23 of 23');
-  await expect(button).toHaveText('Build it again');
+  await expect(viewer.getByRole('button', { name: 'Build it again' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('plays a LEGO build like a video: pause, a step back or forward, any step, and faster', async ({ page }) => {
+  test.slow();
+  const errors = collectErrors(page);
+  await page.goto('/off-the-clock/');
+  const viewer = page.locator('lego-viewer');
+  await viewer.scrollIntoViewIfNeeded();
+  await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
+  const progress = viewer.locator('[data-progress]');
+  await expect(progress).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
+
+  // Paused, it stays on its step.
+  await viewer.getByRole('button', { name: 'Pause' }).click();
+  await expect(viewer.getByRole('button', { name: 'Play' })).toBeVisible();
+  const paused = await progress.textContent();
+  await page.waitForTimeout(1_000);
+  await expect(progress).toHaveText(paused!);
+
+  // Any step at once from the slider, then one at a time back and forward, with the pieces moving.
+  const steps = viewer.getByRole('slider', { name: 'Step' });
+  await steps.fill('12');
+  await expect(progress).toHaveText('Step 12 of 23');
+  await viewer.getByRole('button', { name: 'Back a step' }).click();
+  await expect(progress).toHaveText('Step 11 of 23', { timeout: 15_000 });
+  await viewer.getByRole('button', { name: 'Back a step' }).click();
+  await expect(progress).toHaveText('Step 10 of 23', { timeout: 15_000 });
+  await viewer.getByRole('button', { name: 'Forward a step' }).click();
+  await expect(progress).toHaveText('Step 11 of 23', { timeout: 15_000 });
+  await expect(steps).toHaveValue('11');
+  await steps.fill('0');
+  await expect(progress).toHaveText('Step 0 of 23');
+  await expect(viewer.getByRole('button', { name: 'Back a step' })).toBeDisabled();
+
+  // 1× is the standard speed; the choice is remembered.
+  const speed = viewer.getByRole('group', { name: 'Speed' });
+  await expect(speed.getByRole('button', { name: '1×' })).toHaveAttribute('aria-pressed', 'true');
+  await speed.getByRole('button', { name: '4×' }).click();
+  await expect(speed.getByRole('button', { name: '4×' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(speed.getByRole('button', { name: '1×' })).toHaveAttribute('aria-pressed', 'false');
+  await viewer.getByRole('button', { name: 'Play' }).click();
+  await expect(progress).toHaveText('Step 23 of 23', { timeout: 30_000 });
+  await expect(viewer.getByRole('button', { name: 'Build it again' })).toBeVisible();
+  await expect(viewer.getByRole('button', { name: 'Forward a step' })).toBeDisabled();
+
+  await page.reload();
+  await expect(page.locator('lego-viewer [data-speed="4"]')).toHaveAttribute('aria-pressed', 'true');
   expect(errors).toEqual([]);
 });
 
@@ -480,9 +528,10 @@ test('shows a scan of my own build whole, and says it is a scan', async ({ page 
   await viewer.scrollIntoViewIfNeeded();
   await expect(viewer.locator('[data-credit]')).toHaveText(credit);
   await expect(viewer.locator('[data-progress]')).toHaveText('Scan of my own build', { timeout: 45_000 });
-  const replay = viewer.locator('[data-replay]');
-  await expect(replay).toHaveText('Show it again');
-  await expect(replay).toBeEnabled({ timeout: 15_000 });
+  // A scan has no steps to move between, so only play and speed show.
+  await expect(viewer.getByRole('button', { name: 'Back a step' })).toBeHidden();
+  await expect(viewer.getByRole('slider', { name: 'Step' })).toBeHidden();
+  await expect(viewer.getByRole('button', { name: 'Show it again' })).toBeVisible({ timeout: 15_000 });
 
   // Once it has risen into view, the box is on screen in its own colour, unlit as photographed.
   const shot = await viewer.locator('[data-stage]').screenshot();
@@ -493,8 +542,8 @@ test('shows a scan of my own build whole, and says it is a scan', async ({ page 
 
   // An LDraw set still builds step by step after a scan.
   await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
-  await expect(replay).toHaveText('Build it again');
   await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
+  await expect(viewer.getByRole('button', { name: 'Back a step' })).toBeVisible();
   expect(errors).toEqual([]);
 });
 

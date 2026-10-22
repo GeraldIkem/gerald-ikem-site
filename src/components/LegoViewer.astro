@@ -1,5 +1,6 @@
 ---
 import { modelCredit, modelled } from '~/data/lego';
+import { SPEEDS } from '~/lib/buildSchedule';
 const first = modelled[0];
 ---
 
@@ -34,14 +35,54 @@ const first = modelled[0];
   </div>
 
   <div class="viewer__bar">
+    <div class="viewer__transport">
+      <button type="button" class="viewer__ctl" data-back data-steps-only aria-label="Back a step" title="Back a step" disabled>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h2.5v12H4zM16 4v12L7.5 10z"></path></svg>
+      </button>
+      <button type="button" class="viewer__ctl viewer__ctl--play" data-play data-state="play" aria-label="Play" title="Play" disabled>
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path class="viewer__icon-play" d="M6 3.5 16.5 10 6 16.5z"></path>
+          <path class="viewer__icon-pause" d="M5 4h3.5v12H5zm6.5 0H15v12h-3.5z"></path>
+          <path
+            class="viewer__icon-again"
+            d="M10 3.5V1L6 4.5 10 8V5.5a4.5 4.5 0 1 1-4.5 4.5h-2A6.5 6.5 0 1 0 10 3.5z"
+          ></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer__ctl" data-forward data-steps-only aria-label="Forward a step" title="Forward a step" disabled>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 4H16v12h-2.5zM4 4v12l8.5-6z"></path></svg>
+      </button>
+    </div>
     <p class="viewer__progress" data-progress>Ready to build</p>
-    <button type="button" class="viewer__replay" data-replay disabled>Build it again</button>
+    <div class="viewer__speed" role="group" aria-label="Speed">
+      {
+        SPEEDS.map((speed) => (
+          <button type="button" class="viewer__speed-pick" data-speed={speed} aria-pressed={speed === 1 ? 'true' : 'false'}>
+            {speed}×
+          </button>
+        ))
+      }
+    </div>
+    <input
+      class="viewer__scrub"
+      type="range"
+      min="0"
+      max="0"
+      value="0"
+      step="1"
+      aria-label="Step"
+      data-scrub
+      data-steps-only
+      disabled
+    />
   </div>
   <p class="viewer__credit" data-credit>{first && modelCredit(first)}</p>
 </lego-viewer>
 
 <script>
-  import type { LegoBuild } from '~/scripts/legoBuild';
+  import type { LegoBuild, PlayState } from '~/scripts/legoBuild';
+
+  const SPEED_KEY = 'gerald-ikem:lego-speed';
 
   class LegoViewer extends HTMLElement {
     #build: LegoBuild | null = null;
@@ -49,19 +90,35 @@ const first = modelled[0];
     #current: HTMLButtonElement | null = null;
     #onScreen = false;
     #scan = false;
+    #state: PlayState | null = null;
+    #step = 0;
+    #speed = 1;
     readonly #downloads = new Map<string, Promise<ArrayBuffer>>();
 
     connectedCallback() {
       const picks = [...this.querySelectorAll<HTMLButtonElement>('[data-url]')];
       for (const pick of picks) pick.addEventListener('click', () => this.#show(pick));
-      // One button: skip to the finished model while it builds, build it again once it's done.
-      this.querySelector('[data-replay]')?.addEventListener('click', () => {
-        const build = this.#build;
-        if (!build) return;
-        if (build.building) build.skip();
-        else build.build();
-        this.#replay(build.building ? 'skip' : 'again');
+
+      // Play and pause like a video; once it's finished, the same button builds it again.
+      this.#control('[data-play]').addEventListener('click', () => {
+        if (this.#state?.playing) this.#build?.pause();
+        else this.#build?.play();
       });
+      this.#control('[data-back]').addEventListener('click', () => this.#build?.stepBy(-1));
+      this.#control('[data-forward]').addEventListener('click', () => this.#build?.stepBy(1));
+      // Dragging (or arrowing) along the steps stands the build still at that step.
+      this.#control<HTMLInputElement>('[data-scrub]').addEventListener('input', (event) => {
+        this.#build?.seek(Number((event.target as HTMLInputElement).value));
+      });
+      for (const pick of this.querySelectorAll<HTMLButtonElement>('[data-speed]')) {
+        pick.addEventListener('click', () => this.#setSpeed(Number(pick.dataset['speed']), true));
+      }
+      try {
+        const saved = Number(localStorage.getItem(SPEED_KEY));
+        if (this.querySelector(`[data-speed="${saved}"]`)) this.#setSpeed(saved, false);
+      } catch {
+        // No storage, so it starts at 1×.
+      }
 
       // Load three.js and the first model only when the viewer comes near the screen.
       const near = new IntersectionObserver(
@@ -98,6 +155,7 @@ const first = modelled[0];
             reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
             interactive: matchMedia('(pointer: fine)').matches,
           });
+          this.#build.setSpeed(this.#speed);
           this.#build.setVisible(this.#onScreen);
           return this.#build;
         } catch {
@@ -117,7 +175,10 @@ const first = modelled[0];
       this.#credit(modelCredit);
       this.#status(`Loading the ${name}…`);
       this.#progress(scan ? 'Loading the scan' : 'Loading parts');
-      this.#replay('loading');
+      this.#step = 0;
+      this.#playState(null);
+      // A scan has no steps to move between.
+      for (const control of this.querySelectorAll<HTMLElement>('[data-steps-only]')) control.hidden = scan;
 
       // Fetch an LDraw model while three.js loads, rather than after, and only once per set.
       let download = scan ? undefined : this.#downloads.get(url);
@@ -133,8 +194,16 @@ const first = modelled[0];
       const build = await this.#engine();
       if (!build || this.#current !== pick) return;
       const callbacks = {
-        onProgress: (step: number, steps: number) => this.#progress(`Step ${step} of ${steps}`),
-        onDone: () => this.#replay('again'),
+        onProgress: (step: number, steps: number) => {
+          this.#progress(`Step ${step} of ${steps}`);
+          const scrub = this.#control<HTMLInputElement>('[data-scrub]');
+          scrub.max = String(steps);
+          scrub.value = String(step);
+          scrub.setAttribute('aria-valuetext', `Step ${step} of ${steps}`);
+          this.#step = step;
+          this.#control('[data-back]').disabled = !this.#state || step === 0;
+        },
+        onState: (state: PlayState) => this.#playState(state),
       };
       try {
         if (scan) {
@@ -145,17 +214,44 @@ const first = modelled[0];
         }
         if (this.#current !== pick) return;
         this.#status('');
-        this.#replay(build.building ? 'skip' : 'again');
       } catch {
         this.#status(`The ${name} model didn’t load. Try again in a moment.`);
       }
     }
 
-    #replay(state: 'loading' | 'skip' | 'again') {
-      const replay = this.querySelector<HTMLButtonElement>('[data-replay]');
-      if (!replay) return;
-      replay.disabled = state === 'loading';
-      replay.textContent = state === 'skip' ? 'Skip to the end' : this.#scan ? 'Show it again' : 'Build it again';
+    /** Show what the play button will do next, or turn the controls off while a model loads. */
+    #playState(state: PlayState | null) {
+      this.#state = state;
+      const play = this.#control('[data-play]');
+      const next = !state ? 'play' : state.playing ? 'pause' : state.atEnd ? 'again' : 'play';
+      const label = { play: 'Play', pause: 'Pause', again: this.#scan ? 'Show it again' : 'Build it again' }[next];
+      play.dataset['state'] = next;
+      play.setAttribute('aria-label', label);
+      play.title = label;
+      for (const control of this.querySelectorAll<HTMLButtonElement | HTMLInputElement>('[data-play], [data-back], [data-forward], [data-scrub]')) {
+        control.disabled = !state;
+      }
+      if (!state) return;
+      this.#control('[data-back]').disabled = this.#step === 0;
+      this.#control('[data-forward]').disabled = state.atEnd;
+    }
+
+    #setSpeed(speed: number, remember: boolean) {
+      this.#speed = speed;
+      for (const pick of this.querySelectorAll('[data-speed]')) {
+        pick.setAttribute('aria-pressed', String(Number((pick as HTMLElement).dataset['speed']) === speed));
+      }
+      this.#build?.setSpeed(speed);
+      if (!remember) return;
+      try {
+        localStorage.setItem(SPEED_KEY, String(speed));
+      } catch {
+        // Not remembered, which is fine.
+      }
+    }
+
+    #control<T extends HTMLElement = HTMLButtonElement>(selector: string): T {
+      return this.querySelector<T>(selector)!;
     }
 
     #status(text: string) {
@@ -281,19 +377,88 @@ const first = modelled[0];
     color: var(--ink-2);
   }
 
-  .viewer__replay {
-    padding: 0.35rem 0.9rem;
+  .viewer__transport {
+    display: flex;
+    gap: 0.375rem;
+  }
+
+  .viewer__ctl {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
     border: 1.5px solid var(--ink);
     border-radius: 999px;
     background: none;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .viewer__ctl svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: currentColor;
+  }
+
+  .viewer__ctl--play {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* The play button shows what it will do: play, pause, or build it again. */
+  .viewer__ctl--play path {
+    display: none;
+  }
+
+  .viewer__ctl--play[data-state='play'] .viewer__icon-play,
+  .viewer__ctl--play[data-state='pause'] .viewer__icon-pause,
+  .viewer__ctl--play[data-state='again'] .viewer__icon-again {
+    display: inline;
+  }
+
+  .viewer__ctl:disabled,
+  .viewer__scrub:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .viewer__ctl[hidden],
+  .viewer__scrub[hidden] {
+    display: none;
+  }
+
+  .viewer__speed {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .viewer__speed-pick {
+    min-width: 2.5rem;
+    min-height: 2.25rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    background: none;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
     font-weight: 600;
     cursor: pointer;
   }
 
-  .viewer__replay:disabled {
-    opacity: 0.45;
-    cursor: default;
+  .viewer__speed-pick[aria-pressed='true'] {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* The steps, start to finish, to drag along. */
+  .viewer__scrub {
+    flex-basis: 100%;
+    width: 100%;
+    margin: 0.25rem 0 0;
+    accent-color: var(--process-magenta);
+    cursor: pointer;
   }
 
   .viewer__credit {

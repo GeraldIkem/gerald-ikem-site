@@ -1,7 +1,8 @@
 /**
  * Loads a packed LDraw model and builds it on screen in its real instruction
  * order: each building step's parts drop in from above and settle into place.
- * A scan of a finished build has no steps, so it rises into view from its base.
+ * It plays like a video: at a chosen speed, paused, or a step back or forward
+ * at a time. A scan of a finished build has no steps, so it rises into view from its base.
  * Imported on demand, so three.js only downloads when the LEGO section is near.
  */
 import {
@@ -26,11 +27,27 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader.js';
 import { LDrawConditionalLineMaterial } from 'three/examples/jsm/materials/LDrawConditionalLineMaterial.js';
-import { buildSchedule, dropOffset, type Scheduled } from '~/lib/buildSchedule';
+import {
+  buildSchedule,
+  dropOffset,
+  pieceProgress,
+  speedRate,
+  stepTimes,
+  type Scheduled,
+  type StepTimes,
+} from '~/lib/buildSchedule';
+
+export interface PlayState {
+  playing: boolean;
+  /** Standing finished, so playing starts the build again. */
+  atEnd: boolean;
+}
 
 export interface BuildCallbacks {
+  /** The step on screen (0 before the first piece) out of how many, whenever it changes. */
   onProgress?: (step: number, steps: number) => void;
-  onDone?: () => void;
+  /** Whenever it starts or stops playing. */
+  onState?: (state: PlayState) => void;
 }
 
 interface Unit extends Scheduled {
@@ -39,7 +56,8 @@ interface Unit extends Scheduled {
   lift: Vector3;
 }
 
-// How long one piece takes to drop into place, roughly how long a whole build runs, and how long a scan takes to rise.
+// How long one piece takes to drop into place, roughly how long a whole build runs, and how long a scan takes to
+// rise, all at 2×; 1× takes twice as long.
 const DROP_MS = 360;
 const BUILD_MS = 6_000;
 const RISE_MS = 2600;
@@ -144,10 +162,22 @@ export class LegoBuild {
   #units: Unit[] = [];
   /** For a scan: the plane that hides everything above the rising line, and how far it rises. */
   #rise: { plane: Plane; from: number; to: number } | null = null;
-  #start = 0;
-  #lastStep = -1;
-  #totalSteps = 0;
-  #building = false;
+  #steps: StepTimes = { starts: [], ends: [] };
+  #duration = 0;
+  /** The playhead: a time on the build's own timeline, which runs at 2×. */
+  #time = 0;
+  /** Timeline time per real millisecond, from the chosen speed. */
+  #rate = speedRate(1);
+  /** Where a step back or forward stops; null while it plays on to the end. */
+  #target: number | null = null;
+  /** How many steps stand finished once that step back or forward lands. */
+  #landing = 0;
+  #moving = false;
+  /** Steps up to `#built` stand finished and steps after `#shown` stay hidden (see pieceProgress). */
+  #built = -1;
+  #shown = Infinity;
+  #reported = -1;
+  #last = 0;
   #visible = true;
   #frame = 0;
   #callbacks: BuildCallbacks = {};
@@ -192,6 +222,8 @@ export class LegoBuild {
       this.#loop();
     });
     this.#resize.observe(container);
+    // Coming back to the tab picks the build up where it was.
+    document.addEventListener('visibilitychange', this.#loop);
     this.#fit();
     this.#loop();
   }
@@ -199,7 +231,7 @@ export class LegoBuild {
   /** Pause rendering while the viewer is scrolled out of sight. */
   setVisible(visible: boolean) {
     this.#visible = visible;
-    if (visible && this.#pending) this.build();
+    if (visible && this.#pending) this.play();
     else if (visible) this.#loop();
   }
 
@@ -228,7 +260,8 @@ export class LegoBuild {
       const lift = dropOffset(object, height * 0.75);
       return { ...schedule.items[index]!, object, rest: object.position.clone(), lift };
     });
-    this.#totalSteps = schedule.steps;
+    this.#steps = stepTimes(schedule.items, schedule.steps, DROP_MS);
+    this.#duration = schedule.durationMs;
     this.build();
   }
 
@@ -249,54 +282,101 @@ export class LegoBuild {
     const box = new Box3().setFromObject(scan);
     const margin = (box.max.y - box.min.y) * 0.01;
     this.#rise = { plane, from: box.min.y - margin, to: box.max.y + margin };
+    // Its rise counts as one step.
+    this.#steps = { starts: [0], ends: [RISE_MS] };
+    this.#duration = RISE_MS;
     this.build();
   }
 
-  /** Start the build from an empty baseplate. */
+  get steps() {
+    return this.#steps.starts.length;
+  }
+
+  /** 1× is half the pace the builds first had; 2× is that pace. */
+  setSpeed(speed: number) {
+    this.#rate = speedRate(speed);
+  }
+
+  /** Start the build again from an empty baseplate. */
   build() {
     if (!this.#model) return;
-    this.#controls.autoRotate = false;
-    this.#lastStep = -1;
-    if (this.#reducedMotion) {
-      this.skip();
-      return;
-    }
-    for (const unit of this.#units) unit.object.visible = false;
-    if (this.#rise) this.#rise.plane.constant = this.#rise.from;
-    // Loaded ahead of time, before the viewer is on screen: wait so the build is seen from the start.
-    if (!this.#visible) {
-      this.#pending = true;
-      return;
-    }
-    this.#pending = false;
-    this.#building = true;
-    this.#start = performance.now();
-    this.#loop();
+    this.#settle(0);
+    this.play();
   }
 
-  /** Jump to the finished model. */
-  skip() {
+  /** Play on from where it stands, or from the start once it's finished. With less motion, show it finished. */
+  play() {
     if (!this.#model) return;
-    this.#pending = false;
-    for (const unit of this.#units) {
-      unit.object.visible = true;
-      unit.object.position.copy(unit.rest);
+    if (this.#reducedMotion) {
+      this.seek(this.steps);
+      return;
     }
-    if (this.#rise) this.#rise.plane.constant = this.#rise.to;
-    else {
-      this.#lastStep = this.#totalSteps - 1;
-      this.#callbacks.onProgress?.(this.#totalSteps, this.#totalSteps);
-    }
-    this.#finish();
+    if (this.#atEnd()) this.#settle(0);
+    this.#target = null;
+    this.#shown = Infinity;
+    this.#controls.autoRotate = false;
+    // Loaded ahead of time, before the viewer is on screen: wait so the build is seen from the start.
+    this.#pending = !this.#visible;
+    this.#moving = this.#visible;
+    this.#emit();
     this.#loop();
   }
 
-  get building() {
-    return this.#building || this.#pending;
+  pause() {
+    this.#moving = false;
+    this.#pending = false;
+    this.#target = null;
+    this.#controls.autoRotate = false;
+    this.#emit();
+  }
+
+  /**
+   * One step forward or back from where it stands. Forward finishes the step being built, or drops in
+   * the next one; back lifts the latest step's pieces off again, last one first.
+   */
+  stepBy(delta: 1 | -1) {
+    if (!this.#model) return;
+    const { step, whole } = this.#position();
+    const target = delta > 0 ? (whole ? step + 1 : step) : step - 1;
+    if (target >= this.steps || target < -1) return;
+    this.#pending = false;
+    this.#controls.autoRotate = false;
+    if (this.#reducedMotion || this.#rise) {
+      this.seek(target + 1);
+      return;
+    }
+    if (delta > 0) {
+      this.#built = target - 1;
+      this.#shown = target;
+      if (whole) this.#time = this.#steps.starts[target]!;
+      this.#target = this.#steps.ends[target]!;
+    } else {
+      this.#built = step - 1;
+      this.#shown = step;
+      if (whole) this.#time = this.#steps.ends[step]!;
+      this.#target = this.#steps.starts[step]!;
+    }
+    this.#landing = target + 1;
+    this.#moving = true;
+    this.#emit();
+    this.#loop();
+  }
+
+  /** Stand still with the first `count` steps finished. */
+  seek(count: number) {
+    if (!this.#model) return;
+    this.#moving = false;
+    this.#pending = false;
+    this.#target = null;
+    this.#controls.autoRotate = false;
+    this.#settle(Math.min(Math.max(count, 0), this.steps));
+    this.#emit();
+    this.#loop();
   }
 
   destroy() {
     cancelAnimationFrame(this.#frame);
+    document.removeEventListener('visibilitychange', this.#loop);
     this.#resize.disconnect();
     this.#controls.dispose();
     if (this.#model && !this.#cached(this.#model)) dispose(this.#model);
@@ -306,11 +386,87 @@ export class LegoBuild {
     this.#renderer.domElement.remove();
   }
 
+  /** Put the playhead at the end of `count` steps, with nothing after them showing. */
+  #settle(count: number) {
+    this.#built = count - 1;
+    this.#shown = count - 1;
+    this.#time = count < this.steps ? this.#steps.starts[count]! : this.#duration;
+    this.#apply();
+  }
+
+  #atEnd() {
+    return !this.#moving && !this.#pending && this.#built >= this.steps - 1;
+  }
+
+  #emit() {
+    this.#callbacks.onState?.({ playing: (this.#moving && this.#target === null) || this.#pending, atEnd: this.#atEnd() });
+  }
+
+  #progress(unit: Unit) {
+    return pieceProgress(unit, this.#time, DROP_MS, this.#built, this.#shown);
+  }
+
+  /** The latest step with any piece showing, and whether all of its pieces are in place. */
+  #position(): { step: number; whole: boolean } {
+    if (this.#rise) return { step: this.#time > 0 ? 0 : -1, whole: this.#time >= this.#duration };
+    let step = -1;
+    for (const unit of this.#units) if (this.#progress(unit) > 0) step = Math.max(step, unit.step);
+    const whole = this.#units.every((unit) => unit.step !== step || this.#progress(unit) >= 1);
+    return { step, whole };
+  }
+
+  /** Place every piece, or the scan's rising line, for where the playhead is. */
+  #apply() {
+    if (this.#rise) {
+      const { plane, from, to } = this.#rise;
+      const t = this.#duration ? Math.min(this.#time / this.#duration, 1) : 1;
+      plane.constant = from + (to - from) * (1 - (1 - t) ** 2);
+      return;
+    }
+    let step = -1;
+    for (const unit of this.#units) {
+      const p = this.#progress(unit);
+      unit.object.visible = p > 0;
+      if (p <= 0) continue;
+      step = Math.max(step, unit.step);
+      // Ease out with a small settle, like a brick clicking onto studs.
+      const k = 1 - (1 - p) ** 3;
+      unit.object.position.copy(unit.rest).addScaledVector(unit.lift, 1 - k);
+    }
+    if (step !== this.#reported) {
+      this.#reported = step;
+      this.#callbacks.onProgress?.(step + 1, this.steps);
+    }
+  }
+
+  /** Move the playhead on by `ms` of real time. */
+  #advance(ms: number) {
+    const delta = ms * this.#rate;
+    if (this.#target === null) {
+      this.#time = Math.min(this.#time + delta, this.#duration);
+      this.#apply();
+      if (this.#time >= this.#duration) this.#finish();
+      return;
+    }
+    const target = this.#target;
+    this.#time = target >= this.#time ? Math.min(this.#time + delta, target) : Math.max(this.#time - delta, target);
+    this.#apply();
+    if (this.#time === target) {
+      // A step back or forward has landed: stand still at the end of it.
+      this.#moving = false;
+      this.#target = null;
+      this.#settle(this.#landing);
+      this.#emit();
+    }
+  }
+
   #finish() {
-    this.#building = false;
+    this.#moving = false;
+    this.#built = this.steps - 1;
+    this.#shown = this.steps - 1;
     // A slow turn shows the finished model off, unless the visitor asked for less motion.
     this.#controls.autoRotate = !this.#reducedMotion;
-    this.#callbacks.onDone?.();
+    this.#emit();
   }
 
   #cached(model: Object3D) {
@@ -324,8 +480,10 @@ export class LegoBuild {
       unit.object.visible = true;
       unit.object.position.copy(unit.rest);
     }
-    this.#building = false;
+    this.#moving = false;
     this.#pending = false;
+    this.#target = null;
+    this.#reported = -2;
     if (this.#model && this.#model !== model) {
       this.#scene.remove(this.#model);
       if (!this.#cached(this.#model)) dispose(this.#model);
@@ -367,42 +525,17 @@ export class LegoBuild {
 
   #loop = () => {
     cancelAnimationFrame(this.#frame);
-    if (!this.#visible || document.hidden) return;
-    if (this.#building) this.#tick(performance.now() - this.#start);
+    if (!this.#visible || document.hidden) {
+      this.#last = 0;
+      return;
+    }
+    const now = performance.now();
+    // A long gap (a slow frame, or coming back to the page) doesn't jump the build ahead.
+    if (this.#moving) this.#advance(this.#last ? Math.min(now - this.#last, 100) : 0);
+    this.#last = this.#moving ? now : 0;
     const moved = this.#controls.update();
     this.#renderer.render(this.#scene, this.#camera);
     // Keep drawing only while something is moving: the build, the turn, or a drag settling.
-    if (this.#building || this.#controls.autoRotate || moved) this.#frame = requestAnimationFrame(this.#loop);
+    if (this.#moving || this.#controls.autoRotate || moved) this.#frame = requestAnimationFrame(this.#loop);
   };
-
-  #tick(elapsed: number) {
-    if (this.#rise) {
-      const { plane, from, to } = this.#rise;
-      const t = Math.min(elapsed / RISE_MS, 1);
-      plane.constant = from + (to - from) * (1 - (1 - t) ** 2);
-      if (t >= 1) this.#finish();
-      return;
-    }
-    let done = true;
-    let step = 0;
-    for (const unit of this.#units) {
-      const t = (elapsed - unit.startMs) / DROP_MS;
-      if (t <= 0) {
-        unit.object.visible = false;
-        done = false;
-        continue;
-      }
-      unit.object.visible = true;
-      step = Math.max(step, unit.step);
-      // Ease out with a small settle, like a brick clicking onto studs.
-      const k = t >= 1 ? 1 : 1 - (1 - t) ** 3;
-      if (t < 1) done = false;
-      unit.object.position.copy(unit.rest).addScaledVector(unit.lift, 1 - k);
-    }
-    if (step !== this.#lastStep) {
-      this.#lastStep = step;
-      this.#callbacks.onProgress?.(step + 1, this.#totalSteps);
-    }
-    if (done) this.#finish();
-  }
 }

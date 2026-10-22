@@ -1,6 +1,6 @@
 import { Group, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { buildSchedule, dropOffset } from '~/lib/buildSchedule';
+import { SPEEDS, buildSchedule, dropOffset, pieceProgress, speedRate, stepTimes } from '~/lib/buildSchedule';
 
 describe('buildSchedule', () => {
   it('orders pieces by building step and staggers pieces within a step', () => {
@@ -33,6 +33,46 @@ describe('buildSchedule', () => {
     expect(items.map((item) => item.step)).toEqual([2, 0, 0, 1]);
     expect(items[1]!.startMs).toBeLessThan(items[2]!.startMs);
     expect(items[3]!.startMs).toBeLessThan(items[0]!.startMs);
+  });
+});
+
+describe('stepTimes', () => {
+  it('finds when each step starts and when its last piece lands', () => {
+    const items = [
+      { step: 0, startMs: 0 },
+      { step: 0, startMs: 50 },
+      { step: 1, startMs: 120 },
+      { step: 1, startMs: 170 },
+    ];
+    expect(stepTimes(items, 2, 100)).toEqual({ starts: [0, 120], ends: [150, 270] });
+  });
+});
+
+describe('pieceProgress', () => {
+  const piece = { step: 3, startMs: 1000 };
+
+  it('drops a piece in over its drop time', () => {
+    expect(pieceProgress(piece, 900, 400)).toBe(0);
+    expect(pieceProgress(piece, 1200, 400)).toBe(0.5);
+    expect(pieceProgress(piece, 2000, 400)).toBe(1);
+  });
+
+  it('stands still at the end of a step whatever the time', () => {
+    // Stepped to the end of step 3: in place, even though by the clock it would still be falling.
+    expect(pieceProgress(piece, 1100, 400, 3, 3)).toBe(1);
+    // Stepped back to the end of step 2: gone, even though by the clock it would be in place.
+    expect(pieceProgress(piece, 5000, 400, 2, 2)).toBe(0);
+    // Stepping forward into step 3 drops it in by the clock.
+    expect(pieceProgress(piece, 1200, 400, 2, 3)).toBe(0.5);
+  });
+});
+
+describe('speeds', () => {
+  it('runs 1× at half the pace the builds first had, and 2× at that pace', () => {
+    expect(SPEEDS[0]).toBe(1);
+    expect(speedRate(1)).toBe(0.5);
+    expect(speedRate(2)).toBe(1);
+    expect(speedRate(4)).toBe(2);
   });
 });
 

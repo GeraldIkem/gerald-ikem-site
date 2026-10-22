@@ -43,6 +43,39 @@ export function buildSchedule(buildingSteps: number[], { dropMs = 520, targetMs 
   return { items, steps, durationMs: last + dropMs };
 }
 
+export interface StepTimes {
+  /** When each step's first piece starts to drop. */
+  starts: number[];
+  /** When each step's last piece has landed. */
+  ends: number[];
+}
+
+/** Where each building step begins and ends on the build's timeline. */
+export function stepTimes(items: Scheduled[], steps: number, dropMs: number): StepTimes {
+  const starts = new Array<number>(steps).fill(Infinity);
+  const ends = new Array<number>(steps).fill(0);
+  for (const { step, startMs } of items) {
+    starts[step] = Math.min(starts[step]!, startMs);
+    ends[step] = Math.max(ends[step]!, startMs + dropMs);
+  }
+  return { starts, ends };
+}
+
+/**
+ * How far a piece has dropped into place at `time` on the build's timeline, from 0 (not there
+ * yet) to 1 (in place). Steps up to `built` count as finished whatever the time, and steps after
+ * `shown` stay hidden, so the build can stand still at the end of any step.
+ */
+export function pieceProgress(item: Scheduled, time: number, dropMs: number, built = -1, shown = Infinity): number {
+  if (item.step > shown) return 0;
+  if (item.step <= built) return 1;
+  return clamp((time - item.startMs) / dropMs, 0, 1);
+}
+
+/** Playback speeds on the buttons. 1× runs at half the pace the builds first had, so 2× is that pace. */
+export const SPEEDS = [1, 2, 4] as const;
+export const speedRate = (speed: number) => speed / 2;
+
 /**
  * The offset, in the object's own parent space, that lifts it `height` units
  * straight up in world space. Sub-models can be rotated or mirrored, so "up"
