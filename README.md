@@ -53,5 +53,7 @@ These update the data and images the site is built from. None of them run as par
 ## Credits
 
 - 3D LEGO models from the [LDraw.org Official Model Repository](https://library.ldraw.org/omr): 10262 and 76139 by Orion Pobursky, 10265 by Ulrich Röder, all CC BY 2.0. Parts from the [LDraw.org Parts Library](https://library.ldraw.org), CC BY 2.0 and 4.0; each packed file keeps every part's author and licence lines.
+- The 40899 Astro Bot model is my own, CC BY 4.0. Three of its parts come from the LDraw.org Parts Tracker, CC BY 4.0: 6822 and 6823 by Gerald Lasser, 5443 by Philippe Hurbain.
+- LEGO set photos are the LEGO Group's own product shots, via Rebrickable.
 - Comic covers, spines and back covers belong to their publishers and are shown only to picture books in my collection.
 - LEGO® is a trademark of the LEGO Group, which does not sponsor or endorse this site. LDraw™ is a trademark of the Estate of James Jessiman.

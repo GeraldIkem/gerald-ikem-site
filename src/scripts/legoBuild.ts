@@ -1,22 +1,27 @@
 /**
  * Loads a packed LDraw model and builds it on screen in its real instruction
  * order: each building step's parts drop in from above and settle into place.
+ * A scan of a finished build has no steps, so it rises into view from its base.
  * Imported on demand, so three.js only downloads when the LEGO section is near.
  */
 import {
   ACESFilmicToneMapping,
   Box3,
   DirectionalLight,
+  DoubleSide,
   Group,
   HemisphereLight,
   Mesh,
+  MeshBasicMaterial,
   Object3D,
   PerspectiveCamera,
+  Plane,
   SRGBColorSpace,
   Scene,
   Vector3,
   WebGLRenderer,
   type Material,
+  type MeshStandardMaterial,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader.js';
@@ -34,9 +39,10 @@ interface Unit extends Scheduled {
   lift: Vector3;
 }
 
-// How long one piece takes to drop into place, and roughly how long a whole build runs.
+// How long one piece takes to drop into place, roughly how long a whole build runs, and how long a scan takes to rise.
 const DROP_MS = 360;
 const BUILD_MS = 6_000;
+const RISE_MS = 2600;
 
 /** Download a packed model; start it early and pass the result to `show` to overlap it with loading three.js. */
 export async function downloadModel(url: string): Promise<ArrayBuffer> {
@@ -65,6 +71,41 @@ function parseModel(text: string): Promise<Group> {
   return new Promise((resolve, reject) => loader.parse(text, resolve, reject));
 }
 
+/** A binary glTF scan. Its loaders only download when a scan is shown. */
+async function parseScan(url: string): Promise<Object3D> {
+  const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([
+    import('three/examples/jsm/loaders/GLTFLoader.js'),
+    import('three/examples/jsm/libs/meshopt_decoder.module.js'),
+  ]);
+  const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(url);
+  return gltf.scene;
+}
+
+/**
+ * A photo scan already carries the real light in its texture, so it's drawn
+ * as photographed, without the scene's lights or tone mapping on top.
+ */
+function drawAsPhotographed(root: Object3D, clip: Plane[]) {
+  root.traverse((node) => {
+    const mesh = node as Mesh;
+    if (!mesh.isMesh) return;
+    const vertexColors = Boolean(mesh.geometry.getAttribute('color'));
+    const swap = (old: Material) => {
+      const { map = null, color } = old as MeshStandardMaterial;
+      old.dispose();
+      return new MeshBasicMaterial({
+        map,
+        color: map ? 0xffffff : color,
+        vertexColors,
+        side: DoubleSide,
+        toneMapped: false,
+        clippingPlanes: clip,
+      });
+    };
+    mesh.material = Array.isArray(mesh.material) ? mesh.material.map(swap) : swap(mesh.material);
+  });
+}
+
 /** The pieces to animate: the highest groups that hold geometry themselves. */
 function collectUnits(root: Object3D): Object3D[] {
   const units: Object3D[] = [];
@@ -85,8 +126,10 @@ function dispose(root: Object3D) {
     const mesh = node as Mesh;
     mesh.geometry?.dispose();
     const material = mesh.material as Material | Material[] | undefined;
-    if (Array.isArray(material)) material.forEach((m) => m.dispose());
-    else material?.dispose();
+    for (const m of [material ?? []].flat()) {
+      (m as MeshBasicMaterial).map?.dispose();
+      m.dispose();
+    }
   });
 }
 
@@ -97,8 +140,10 @@ export class LegoBuild {
   readonly #controls: OrbitControls;
   readonly #resize: ResizeObserver;
   readonly #reducedMotion: boolean;
-  #model: Group | null = null;
+  #model: Object3D | null = null;
   #units: Unit[] = [];
+  /** For a scan: the plane that hides everything above the rising line, and how far it rises. */
+  #rise: { plane: Plane; from: number; to: number } | null = null;
   #start = 0;
   #lastStep = -1;
   #totalSteps = 0;
@@ -109,7 +154,7 @@ export class LegoBuild {
   #token = 0;
   /** A build waiting for the viewer to come into view, so nobody misses it. */
   #pending = false;
-  /** Parsed models, so switching back to a set doesn't parse it again. */
+  /** Parsed LDraw models, so switching back to a set doesn't parse it again. */
   readonly #cache = new Map<string, Group>();
 
   constructor(
@@ -122,6 +167,7 @@ export class LegoBuild {
     this.#renderer.outputColorSpace = SRGBColorSpace;
     this.#renderer.toneMapping = ACESFilmicToneMapping;
     this.#renderer.toneMappingExposure = 1.05;
+    this.#renderer.localClippingEnabled = true;
     container.append(this.#renderer.domElement);
 
     this.#scene.add(new HemisphereLight(0xffffff, 0x5a5048, 2.2));
@@ -163,16 +209,14 @@ export class LegoBuild {
     let model = this.#cache.get(url);
     if (!model) {
       model = await parseModel(await fetchModel(download ?? downloadModel(url)));
-      // LDraw's y axis points down.
+      // LDraw's y axis points down. Turning it over also turns an LDraw model's front, which faces -z, to face +z.
       model.rotation.x = Math.PI;
       this.#cache.set(url, model);
     }
     if (token !== this.#token) return;
-    if (this.#model) this.#scene.remove(this.#model);
-    this.#scene.add(model);
-    model.updateMatrixWorld(true);
-    this.#model = model;
-    this.#frameCamera(model);
+    // Long, low models can fill the frame a little past their bounding sphere; a tall one, like a figure, needs all of it.
+    const size = new Box3().setFromObject(model).getSize(new Vector3());
+    this.#place(model, new Vector3(0.9, 0.48, 1), size.y > Math.max(size.x, size.z) ? 1 : 0.78);
 
     const objects = collectUnits(model);
     const height = new Box3().setFromObject(model).getSize(new Vector3()).y;
@@ -188,17 +232,37 @@ export class LegoBuild {
     this.build();
   }
 
+  /** Show a scan of a finished build. `turn` (degrees about the vertical) faces its front to the camera. */
+  async showScan(url: string, callbacks: BuildCallbacks = {}, turn = 0) {
+    const token = ++this.#token;
+    this.#callbacks = callbacks;
+    const scan = await parseScan(url);
+    if (token !== this.#token) {
+      dispose(scan);
+      return;
+    }
+    const plane = new Plane(new Vector3(0, -1, 0), 0);
+    drawAsPhotographed(scan, [plane]);
+    scan.rotation.y = (turn * Math.PI) / 180;
+    // A glTF model faces +z. A scan can be any shape, so all of it stays in frame with room round it.
+    this.#place(scan, new Vector3(0.9, 0.48, 1), 1.15);
+    const box = new Box3().setFromObject(scan);
+    const margin = (box.max.y - box.min.y) * 0.01;
+    this.#rise = { plane, from: box.min.y - margin, to: box.max.y + margin };
+    this.build();
+  }
+
   /** Start the build from an empty baseplate. */
   build() {
     if (!this.#model) return;
     this.#controls.autoRotate = false;
     this.#lastStep = -1;
     if (this.#reducedMotion) {
-      this.#pending = false;
       this.skip();
       return;
     }
     for (const unit of this.#units) unit.object.visible = false;
+    if (this.#rise) this.#rise.plane.constant = this.#rise.from;
     // Loaded ahead of time, before the viewer is on screen: wait so the build is seen from the start.
     if (!this.#visible) {
       this.#pending = true;
@@ -218,8 +282,11 @@ export class LegoBuild {
       unit.object.visible = true;
       unit.object.position.copy(unit.rest);
     }
-    this.#lastStep = this.#totalSteps - 1;
-    this.#callbacks.onProgress?.(this.#totalSteps, this.#totalSteps);
+    if (this.#rise) this.#rise.plane.constant = this.#rise.to;
+    else {
+      this.#lastStep = this.#totalSteps - 1;
+      this.#callbacks.onProgress?.(this.#totalSteps, this.#totalSteps);
+    }
     this.#finish();
     this.#loop();
   }
@@ -232,6 +299,7 @@ export class LegoBuild {
     cancelAnimationFrame(this.#frame);
     this.#resize.disconnect();
     this.#controls.dispose();
+    if (this.#model && !this.#cached(this.#model)) dispose(this.#model);
     for (const model of this.#cache.values()) dispose(model);
     this.#cache.clear();
     this.#renderer.dispose();
@@ -245,6 +313,31 @@ export class LegoBuild {
     this.#callbacks.onDone?.();
   }
 
+  #cached(model: Object3D) {
+    return [...this.#cache.values()].includes(model as Group);
+  }
+
+  /** Swap in a new model and frame it, looking from `view`. */
+  #place(model: Object3D, view: Vector3, fill: number) {
+    // Leave the old model whole, in case it's kept to show again; only a scan is thrown away.
+    for (const unit of this.#units) {
+      unit.object.visible = true;
+      unit.object.position.copy(unit.rest);
+    }
+    this.#building = false;
+    this.#pending = false;
+    if (this.#model && this.#model !== model) {
+      this.#scene.remove(this.#model);
+      if (!this.#cached(this.#model)) dispose(this.#model);
+    }
+    this.#units = [];
+    this.#rise = null;
+    this.#scene.add(model);
+    model.updateMatrixWorld(true);
+    this.#model = model;
+    this.#frameCamera(model, view, fill);
+  }
+
   #fit() {
     const { clientWidth: width, clientHeight: height } = this.container;
     if (!width || !height) return;
@@ -253,15 +346,17 @@ export class LegoBuild {
     this.#camera.updateProjectionMatrix();
   }
 
-  #frameCamera(model: Object3D) {
+  /** `fill` scales the distance that fits the model's bounding sphere in view. */
+  #frameCamera(model: Object3D, view: Vector3, fill: number) {
     const box = new Box3().setFromObject(model);
     const size = box.getSize(new Vector3());
     const center = box.getCenter(new Vector3());
     const radius = size.length() / 2;
-    const fov = (this.#camera.fov * Math.PI) / 180;
-    const distance = (radius / Math.sin(fov / 2)) * 0.78;
+    const vertical = (this.#camera.fov * Math.PI) / 360;
+    const horizontal = Math.atan(Math.tan(vertical) * this.#camera.aspect);
+    const distance = (radius / Math.sin(Math.min(vertical, horizontal))) * fill;
     // A three-quarter view from the front and slightly above.
-    const direction = new Vector3(0.9, 0.48, -1).normalize();
+    const direction = view.clone().normalize();
     this.#camera.position.copy(center).addScaledVector(direction, distance);
     this.#camera.near = distance / 100;
     this.#camera.far = distance * 10;
@@ -281,6 +376,13 @@ export class LegoBuild {
   };
 
   #tick(elapsed: number) {
+    if (this.#rise) {
+      const { plane, from, to } = this.#rise;
+      const t = Math.min(elapsed / RISE_MS, 1);
+      plane.constant = from + (to - from) * (1 - (1 - t) ** 2);
+      if (t >= 1) this.#finish();
+      return;
+    }
     let done = true;
     let step = 0;
     for (const unit of this.#units) {

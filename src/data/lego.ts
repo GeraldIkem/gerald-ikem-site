@@ -1,10 +1,23 @@
-export interface LegoModel {
-  /** Packed LDraw file made by scripts/pack-ldraw.mjs. */
+/** An exact LDraw model of the set, packed by scripts/pack-ldraw.mjs. It builds in the order of the real instructions. */
+export interface LdrawModel {
+  kind: 'ldraw';
   url: string;
   author: string;
   source: string;
   license: string;
 }
+
+/** A 3D scan of my own finished build, as binary glTF. A scan has no building steps, so it's shown whole. */
+export interface ScanModel {
+  kind: 'scan';
+  url: string;
+  /** The app that made the scan. */
+  app: string;
+  /** Degrees to turn the scan about the vertical so its front faces the camera. */
+  turn?: number;
+}
+
+export type LegoModel = LdrawModel | ScanModel;
 
 export interface LegoSet {
   name: string;
@@ -16,11 +29,12 @@ export interface LegoSet {
   /** Text colour that reads on that brick. */
   text: string;
   note?: string;
-  /** An exact digital model of the set, when one is freely available. */
+  /** An exact digital model of the set when one is freely available, or else a scan of my own build. */
   model?: LegoModel;
 }
 
-const omr = (url: string, author: string): LegoModel => ({
+const omr = (url: string, author: string): LdrawModel => ({
+  kind: 'ldraw',
   url,
   author,
   source: 'LDraw.org Official Model Repository',
@@ -49,7 +63,21 @@ export const legoSets: LegoSet[] = [
     text: '#ffffff',
     model: omr('/lego/10265.mpd.gz', 'Ulrich Röder'),
   },
-  { name: 'Astro Bot', number: '40899', built: true, color: '#f4f4f4', text: '#0055bf' },
+  {
+    name: 'Astro Bot',
+    number: '40899',
+    built: true,
+    color: '#f4f4f4',
+    text: '#0055bf',
+    // My own model. LDraw has no printed logo tile or stickers for it, so those are traced and drawn on plain parts.
+    model: {
+      kind: 'ldraw',
+      url: '/lego/40899.mpd.gz',
+      author: 'Gerald Ikem',
+      source: 'modelled step by step from the LEGO building instructions',
+      license: 'CC BY 4.0',
+    },
+  },
   { name: 'Sherlock Holmes book nook', number: '10351', built: true, color: '#582a12', text: '#ffffff', note: 'The one that sits in a bookcase' },
   { name: 'PlayStation', number: '72306', built: false, color: '#6074a1', text: '#ffffff' },
   { name: 'One Piece: the Baratie', number: '75640', built: false, color: '#fe8a18', text: '#05131d', note: 'The floating restaurant' },
@@ -67,3 +95,12 @@ export const legoSets: LegoSet[] = [
 ];
 
 export const modelled = legoSets.filter((set): set is LegoSet & { model: LegoModel } => Boolean(set.model));
+
+/** The line under the viewer that says where a model came from. */
+export function modelCredit(set: LegoSet & { model: LegoModel }): string {
+  const { model } = set;
+  if (model.kind === 'scan') {
+    return `A 3D scan of my own build of set ${set.number}, made with ${model.app}. A scan shows the finished set, so it has no building steps.`;
+  }
+  return `3D model of set ${set.number} by ${model.author}, ${model.source}, ${model.license}.`;
+}

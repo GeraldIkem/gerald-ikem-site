@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import sharp from 'sharp';
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -398,16 +399,119 @@ test('builds a real LEGO set in 3D when the viewer comes into view', async ({ pa
   expect(errors).toEqual([]);
 });
 
+test('builds my own model of the Astro Bot step by step, and credits me', async ({ page }) => {
+  test.slow();
+  const errors = collectErrors(page);
+  await page.goto('/off-the-clock/');
+  const viewer = page.locator('lego-viewer');
+  await viewer.scrollIntoViewIfNeeded();
+  await expect(viewer.locator('canvas')).toBeVisible({ timeout: 45_000 });
+
+  await viewer.getByRole('button', { name: /Astro Bot/ }).click();
+  await expect(viewer.locator('[data-credit]')).toHaveText(
+    '3D model of set 40899 by Gerald Ikem, modelled step by step from the LEGO building instructions, CC BY 4.0.',
+  );
+  // 95 steps in the booklet; a sub-build made twice in one step plays once per copy, and a step that only attaches
+  // a sub-build adds no new parts of its own.
+  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 89$/, { timeout: 45_000 });
+  await expect(viewer.locator('[data-progress]')).toHaveText('Step 89 of 89', { timeout: 45_000 });
+  expect(errors).toEqual([]);
+});
+
+/** A one-unit blue box as binary glTF, standing in for a scan file. */
+function boxGlb(): Buffer {
+  const positions = new Float32Array(Array.from({ length: 8 }, (_, i) => [i & 1, (i >> 1) & 1, (i >> 2) & 1]).flat());
+  const indices = new Uint16Array([
+    0, 4, 6, 0, 6, 2, 1, 3, 7, 1, 7, 5, 0, 1, 5, 0, 5, 4, 2, 6, 7, 2, 7, 3, 0, 2, 3, 0, 3, 1, 4, 5, 7, 4, 7, 6,
+  ]);
+  const bin = Buffer.concat([Buffer.from(positions.buffer), Buffer.from(indices.buffer)]);
+  const json = {
+    asset: { version: '2.0' },
+    scene: 0,
+    scenes: [{ nodes: [0] }],
+    nodes: [{ mesh: 0 }],
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1, material: 0 }] }],
+    materials: [{ pbrMetallicRoughness: { baseColorFactor: [0, 0, 1, 1] } }],
+    buffers: [{ byteLength: bin.length }],
+    bufferViews: [
+      { buffer: 0, byteOffset: 0, byteLength: positions.byteLength },
+      { buffer: 0, byteOffset: positions.byteLength, byteLength: indices.byteLength },
+    ],
+    accessors: [
+      { bufferView: 0, componentType: 5126, count: 8, type: 'VEC3', min: [0, 0, 0], max: [1, 1, 1] },
+      { bufferView: 1, componentType: 5123, count: 36, type: 'SCALAR' },
+    ],
+  };
+  let text = Buffer.from(JSON.stringify(json));
+  text = Buffer.concat([text, Buffer.alloc((4 - (text.length % 4)) % 4, 0x20)]);
+  const chunk = (data: Buffer, type: number) => {
+    const head = Buffer.alloc(8);
+    head.writeUInt32LE(data.length, 0);
+    head.writeUInt32LE(type, 4);
+    return Buffer.concat([head, data]);
+  };
+  const body = Buffer.concat([chunk(text, 0x4e4f534a), chunk(bin, 0x004e4942)]);
+  const header = Buffer.alloc(12);
+  header.writeUInt32LE(0x46546c67, 0);
+  header.writeUInt32LE(2, 4);
+  header.writeUInt32LE(12 + body.length, 8);
+  return Buffer.concat([header, body]);
+}
+
+test('shows a scan of my own build whole, and says it is a scan', async ({ page }) => {
+  test.slow();
+  const errors = collectErrors(page);
+  // No set has a scan yet, so put a scan button first in the picker and serve a box as its file.
+  const credit = 'A 3D scan of my own build of set 21356, made with a test.';
+  await page.route('**/off-the-clock/', async (route) => {
+    const response = await route.fetch();
+    const html = (await response.text()).replace(
+      /(aria-label="Choose a set to build"[^>]*>)/,
+      `$1<button type="button" class="viewer__pick" aria-pressed="false" data-url="/lego/test-scan.glb" data-kind="scan" data-name="River Steamboat" data-model-credit="${credit}" data-built="true">River Steamboat</button>`,
+    );
+    await route.fulfill({ response, body: html });
+  });
+  await page.route('**/lego/test-scan.glb', (route) =>
+    route.fulfill({ body: boxGlb(), contentType: 'model/gltf-binary' }),
+  );
+
+  await page.goto('/off-the-clock/');
+  const viewer = page.locator('lego-viewer');
+  await viewer.scrollIntoViewIfNeeded();
+  await expect(viewer.locator('[data-credit]')).toHaveText(credit);
+  await expect(viewer.locator('[data-progress]')).toHaveText('Scan of my own build', { timeout: 45_000 });
+  const replay = viewer.locator('[data-replay]');
+  await expect(replay).toHaveText('Show it again');
+  await expect(replay).toBeEnabled({ timeout: 15_000 });
+
+  // Once it has risen into view, the box is on screen in its own colour, unlit as photographed.
+  const shot = await viewer.locator('[data-stage]').screenshot();
+  const { data, info } = await sharp(shot).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  let blue = 0;
+  for (let i = 0; i < data.length; i += info.channels) if (data[i]! < 40 && data[i + 1]! < 40 && data[i + 2]! > 215) blue++;
+  expect(blue).toBeGreaterThan(2000);
+
+  // An LDraw set still builds step by step after a scan.
+  await viewer.getByRole('button', { name: /Ford Mustang/ }).click();
+  await expect(replay).toHaveText('Build it again');
+  await expect(viewer.locator('[data-progress]')).toHaveText(/^Step \d+ of 23$/, { timeout: 45_000 });
+  expect(errors).toEqual([]);
+});
+
 test('every LEGO set shows its photo, and a 3D brick builds that set', async ({ page }) => {
+  // The photos load lazily and the 3D viewer loads alongside them, which is slow when the browsers share a busy CPU.
+  test.slow();
   await page.goto('/off-the-clock/');
   const photos = page.locator('.brick__photo img');
   await expect(photos).toHaveCount(11);
   await photos.last().scrollIntoViewIfNeeded();
   await expect
-    .poll(() => photos.evaluateAll((imgs) => imgs.filter((img) => (img as HTMLImageElement).naturalWidth > 0).length))
+    .poll(() => photos.evaluateAll((imgs) => imgs.filter((img) => (img as HTMLImageElement).naturalWidth > 0).length), {
+      timeout: 20_000,
+    })
     .toBe(11);
   await page.getByRole('button', { name: 'Build the Ford Mustang in 3D' }).click();
-  await expect(page.locator('lego-viewer [data-credit]')).toContainText('10265');
+  await expect(page.locator('lego-viewer [data-credit]')).toContainText('10265', { timeout: 20_000 });
 });
 
 test('lists every project and gives each one a page', async ({ page }) => {

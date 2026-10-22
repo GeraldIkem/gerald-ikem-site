@@ -1,5 +1,5 @@
 ---
-import { modelled } from '~/data/lego';
+import { modelCredit, modelled } from '~/data/lego';
 const first = modelled[0];
 ---
 
@@ -12,14 +12,15 @@ const first = modelled[0];
           class="viewer__pick"
           aria-pressed={index === 0 ? 'true' : 'false'}
           data-url={set.model.url}
+          data-kind={set.model.kind}
+          data-turn={set.model.kind === 'scan' ? set.model.turn : undefined}
           data-name={set.name}
           data-number={set.number}
-          data-author={set.model.author}
-          data-source={set.model.source}
-          data-license={set.model.license}
+          data-model-credit={modelCredit(set)}
           data-built={String(set.built)}
         >
           {set.name}
+          {set.model.kind === 'scan' && <span class="viewer__flag viewer__flag--scan">Scan</span>}
           {!set.built && <span class="viewer__flag">In the box</span>}
         </button>
       ))
@@ -36,9 +37,7 @@ const first = modelled[0];
     <p class="viewer__progress" data-progress>Ready to build</p>
     <button type="button" class="viewer__replay" data-replay disabled>Build it again</button>
   </div>
-  <p class="viewer__credit" data-credit>
-    3D model of set {first?.number} by {first?.model.author}, {first?.model.source}, {first?.model.license}.
-  </p>
+  <p class="viewer__credit" data-credit>{first && modelCredit(first)}</p>
 </lego-viewer>
 
 <script>
@@ -49,6 +48,7 @@ const first = modelled[0];
     #loading: Promise<LegoBuild | null> | null = null;
     #current: HTMLButtonElement | null = null;
     #onScreen = false;
+    #scan = false;
     readonly #downloads = new Map<string, Promise<ArrayBuffer>>();
 
     connectedCallback() {
@@ -111,14 +111,17 @@ const first = modelled[0];
     async #show(pick: HTMLButtonElement) {
       this.#current = pick;
       for (const other of this.querySelectorAll('[data-url]')) other.setAttribute('aria-pressed', String(other === pick));
-      const { url = '', name = '', number = '', author = '', source = '', license = '' } = pick.dataset;
-      this.#credit(`3D model of set ${number} by ${author}, ${source}, ${license}.`);
+      const { url = '', kind = 'ldraw', name = '', modelCredit = '', turn = '0' } = pick.dataset;
+      const scan = kind === 'scan';
+      this.#scan = scan;
+      this.#credit(modelCredit);
       this.#status(`Loading the ${name}…`);
-      this.#progress('Loading parts');
+      this.#progress(scan ? 'Loading the scan' : 'Loading parts');
       this.#replay('loading');
-      // Fetch the model while three.js loads, rather than after, and only once per set.
-      let download = this.#downloads.get(url);
-      if (!download) {
+
+      // Fetch an LDraw model while three.js loads, rather than after, and only once per set.
+      let download = scan ? undefined : this.#downloads.get(url);
+      if (!scan && !download) {
         download = fetch(url).then((response) => {
           if (!response.ok) throw new Error(`Could not load ${url} (${response.status})`);
           return response.arrayBuffer();
@@ -129,15 +132,17 @@ const first = modelled[0];
 
       const build = await this.#engine();
       if (!build || this.#current !== pick) return;
+      const callbacks = {
+        onProgress: (step: number, steps: number) => this.#progress(`Step ${step} of ${steps}`),
+        onDone: () => this.#replay('again'),
+      };
       try {
-        await build.show(
-          url,
-          {
-            onProgress: (step, steps) => this.#progress(`Step ${step} of ${steps}`),
-            onDone: () => this.#replay('again'),
-          },
-          download,
-        );
+        if (scan) {
+          await build.showScan(url, callbacks, Number(turn));
+          this.#progress('Scan of my own build');
+        } else {
+          await build.show(url, callbacks, download);
+        }
         if (this.#current !== pick) return;
         this.#status('');
         this.#replay(build.building ? 'skip' : 'again');
@@ -150,7 +155,7 @@ const first = modelled[0];
       const replay = this.querySelector<HTMLButtonElement>('[data-replay]');
       if (!replay) return;
       replay.disabled = state === 'loading';
-      replay.textContent = state === 'skip' ? 'Skip to the end' : 'Build it again';
+      replay.textContent = state === 'skip' ? 'Skip to the end' : this.#scan ? 'Show it again' : 'Build it again';
     }
 
     #status(text: string) {
@@ -219,6 +224,10 @@ const first = modelled[0];
     background: var(--process-yellow);
     color: #1d2024;
     font-size: 0.7rem;
+  }
+
+  .viewer__flag--scan {
+    background: var(--process-cyan);
   }
 
   /* The build happens on a yellow baseplate of dots, like the book stage. */

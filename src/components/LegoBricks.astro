@@ -35,7 +35,7 @@ const groups = [
                 <span class="brick__label">
                   <span class="brick__name">{set.name}</span>
                   {set.note && <span class="brick__note">{set.note}</span>}
-                  {set.model && <span class="brick__badge">3D</span>}
+                  {set.model && <span class="brick__badge">{set.model.kind === 'scan' ? '3D scan' : '3D'}</span>}
                 </span>
               </>
             );
@@ -48,7 +48,7 @@ const groups = [
                   <span />
                 </span>
                 {set.model ? (
-                  <button type="button" class="brick__face" data-build={set.number} aria-label={`Build the ${set.name} in 3D`}>
+                  <button type="button" class="brick__face" data-build={set.number} aria-label={set.model.kind === 'scan' ? `Show the scan of my ${set.name}` : `Build the ${set.name} in 3D`}>
                     {face}
                   </button>
                 ) : (

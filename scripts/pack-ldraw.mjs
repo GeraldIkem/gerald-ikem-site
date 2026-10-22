@@ -1,9 +1,11 @@
 // Packs an LDraw model and every part it uses into one gzipped file that
 // three.js's LDrawLoader can read without the parts library.
 //
-// Usage: node scripts/pack-ldraw.mjs <ldraw library folder> <model.mpd> <out.mpd.gz>
+// Usage: node scripts/pack-ldraw.mjs <ldraw library folder> <model.mpd> <out.mpd.gz> [more part folders...]
 //
 // The library is the official parts library (library.ldraw.org, complete.zip).
+// Parts not in it yet, such as ones still on the Parts Tracker, can come from
+// more folders laid out the same way (parts/, parts/s/, p/); the library is searched first.
 // Part and model files keep their own Author and !LICENSE header lines.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -11,9 +13,9 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-const [libraryDir, modelPath, outPath] = process.argv.slice(2);
+const [libraryDir, modelPath, outPath, ...extraDirs] = process.argv.slice(2);
 if (!libraryDir || !modelPath || !outPath) {
-  console.error('Usage: node scripts/pack-ldraw.mjs <ldraw library folder> <model.mpd> <out.mpd.gz>');
+  console.error('Usage: node scripts/pack-ldraw.mjs <ldraw library folder> <model.mpd> <out.mpd.gz> [more part folders...]');
   process.exit(1);
 }
 
@@ -28,11 +30,11 @@ function loaderName(reference) {
 /** Where a referenced file lives in the library, if it does. */
 function libraryFile(reference) {
   const name = reference.replace(/\\/g, '/');
-  const candidates = [
-    path.join(libraryDir, 'parts', name),
-    path.join(libraryDir, 'p', name),
-    path.join(libraryDir, 'models', name),
-  ];
+  const candidates = [libraryDir, ...extraDirs].flatMap((dir) => [
+    path.join(dir, 'parts', name),
+    path.join(dir, 'p', name),
+    path.join(dir, 'models', name),
+  ]);
   return candidates.find((file) => existsSync(file)) ?? null;
 }
 
